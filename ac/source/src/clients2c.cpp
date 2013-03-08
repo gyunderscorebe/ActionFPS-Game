@@ -1372,6 +1372,28 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_GUNDROPPED:
+                {
+                    const int cn = getint(p);
+                    const int selectgun = getint(p);
+                    if (playerent* d = getclient(cn)) gundropped(d, selectgun);
+                }
+                break;
+
+            case SV_GUNPICKED:
+                {
+                    const int cn = getint(p);
+                    const int n = getint(p);
+                    if (cn == -1)
+                    {
+                        // conoutf("gunpickup %d expired", n);
+                        if (gunpickups.inrange(n)) gunpickups[n].type = -1;
+                    }
+                    else if (playerent* d = getclient(cn)) gunpicked(d, n);
+                    else conoutf("SV_GUNPICKED: unknown client %d", cn);
+                }
+                break;
+
             default:
                 neterr("type");
                 return;

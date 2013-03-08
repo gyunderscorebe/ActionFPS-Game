@@ -1089,6 +1089,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     startmodelbatches();
     renderclients();
+    rendergunpickups();
     endmodelbatches();
 
     startmodelbatches();

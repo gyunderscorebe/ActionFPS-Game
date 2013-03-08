@@ -432,6 +432,7 @@ const char *messagenames[SV_NUM] =
     "SV_CLIENT",
     "SV_EXTENSION",
     "SV_MAPIDENT", "SV_HUDEXTRAS", "SV_POINTS"
+    "SV_DROPGUN", "SV_PICKUPGUN", "SV_GUNDROPPED", "SV_GUNPICKED",
 };
 
 const char *entnames[MAXENTTYPES] =

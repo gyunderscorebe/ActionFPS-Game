@@ -648,3 +648,13 @@ inline const char *killmessage(int gun, bool gib = false)
 
     return killmessages[gib?1:0][gun];
 }
+
+struct gunpickup
+{
+    int type;
+    int timeavail;
+    int timestart;
+    int ammo;
+    vec pos;
+};
+extern vector<gunpickup> gunpickups;

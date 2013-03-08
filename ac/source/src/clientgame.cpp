@@ -875,7 +875,14 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
         pl->damageroll(damage);
     }
 
-    if(pl->health<=0) { if(local) dokill(pl, actor, gib, gun >= 0 ? gun : actor->weaponsel->type); }
+    if(pl->health<=0)
+    { 
+        if(local)
+        {
+            dokill(pl, actor, gib, gun >= 0 ? gun : actor->weaponsel->type);
+            dropgun(pl);
+        }
+    }
     else if(pl==player1) audiomgr.playsound(S_PAIN6, SP_HIGH);
     else audiomgr.playsound(S_PAIN1+rnd(5), pl);
 }

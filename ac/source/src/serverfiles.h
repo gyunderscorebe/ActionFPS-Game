@@ -219,14 +219,14 @@ bool serverconfigfile::load()
 
 // maprot.cfg
 
-#define CONFIG_MAXPAR 6
+#define CONFIG_MAXPAR 7
 
 struct configset
 {
     string mapname;
     union
     {
-        struct { int mode, time, vote, minplayer, maxplayer, skiplines; };
+        struct { int mode, time, vote, minplayer, maxplayer, skiplines, dropguns; };
         int par[CONFIG_MAXPAR];
     };
 };
@@ -336,7 +336,8 @@ struct servermaprot : serverconfigfile
                 if(i > 2)
                 {
                     configsets.add(c);
-                    logline(ACLOG_VERBOSE," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, modestr(c.mode, false), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);
+                    logline(ACLOG_VERBOSE," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d, dropguns:%d",
+                        c.mapname, modestr(c.mode, false), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines, c.dropguns);
                 }
                 else logline(ACLOG_INFO," error in line %d, file %s", line, filename);
             }

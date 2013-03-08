@@ -648,7 +648,8 @@ void CBot::CheckWeaponSwitch()
     {
        m_pMyEnt->prevweaponsel = m_pMyEnt->weaponsel;
        m_pMyEnt->weaponsel = m_pMyEnt->nextweaponsel;
-       if(m_pMyEnt->weaponsel!=NULL) addmsg(SV_WEAPCHANGE, "ri", m_pMyEnt->weaponsel->type); // 2011jan17:ft: message possibly not needed in a local game!?!
+       //2013mar07:vondrak: this is definitely wrong, addmsg will result in a message with the client ID of player1, not the bot's client ID
+       //if(m_pMyEnt->weaponsel!=NULL) addmsg(SV_WEAPCHANGE, "ri", m_pMyEnt->weaponsel->type); // 2011jan17:ft: message possibly not needed in a local game!?!
        m_pMyEnt->weaponchanging = 0;
        m_iChangeWeaponDelay = 0;
        if(!m_pMyEnt->weaponsel->mag)

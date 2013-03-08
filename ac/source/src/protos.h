@@ -695,7 +695,7 @@ extern void writesoundconfig(stream *f);
 */
 
 // rendermodel
-extern void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, modelattach *a = NULL, float scale = 1.0f);
+extern void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, modelattach *a = NULL, float scale = 1.0f, float roll = 0.0f);
 extern void startmodelbatches();
 extern void endmodelbatches(bool flush = true);
 extern void clearmodelbatches();
@@ -711,6 +711,7 @@ extern void renderclients();
 extern void renderclient(playerent *d);
 extern void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex = 0);
 extern void updateclientname(playerent *d);
+extern void rendergunpickups();
 
 // weapon
 extern void shoot(playerent *d, vec &to);
@@ -860,7 +861,9 @@ extern void filterlang(char *d, const char *s);
 extern void trimtrailingwhitespace(char *s);
 extern void cutcolorstring(char *text, int len);
 extern void startintermission();
-extern void restoreserverstate(vector<entity> &ents);
+#if 0
+ extern void restoreserverstate(vector<entity> &ents);
+#endif
 extern string mastername;
 extern int masterport;
 extern ENetSocket connectmaster();
@@ -876,6 +879,14 @@ extern void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsoc
 extern void extinfo_teamscorebuf(ucharbuf &p);
 extern char *votestring(int type, char *arg1, char *arg2, char *arg3);
 extern int wizardmain(int argc, char **argv);
+
+extern void addgunpickup(const playerent*, int time);
+extern void addgunpickup(const playerstate&, int time, const vec* v=NULL);
+extern bool dropgun(const playerstate&);
+
+extern void dropgun(playerent* d);
+extern void gundropped(playerent* d, int switchto=GUN_PISTOL);
+extern void gunpicked(playerent*, int n);
 
 // demo
 #define DHDR_DESCCHARS 80

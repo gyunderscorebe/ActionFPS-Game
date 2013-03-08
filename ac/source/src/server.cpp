@@ -309,6 +309,7 @@ savedscore *findscore(client &c, bool insert)
     return &sc;
 }
 
+#if 0
 void restoreserverstate(vector<entity> &ents)   // hack: called from savegame code, only works in SP
 {
     loopv(sents)
@@ -317,6 +318,7 @@ void restoreserverstate(vector<entity> &ents)   // hack: called from savegame co
         sents[i].spawntime = 0;
     }
 }
+#endif
 
 void sendf(int cn, int chan, const char *format, ...)
 {
@@ -1439,6 +1441,30 @@ void checkitemspawns(int diff)
     }
 }
 
+void checkgunpickups(int diff)
+{
+    if(!diff) return;
+    loopv(gunpickups) if(gunpickups[i].timeavail > 0)
+    {
+        gunpickups[i].timeavail -= diff;
+        if (gunpickups[i].timeavail <= 0)
+        {
+            // logline(ACLOG_INFO, "gunpickup %d expired (type=%d)", i, gunpickups[i].type);
+            gunpickups[i].type = -1;
+            // tell clients this gun pickup is no longer available (has expired)
+            sendf(-1, 1, "ri3", SV_GUNPICKED, -1, i);
+        }
+    }
+}
+
+static void dropgun(client& c)
+{
+    if (dropgun(c.state))
+    {
+        sendf(-1, 1, "ri3", SV_GUNDROPPED, c.clientnum, c.state.gunselect=GUN_PISTOL);
+    }
+}
+
 void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &hitpush = vec(0, 0, 0))
 {
     if (!m_demo && !m_coop && !validdamage(target, actor, damage, gun, gib)) return;
@@ -1483,6 +1509,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
             suic = true;
             logline(ACLOG_INFO, "[%s] %s suicided", actor->hostname, actor->name);
         }
+        dropgun(*target);
         sendf(-1, 1, "ri5", gib ? SV_GIBDIED : SV_DIED, target->clientnum, actor->clientnum, actor->state.frags, gun);
         if((suic || tk) && (m_htf || m_ktf) && targethasflag >= 0)
         {
@@ -2612,6 +2639,28 @@ int checktype(int type, client *cl)
     return type;
 }
 
+static bool gunpicked(playerstate& d, int n)
+{
+    if (!gunpickups.inrange(n)) return false;
+    gunpickup& gun = gunpickups[n];
+    if (gun.type < 0 || gun.type >= NUMGUNS) return false;
+    if (d.primary==gun.type)
+    {
+        int ammo = min(d.mag[gun.type] + gun.ammo, magsize(gun.type));
+        if (ammo > d.mag[gun.type]) d.mag[gun.type] = ammo;
+    }
+    else
+    {
+        if (isdedicated) addgunpickup(d, servmillis); // make current gun available for pickup
+        d.primary = gun.type;
+        d.nextprimary = gun.type;
+        d.gunselect = gun.type;
+        d.mag[gun.type] = gun.ammo;
+    }
+    gun.timeavail = 0;
+    return true;
+}
+
 // server side processing of updates: does very little and most state is tracked client only
 // could be extended to move more gameplay to server (at expense of lag)
 
@@ -3525,6 +3574,17 @@ void process(ENetPacket *packet, int sender, int chan)
                 senddemo(sender, getint(p));
                 break;
 
+            case SV_DROPGUN:
+                dropgun(*cl);
+                break;
+
+            case SV_PICKUPGUN:
+                {
+                    int n = getint(p);
+                    if (gunpicked(cl->state, n)) sendf(-1, 1, "ri3", SV_GUNPICKED, cl->clientnum, n);
+                }
+                break;
+
             case SV_EXTENSION:
             {
                 // AC server extensions
@@ -3815,6 +3875,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     {
         processevents();
         checkitemspawns(diff);
+        checkgunpickups(diff);
         bool ktfflagingame = false;
         if(m_flags) loopi(2)
         {
@@ -4230,6 +4291,64 @@ void initserver(bool dedicated, int argc, char **argv)
     }
 }
 
+vector<gunpickup> gunpickups;
+
+#if !defined(STANDALONE)
+// enable/disable the dropguns "mutator" in single-player mode
+// For dedicated servers use the 7th flag in map rotation cfg file.
+// When enabled, players can use /dropgun /pickupgun to drop their
+// primary weapons and pick up weapons dropped by other players respectively.
+// When players are killed while holding a primary weapon, it is automatically
+// dropped.
+VARP(allowdropguns, 0, 0, 1);
+#endif
+
+static bool candrop(int gun)
+{
+    if (isdedicated && maprot.current() && !maprot.current()->dropguns) return false;
+#if !defined(STANDALONE)
+    if (!isdedicated && !allowdropguns) return false;
+#endif
+    switch (gun)
+    {
+        case GUN_PISTOL:
+        case GUN_CPISTOL:
+        case GUN_AKIMBO:
+        case GUN_GRENADE:
+        case GUN_KNIFE: return false;
+    }
+    return true;
+}
+
+bool dropgun(const playerstate& state)
+{
+    if(!candrop(state.gunselect)) return false;
+    if(state.gunselect != state.primary) return false;
+    if(isdedicated) addgunpickup(state, servmillis);
+    return true;
+}
+
+// make the player's primary gun available to be picked up by others
+void addgunpickup(const playerstate& state, int time, const vec* pos)
+{
+    if (state.primary != state.gunselect) return;
+    int n = -1;
+    // find an empty slot
+    for (int i = 0; n < 0 && i < gunpickups.length(); ++i) if (gunpickups[i].type < 0) n = i;
+
+  /*#if STANDALONE
+    logline(ACLOG_INFO, "addgunpickup: %d slot=%d", state.primary, n < 0 ? gunpickups.length() : n);
+  #else
+    conoutf("addgunpickup: %d slot=%d", state.primary, n < 0 ? gunpickups.length() : n);
+  #endif */
+    gunpickup& gun = gunpickups.inrange(n) ? gunpickups[n] : gunpickups.add();
+    gun.ammo = state.mag[ state.primary ];
+    gun.type = state.primary;
+    gun.timeavail = 10000;
+    gun.timestart = time;
+    gun.pos = pos ? *pos : vec();
+}
+
 #ifdef STANDALONE
 
 void localservertoclient(int chan, uchar *buf, int len, bool demo) {}
@@ -4268,4 +4387,3 @@ int main(int argc, char **argv)
     #endif
 }
 #endif
-

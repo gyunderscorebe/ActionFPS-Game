@@ -405,6 +405,125 @@ void trypickupflag(int flag, playerent *d)
     }
 }
 
+void addgunpickup(const playerent* d, int time)
+{
+    vec v = d->o;
+    v.z -= d->eyeheight + d->aboveeye;
+    addgunpickup(*d, time, &v);
+}
+
+static bool canpickupgun(const playerent* d)
+{
+    return !d->attacking && d->weaponsel && d->weaponsel->type!=GUN_AKIMBO 
+        && (d->weaponsel->type==d->primary || d->primweap==NULL);
+}
+
+// Show HUD message about what key(s) to press to pickup guns.
+VARP(gunpickuphints, 0, 1, 1);
+extern keym* findbinda(const char* action, int); // defined in console.cpp
+
+static void showgunpickuphints(const playerent* d, int type)
+{
+    static int millis = 0;
+    if (lastmillis <= millis + 3000) return;
+    keym* k = findbinda("pickupgun", 0);
+    if (!k || !k->name) return;
+    millis = lastmillis;
+    if (!d->primweap || d->gunselect <= GUN_PISTOL)
+        hudoutf("press %s to pickup %s", k->name, guns[type].modelname);
+    else if (d->weaponsel)
+        hudoutf("press %s to swap %s for %s", k->name, d->weaponsel->info.modelname, guns[type].modelname);
+}
+
+static void checkgunpickups(playerent* d, bool dopickup=false)
+{
+    if (!canpickupgun(d)) return;
+    // have the bots pick up guns on random, just for shits and grins
+    if (d->type==ENT_BOT) dopickup = rnd(100)>50;
+
+    loopv(gunpickups)
+    {
+        if (gunpickups[i].timeavail <= 0) continue;
+        const int type = gunpickups[i].type;
+        if (type < 0 || type >= NUMGUNS) continue;
+        vec v = gunpickups[i].pos;
+        v.z += d->eyeheight + d->aboveeye;
+        if (d->o.dist(v) >= 2.5) continue;
+
+        if (dopickup || type==d->primary)
+        {
+            if (d->type==ENT_BOT) gunpicked(d, i);
+            else addmsg(SV_PICKUPGUN, "ri", i);
+            break;
+        }
+        else if (gunpickuphints && d==player1 && (d->primary != type || !d->primweap))
+        {
+            //conoutf("slot %d, type %d", i, type);
+            showgunpickuphints(d, type);
+        }
+    }
+}
+
+// Called explicitely by user or on local death.
+void dropgun(playerent* d)
+{
+    if (!dropgun(*d)) return;
+    if (d->type==ENT_BOT) gundropped(d);
+    else addmsg(SV_DROPGUN, "r");
+}
+
+// Called in response to SV_GUNDROPPED (or directly from dropgun for bots)
+void gundropped(playerent* d, int gunselect)
+{
+    addgunpickup(d, lastmillis);
+    if (d->state==CS_ALIVE)
+    {
+        d->selectweapon(d->primary = gunselect);
+        d->weaponswitch(d->primweap = d->weaponsel);
+    }
+}
+
+void gunpicked(playerent* d, int n)
+{
+    if (!gunpickups.inrange(n)) return;
+    gunpickup& gun = gunpickups[n];
+    if (gun.type < 0 || gun.type >= NUMGUNS) return;
+
+    if (gun.type==d->primary)
+    {   // same gun type? just take the ammo
+        const int ammo = min(d->mag[gun.type] + gun.ammo, magsize(gun.type));
+        if (ammo > d->mag[gun.type])
+        {
+        #if 0
+            const int rounds = ammo - d->mag[gun.type];
+            if (gunpickuphints && d==player1 && !d->weaponchanging)
+            {
+                hudoutf("picked up %d round%s", rounds, (rounds==1 ? "" : "s"));
+            }
+        #endif
+            d->mag[gun.type] = ammo;
+            audiomgr.playsound(S_ITEMAMMO, d);
+        }
+    }
+    else
+    {
+        if (!d->weaponchanging) addgunpickup(d, lastmillis);
+        d->setprimary(gun.type);
+        d->setnextprimary(gun.type);
+        d->selectweapon(gun.type);
+        d->mag[gun.type] = gun.ammo;
+        d->weaponswitch(d->weaponsel);
+    }
+    gun.timeavail = 0;
+}
+
+COMMANDF(dropgun, "", () { 
+    if (player1) dropgun(player1);
+});
+COMMANDF(pickupgun, "", () {
+    if (player1) checkgunpickups(player1, true);
+});
+
 void checkitems(playerent *d)
 {
     if(editmode || d->state!=CS_ALIVE) return;
@@ -450,6 +569,7 @@ void checkitems(playerent *d)
             if(d->o.dist(v)<2.5f) trypickupflag(i, d);
         }
     }
+    checkgunpickups(d);
 }
 
 void spawnallitems()            // spawns items locally

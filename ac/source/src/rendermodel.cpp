@@ -171,6 +171,20 @@ struct batchedmodel
     playerent *d;
     int attached;
     float scale;
+    float roll;
+    batchedmodel() 
+        : anim(0)
+        , varseed(0)
+        , tex(0)
+        , yaw(0.0f)
+        , pitch(0.0f)
+        , speed(0.0f)
+        , basetime(0)
+        , d(NULL)
+        , attached(0)
+        , scale(0.0f)
+        , roll(0.0f)
+    {}
 };
 struct modelbatch
 {
@@ -241,7 +255,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
         glColor4f(color[0], color[1], color[2], m->translucency);
     }
 
-    m->render(b.anim, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
+    m->render(b.anim, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale, b.roll);
 
     if(b.anim&ANIM_TRANSLUCENT)
     {
@@ -355,7 +369,7 @@ const int dbgmbatch = 0;
 //VAR(dbgmbatch, 0, 0, 1);
 
 VARP(popdeadplayers, 0, 0, 1);
-void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed, int basetime, playerent *d, modelattach *a, float scale)
+void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed, int basetime, playerent *d, modelattach *a, float scale, float roll)
 {
     if(popdeadplayers && d && a)
     {
@@ -407,6 +421,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         b.attached = a ? modelattached.length() : -1;
         if(a) for(int i = 0;; i++) { modelattached.add(a[i]); if(!a[i].tag) break; }
         b.scale = scale;
+        b.roll = roll;
         return;
     }
 
@@ -755,4 +770,26 @@ void renderclients()
     playerent *d;
     loopv(players) if((d = players[i]) && d->state!=CS_SPAWNING && d->state!=CS_SPECTATE && (!player1->isspectating() || player1->spectatemode != SM_FOLLOW1ST || player1->followplayercn != i)) renderclient(d);
     if(player1->state==CS_DEAD || (reflecting && !refracting)) renderclient(player1);
+}
+
+// 0 render on the floor / 1 render them spinning (like all the other pickups)
+VARP(gunpickupspin, 0, 1, 1);
+
+void rendergunpickups()
+{
+    loopv(gunpickups)
+    {
+        if (gunpickups[i].timeavail <= 0) continue;
+        const int type = gunpickups[i].type;
+        if (type < 0 || type >= NUMGUNS) continue;
+        defformatstring(widn)("modmdlweap%d", type);
+        const char* modelname = identexists(widn)?getalias(widn) : guns[type].modelname;
+        defformatstring(path)("weapons/%s/world", modelname);
+        vec v(gunpickups[i].pos);
+        float yaw = gunpickups[i].timestart % 360;
+        float roll = 0.0f;
+        if (gunpickupspin) yaw = (lastmillis - gunpickups[i].timestart)/15 % 360;
+        else roll = -45.0f;
+        rendermodel(path, ANIM_MAPMODEL, 0, 1.1, v, yaw, 0.0f, 0.0f, 0, NULL, NULL, 1.0f, roll);
+    }
 }

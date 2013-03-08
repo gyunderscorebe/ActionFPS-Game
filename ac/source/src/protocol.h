@@ -5,7 +5,7 @@
 #define CUBE_SERVINFO_PORT_LAN 28762
 #define CUBE_SERVINFO_PORT(serverport) (serverport+1)
 #define CUBE_SERVINFO_TO_SERV_PORT(servinfoport) (servinfoport-1)
-#define PROTOCOL_VERSION 1145           // bump when protocol changes (use negative numbers for mods!)
+#define PROTOCOL_VERSION 1146           // bump when protocol changes (use negative numbers for mods!)
 #define DEMO_VERSION 2                  // bump when demo format changes
 #define DEMO_MAGIC "ASSAULTCUBE_DEMO"
 #define DEMO_MINTIME 10000              // don't keep demo recordings with less than 10 seconds
@@ -41,6 +41,7 @@ enum
     SV_CLIENT,
     SV_EXTENSION,
     SV_MAPIDENT, SV_HUDEXTRAS, SV_POINTS,
+    SV_DROPGUN, SV_PICKUPGUN, SV_GUNDROPPED, SV_GUNPICKED,
     SV_NUM
 };
 
