@@ -61,6 +61,8 @@ struct mapstats
     int spawns[3];
     int flags[2];
     int flagents[2];
+    int bases;
+    int baseents[MAXBASES][2];
     bool hasffaspawns;
     bool hasteamspawns;
     bool hasflags;

@@ -393,6 +393,7 @@ bool requestmasterf(const char *fmt, ...); // for AUTH et al
 
 // clientgame
 extern flaginfo flaginfos[2];
+extern baseinfo baseinfos[MAXBASES];
 extern int sessionid;
 extern int gametimecurrent;
 extern int gametimemaximum;

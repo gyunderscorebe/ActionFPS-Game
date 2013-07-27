@@ -104,8 +104,8 @@ int checkarea(int maplayout_factor, char *maplayout)
 This part is related to medals system. WIP
  */
 
-const char * medal_messages[] = { "defended the flag", "covered the flag stealer", "defended the dropped flag", "covered the flag keeper", "covered teammate" };
-enum { CTFLDEF, CTFLCOV, HTFLDEF, HTFLCOV, COVER, MEDALMESSAGENUM };
+const char * medal_messages[] = { "defended the flag", "covered the flag stealer", "defended the dropped flag", "covered the flag keeper", "covered teammate", "defended his base" };
+enum { CTFLDEF, CTFLCOV, HTFLDEF, HTFLCOV, COVER, RGDEF, MEDALMESSAGENUM };
 inline void print_medal_messages(client *c, int n)
 {
     if (n<0 || n>=MEDALMESSAGENUM) return;
@@ -149,6 +149,11 @@ inline void addpt(client *c, int points, int n = -1) {
 #define SHOTGPT       12                           // player gibs with the shotgun
 #define TKPT         -20                           // player tks
 #define FLAGTKPT     -2*(10+cnumber)               // player tks the flag keeper/stealer
+#define RGDEFPT       2*cnumber                    // player defended a captured base
+#define RGSCOREPT    (2*cnumber+10)                // player scored (kept the base)
+#define RGCAPTPT      1                            // player contributed to capture a base (each 10 %)
+#define RGBASEKPT     cnumber
+#define RGBASETKPT   -cnumber
 
 void flagpoints(client *c, int message)
 {
@@ -401,7 +406,8 @@ void checkcover(client *target, client *actor)
 
     int cnumber = totalclients < 13 ? totalclients : 12;
 
-    if ( m_flags ) {
+    if (m_flags)
+    {
         sflaginfo &f = sflaginfos[team];
         sflaginfo &of = sflaginfos[oteam];
 
@@ -410,13 +416,13 @@ void checkcover(client *target, client *actor)
             if ( f.state == CTFF_INBASE )
             {
                 CALCCOVER(f);
-                if ( testcover(HE_FLAGDEFENDED, CTFLDEFPT, actor) ) print_medal_messages(actor,CTFLDEF);
+                if ( testcover(HE_FLAGDEFENDED, CTFLDEFPT, actor) ) print_medal_messages(actor, CTFLDEF);
             }
             if ( of.state == CTFF_STOLEN && actor->clientnum != of.actor_cn )
             {
                 covered = true; coverid = of.actor_cn;
                 CALCCOVER(clients[of.actor_cn]->state.o);
-                if ( testcover(HE_FLAGCOVERED, CTFLCOVPT, actor) ) print_medal_messages(actor,CTFLCOV);
+                if ( testcover(HE_FLAGCOVERED, CTFLCOVPT, actor) ) print_medal_messages(actor, CTFLCOV);
             }
         }
         else if ( m_htf )
@@ -428,14 +434,31 @@ void checkcover(client *target, client *actor)
                     struct { short x, y; } nf;
                     nf.x = f.pos[0]; nf.y = f.pos[1];
                     CALCCOVER(nf);
-                    if ( testcover(HE_FLAGDEFENDED, HTFLDEFPT, actor) ) print_medal_messages(actor,HTFLDEF);
+                    if ( testcover(HE_FLAGDEFENDED, HTFLDEFPT, actor) ) print_medal_messages(actor, HTFLDEF);
                 }
                 if ( f.state == CTFF_STOLEN )
                 {
                     covered = true; coverid = f.actor_cn;
                     CALCCOVER(clients[f.actor_cn]->state.o);
-                    if ( testcover(HE_FLAGCOVERED, HTFLCOVPT, actor) ) print_medal_messages(actor,HTFLCOV);
+                    if ( testcover(HE_FLAGCOVERED, HTFLCOVPT, actor) ) print_medal_messages(actor, HTFLCOV);
                 }
+            }
+        }
+    }
+    else if(m_regen)
+    {
+        loopi(MAXBASES) if(sbaseinfos[i].valid)
+        {
+            sbaseinfo &b = sbaseinfos[i];
+            if(b.state == BASE_CAPTURED && b.curowner == team // base taken
+                && actor->state.basesdist[i] <= (b.radius+10) // actor not-too-far from the base
+                && target->state.basesdist[i] <= (b.radius+5)) // target near base
+            {
+                sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, HE_BASEDEFENDED);
+                addpt(actor, RGDEFPT);
+                actor->md.ncovers++;
+                print_medal_messages(actor, RGDEF);
+                actor->state.basespts[i] += RGDEFPT;
             }
         }
     }
@@ -457,43 +480,56 @@ void checkfrag(client *target, client *actor, int gun, bool gib)
     int actorhasflag = clienthasflag(actor->clientnum);
     int cnumber = totalclients < 13 ? totalclients : 12;
     addpt(target,DEATHPT);
-    if(target!=actor) {
-        if(!isteam(target->team, actor->team)) {
-
-            if (m_teammode) {
+    bool tk = !isteam(target->team, actor->team);
+    if(target != actor)
+    {
+        if(m_regen && target->state.inbase)
+        {
+            addpt(actor, tk ? RGBASETKPT : RGBASEKPT);
+            loopi(MAXBASES) if(&sbaseinfos[i] == target->state.curbase)
+            {
+                actor->state.basespts[i] += tk ? RGBASETKPT : RGBASEKPT;
+                break;
+            }
+        }
+        if(tk)
+        {
+            if(m_teammode)
+            {
                 if(!m_flags) addpt(actor, TMBONUSPT);
                 else addpt(actor, FLBONUSPT);
 
-                checkcover (target, actor);
-                if ( m_htf && actorhasflag >= 0 ) addpt(actor, HTFFRAGPT);
+                checkcover(target, actor);
+                if(m_htf && actorhasflag >= 0) addpt(actor, HTFFRAGPT);
 
-                if ( m_ctf && targethasflag >= 0 ) {
-                    addpt(actor, CTFFRAGPT);
-                }
+                if(m_ctf && targethasflag >= 0) addpt(actor, CTFFRAGPT);
             }
             else addpt(actor, BONUSPT);
 
-            if (gib && gun != GUN_GRENADE) {
-                if ( gun == GUN_SNIPER ) {
+            if (gib && gun != GUN_GRENADE)
+            {
+                if (gun == GUN_SNIPER)
+                {
                     addpt(actor, HEADSHOTPT);
                     actor->md.nhs++;
                 }
-                else if ( gun == GUN_KNIFE ) addpt(actor, KNIFEPT);
-                else if ( gun == GUN_SHOTGUN ) addpt(actor, SHOTGPT);
+                else if (gun == GUN_KNIFE) addpt(actor, KNIFEPT);
+                else if (gun == GUN_SHOTGUN) addpt(actor, SHOTGPT);
             }
             else addpt(actor, FRAGPT);
 
-            if ( actor->md.combo ) {
+            if (actor->md.combo)
+            {
                 actor->md.combofrags++;
                 addpt(actor,COMBOPT);
                 actor->md.combosend = true;
             }
 
-        } else {
-
+        }
+        else
+        {
             if ( targethasflag >= 0 ) addpt(actor, FLAGTKPT);
             else addpt(actor, TKPT);
-
         }
     }
 }

@@ -72,6 +72,8 @@ enum
     S_ITEMHELMET, // begin: Sounds for AssaultCube v1.1.0.4 onwards
     S_HEARTBEAT,
     S_KTFSCORE,
+    S_BASECAPTURED,
+    S_BASELOST,
     S_NULL
 };
 

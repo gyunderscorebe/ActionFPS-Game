@@ -41,6 +41,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     loopi(MAXENTTYPES) s.entcnt[i] = 0;
     loopi(3) s.spawns[i] = 0;
     loopi(2) s.flags[i] = 0;
+    s.bases = 0;
+    loopi(MAXBASES) loopj(2) s.baseents[i][j] = 0;
 
     stream *f = opengzfile(filename, "rb");
     if(!f) return NULL;
@@ -58,6 +60,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     entity e;
     enttypes = new uchar[s.hdr.numents];
     entposs = new short[s.hdr.numents * 3];
+
     loopi(s.hdr.numents)
     {
         f->read(&e, sizeof(persistent_entity));
@@ -65,6 +68,12 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         TRANSFORMOLDENTITIES(s.hdr)
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100)) s.spawns[e.attr2 == 100 ? 2 : e.attr2]++;
         if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) { s.flags[e.attr2]++; s.flagents[e.attr2] = i; }
+        if(e.type == BASE && s.bases < MAXBASES)
+        {
+            s.baseents[s.bases][0] = i;
+            s.baseents[s.bases][1] = e.attr1;
+            ++s.bases;
+        }
         s.entcnt[e.type]++;
         enttypes[i] = e.type;
         entposs[i * 3] = e.x; entposs[i * 3 + 1] = e.y; entposs[i * 3 + 2] = e.z + e.attr1;

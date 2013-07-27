@@ -298,14 +298,14 @@ const char *modefullnames[] =
     "team deathmatch", "coopedit", "deathmatch", "survivor",
     "team survivor", "ctf", "pistol frenzy", "bot team deathmatch", "bot deathmatch", "last swiss standing",
     "one shot, one kill", "team one shot, one kill", "bot one shot, one kill", "hunt the flag", "team keep the flag",
-    "keep the flag", "team pistol frenzy", "team last swiss standing", "bot pistol frenzy", "bot last swiss standing", "bot team survivor", "bot team one shot, one kill"
+    "keep the flag", "team pistol frenzy", "team last swiss standing", "bot pistol frenzy", "bot last swiss standing", "bot team survivor", "bot team one shot, one kill", "regen capture"
 };
 
 const char *modeacronymnames[] =
 {
     "DEMO",
     "TDM", "coop", "DM", "SURV", "TSURV", "CTF", "PF", "BTDM", "BDM", "LSS",
-    "OSOK", "TOSOK", "BOSOK", "HTF", "TKTF", "KTF", "TPF", "TLSS", "BPF", "BLSS", "BTSURV", "BTOSOK"
+    "OSOK", "TOSOK", "BOSOK", "HTF", "TKTF", "KTF", "TPF", "TLSS", "BPF", "BLSS", "BTSURV", "BTOSOK", "REGEN"
 };
 
 const char *voteerrors[] = { "voting is currently disabled", "there is already a vote pending", "already voted", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote", "server denied your call", "the next map/mode is already set" };
@@ -333,6 +333,7 @@ static const int msgsizes[] =               // size inclusive message token, 0 f
     SV_SENDMAP, 0, SV_RECVMAP, 1, SV_REMOVEMAP, 0,
     SV_SERVMSG, 0, SV_ITEMLIST, 0, SV_WEAPCHANGE, 2, SV_PRIMARYWEAP, 2,
     SV_FLAGACTION, 3, SV_FLAGINFO, 0, SV_FLAGMSG, 0, SV_FLAGCNT, 3,
+    SV_BASESTATE, 0, SV_BASECAPTURING, 0, SV_BASECAPTURED, 0, SV_BASEFEED, 0, SV_BASEINFO, 0,
     SV_ARENAWIN, 2,
     SV_SETADMIN, 0, SV_SERVOPINFO, 3,
     SV_CALLVOTE, 0, SV_CALLVOTESUC, 1, SV_CALLVOTEERR, 2, SV_VOTE, 2, SV_VOTERESULT, 2,

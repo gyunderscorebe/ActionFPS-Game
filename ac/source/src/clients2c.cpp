@@ -325,24 +325,31 @@ void showhudextras(char hudextras, char value){
         case HE_COMBO5:
         {
             int n = value - HE_COMBO;
-            if (n > 3) outf("\f3%s",strcaps("monster combo!!!",caps)); // I expect to never see this one
-            else if (!n) outf("\f5%s",strcaps("combo", caps));
-            else outf("\f5%s x%d",strcaps("multi combo", caps),n+1);
+            if (n > 3) outf("\f3%s", strcaps("monster combo!!!",caps)); // I expect to never see this one
+            else if (!n) outf("\f5%s", strcaps("combo", caps));
+            else outf("\f5%s x%d", strcaps("multi combo", caps),n+1);
             break;
         }
         case HE_TEAMWORK:
-            outf("\f5%s",strcaps("teamwork done", caps)); break;
+            outf("\f5%s", strcaps("teamwork done", caps)); break;
         case HE_FLAGDEFENDED:
-            outf("\f5%s",strcaps("you defended the flag", caps)); break;
+            outf("\f5%s", strcaps("you defended the flag", caps)); break;
         case HE_FLAGCOVERED:
-            outf("\f5%s",strcaps("you covered the flag", caps)); break;
+            outf("\f5%s", strcaps("you covered the flag", caps)); break;
         case HE_COVER:
-            if (teamworkid >= 0)
-            {
-                playerent *p = getclient(teamworkid);
-                if (!p || p == player1) teamworkid = -1;
-                else outf("\f5you covered %s",p->name); break;
-            }
+        if (teamworkid >= 0)
+        {
+            playerent *p = getclient(teamworkid);
+            if (!p || p == player1) teamworkid = -1;
+            else outf("\f5you covered %s",p->name);
+            break;
+        }
+        case HE_BASEDEFENDED:
+        {
+            outf("\f5%s", strcaps("you defended the base", caps)); break;
+            break;
+        }
+        break;
         default:
         {
             if (value >= HE_NUM)
@@ -396,6 +403,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
         {
             if(type > SV_IPLIST) --type;            // SV_WHOIS removed
             if(type >= SV_TEXTPRIVATE) ++type;      // SV_TEXTPRIVATE added
+            if(type >= SV_BASESTATE) type += 5;     // regen capture
             if(type == SV_SWITCHNAME)               // SV_SPECTCN removed
             {
                 getint(p);
@@ -1094,6 +1102,87 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 else if(alive==player1) hudoutf(_("you are the survivor!"));
                 else hudoutf(_("%s is the survivor!"), colorname(alive));
                 arenaintermission = lastmillis;
+                break;
+            }
+
+            case SV_BASEINFO:
+            {
+                int count = getint(p);
+                loopi(count)
+                {
+                    int base = getint(p);
+                    if(base >= 0 && base < MAXBASES)
+                    {
+                        baseinfo &b = baseinfos[base];
+                        b.state = getint(p);
+                        b.curowner = getint(p);
+                        b.power[0] = getint(p);
+                        b.power[1] = getint(p);
+                    }
+                }
+            }
+            break;
+
+            case SV_BASESTATE:
+            {
+                int base = getint(p);
+                int power[2] = { 0, 0 };
+                loopi(2) power[i] = getint(p);
+                if(base < 0 || base >= MAXBASES) break;
+                loopi(2) baseinfos[base].power[i] = power[i];
+                break;
+            }
+
+            case SV_BASECAPTURING:
+            {
+                int base = getint(p);
+                if(base < 0 || base >= MAXBASES) break;
+                int lastowner = getint(p);
+                if(lastowner == team_base(player1->team))
+                {
+                    audiomgr.playsound(S_BASELOST, SP_HIGHEST);
+                    conoutf("base %d lost", base);
+                }
+                else if(lastowner == team_base(team_opposite(player1->team)))
+                {
+                    conoutf("the enemy team lost base %d", base);
+                }
+                /*int dominant = */getint(p);
+                baseinfos[base].curowner = -1;
+                baseinfos[base].state = BASE_CAPTURING;
+                break;
+            }
+
+            case SV_BASECAPTURED:
+            {
+                int base = getint(p);
+                int owner = getint(p);
+                if(base < 0 || base >= MAXBASES) break;
+                if(owner == team_base(player1->team))
+                {
+                    audiomgr.playsound(S_BASECAPTURED, SP_HIGHEST);
+                    conoutf("base %d captured", base);
+                }
+                else if(owner == team_base(team_opposite(player1->team)))
+                {
+                    conoutf("the enemy team captured base %d", base);
+                }
+                baseinfos[base].curowner = owner;
+                baseinfos[base].state = BASE_CAPTURED;
+                break;
+            }
+
+            case SV_BASEFEED:
+            {
+                int cn = getint(p);
+                int health = getint(p);
+                int armour = getint(p);
+                playerent *d = getclient(cn);
+                if(d)
+                {
+                    d->health = health;
+                    d->armour = armour;
+                }
                 break;
             }
 

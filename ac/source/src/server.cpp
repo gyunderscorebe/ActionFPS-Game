@@ -830,6 +830,21 @@ struct sflaginfo
     sflaginfo() { actor_cn = -1; }
 } sflaginfos[2];
 
+struct sbaseinfo
+{
+    short x, y;
+    int radius;
+    bool valid;
+    int state, curowner, dominant;
+    int lastaction, lastscore;
+    int power[2];
+    int players[2];
+    
+    sbaseinfo() : x(0), y(0), radius(0), valid(false),
+        state(BASE_NEUTRAL), curowner(-1), dominant(-1),
+        lastaction(0), lastscore(0) { players[0] = players[1] = 0; power[0] = power[1] = 50; } 
+} sbaseinfos[MAXBASES];
+
 void putflaginfo(packetbuf &p, int flag)
 {
     sflaginfo &f = sflaginfos[flag];
@@ -847,12 +862,29 @@ void putflaginfo(packetbuf &p, int flag)
     }
 }
 
+void putbaseinfo(packetbuf &p)
+{
+    putint(p, SV_BASEINFO);
+    int count = 0;
+    loopi(MAXBASES) if(sbaseinfos[i].valid) ++count;
+    putint(p, count);
+    loopi(MAXBASES) if(sbaseinfos[i].valid)
+    {
+        sbaseinfo &b = sbaseinfos[i];
+        putint(p, i);
+        putint(p, b.state);
+        putint(p, b.curowner);
+        loopj(2) putint(p, b.power[j]);
+    }
+}
+
 inline void send_item_list(packetbuf &p)
 {
     putint(p, SV_ITEMLIST);
     loopv(sents) if(sents[i].spawned) putint(p, i);
     putint(p, -1);
     if(m_flags) loopi(2) putflaginfo(p, i);
+    if(m_regen) putbaseinfo(p);
 }
 
 #include "serverchecks.h"
@@ -1130,6 +1162,165 @@ void htf_forceflag(int flag)
         logline(ACLOG_INFO,"[%s] %s got forced to pickup the flag", cl->hostname, cl->name);
     }
     f.lastupdate = gamemillis;
+}
+
+// bases code
+
+// regen capture routine
+// does almost everything
+void regenupdate()
+{
+    loopv(clients) clients[i]->state.inbase = false;
+    loopi(MAXBASES) if(sbaseinfos[i].valid)
+    {
+        sbaseinfo &b = sbaseinfos[i];
+
+        // calculate the amount of players in this base
+        vector<int> playersinbase[2];
+        loopvj(clients) if(clients[j]->type == ST_TCPIP && clients[j]->isauthed
+            && clients[j]->state.state == CS_ALIVE && team_isactive(clients[j]->team)
+            && !clients[j]->state.inbase)
+        {
+            client *cl = clients[j];
+            clientstate &cs = cl->state;
+            float sqrdist = ((cs.o.x - b.x) * (cs.o.x - b.x) + (cs.o.y - b.y) * (cs.o.y - b.y));
+            cs.basesdist[i] = (int)fSqrt(sqrdist); // do some little caching
+            bool inbase = sqrdist <= (b.radius * b.radius);
+            if(inbase)
+            {
+                cs.inbase = true;
+                playersinbase[cl->team].add(cl->clientnum);
+                if(cs.curbase != &b)
+                {
+                    cs.lastbaseaction = gamemillis;
+                    cs.curbase = &b;
+                }
+            }
+        }
+
+        int dp = playersinbase[TEAM_CLA].length() - playersinbase[TEAM_RVSF].length();
+        int powerdt = max(700 - 175 * (abs(dp)-1), 200); // interval between 2 power updates
+        int dominant = dp == 0 ? -1 : (dp > 0 ? TEAM_CLA : TEAM_RVSF);
+        // if the dominant team changed, we reset lastaction
+        if(dominant != b.dominant) b.lastaction = gamemillis;
+        
+        // capture management
+        if(dp && b.power[dominant] < 100 && gamemillis - b.lastaction > powerdt) // if a team has been dominating long enough...
+        {
+            // update lastaction and power
+            b.lastaction = gamemillis;
+            b.power[dominant] += 5;
+            b.power[team_opposite(dominant)] -= 5;
+            loopvj(playersinbase[dominant])
+            {
+                clients[j]->state.basespts[i] += RGCAPTPT;
+                addpt(clients[j], RGCAPTPT);
+            }
+
+            if(b.power[dominant] > 50)
+            {
+                if(dominant != b.curowner && b.state != BASE_CAPTURING)
+                {
+                    if(b.curowner != -1)
+                    {
+                        logline(ACLOG_INFO, "team %s lost base %d", team_basestring(b.curowner), i);
+                        // reset player contribution when their team lost the base
+                        loopvj(clients) if(clients[j]->type == ST_TCPIP && clients[j]->isauthed && clients[j]->team == b.curowner)
+                            clients[j]->state.basespts[i] = 0; 
+                    }
+                    logline(ACLOG_INFO, "team %s is capturing base %d", team_basestring(dominant), i);
+                    sendf(-1, 1, "riiii", SV_BASECAPTURING, i, b.curowner, dominant);
+
+                    b.curowner = -1;
+                    b.state = BASE_CAPTURING;
+                }
+                if(b.power[dominant] >= 100) // base captured
+                {
+                    b.power[dominant] = 100;
+                    b.state = BASE_CAPTURED;
+                    b.lastscore = gamemillis;
+
+                    if(b.curowner != dominant)
+                    {
+                        logline(ACLOG_INFO, "team %s captured base %d", team_basestring(dominant), i);
+                        sendf(-1, 1, "riii", SV_BASECAPTURED, i, dominant);
+                    }
+                    b.curowner = dominant;
+                }
+            }
+
+            if(b.power[team_opposite(dominant)] < 0) b.power[team_opposite(dominant)] = 0;
+            sendf(-1, 1, "riiii", SV_BASESTATE, i, b.power[0], b.power[1]);
+        }
+        b.dominant = dominant;
+        b.players[0] = playersinbase[0].length();
+        b.players[1] = playersinbase[1].length();
+
+        if(b.state == BASE_CAPTURED)
+        {
+            // score every 15 seconds
+            if(gamemillis - b.lastscore > 15000)
+            {
+                // in AC team scores are just sums of individual scores
+                // so we have to find who should be given the flag when was kept 15 s
+                // it should be the player who contributed the most to the current base
+                vector<int> clientnums;
+                int maxpoints = 0;
+                loopvj(clients) if(clients[j]->type == ST_TCPIP && clients[j]->isauthed
+                    && clients[j]->team == b.curowner)
+                {
+                    int points =  clients[j]->state.basespts[i];
+                    if(!clientnums.length() || points > maxpoints)
+                    {
+                        clientnums.shrink(0);
+                        maxpoints = points;
+                        clientnums.add(clients[j]->clientnum);
+                    }
+                    else if(points == maxpoints) clientnums.add(j);
+                }
+                if(clientnums.length())
+                {
+                    int cn = clientnums[rnd(clientnums.length())];
+                    int cnumber = totalclients < 13 ? totalclients : 12;
+                    clientstate &cs = clients[cn]->state;
+                    cs.flagscore++;
+                    addpt(clients[cn], RGSCOREPT);
+                    logline(ACLOG_INFO, "team %s scored (%d)", team_basestring(b.curowner), cs.flagscore);
+                    sendf(-1, 1, "riii", SV_FLAGCNT, cn, cs.flagscore);
+                }
+                b.lastscore = gamemillis;
+            }
+
+            // regen
+            if(!b.players[team_opposite(b.curowner)])
+            loopvj(playersinbase[b.curowner])
+            {
+                clientstate &cs = clients[j]->state;
+                if(gamemillis - cs.lastbaseaction > 2000
+                    && (cs.health < 100 || cs.armour < 100))
+                {
+                    cs.health = min(cs.health + 10, powerupstats[0].max);
+                    cs.armour = min(cs.armour + 10, powerupstats[I_ARMOUR-I_HEALTH].max);
+                    cs.lastbaseaction = gamemillis;
+                    sendf(-1, 1, "riiii", SV_BASEFEED, j, cs.health, cs.armour);
+                }
+            }
+        }
+    }
+    loopv(clients) if(!clients[i]->state.inbase) clients[i]->state.curbase = NULL;
+}
+
+void resetbases()
+{
+    loopi(MAXBASES)
+    {
+        sbaseinfo &b = sbaseinfos[i];
+        b.curowner = b.dominant = -1;
+        b.lastaction = b.lastscore = 0;
+        b.players[0] = b.players[1] = 0;
+        b.power[0] = b.power[1] = 50;
+        b.state = BASE_NEUTRAL;
+    }
 }
 
 int arenaround = 0, arenaroundstartmillis = 0;
@@ -1512,6 +1703,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
                 flagaction(targethasflag, FA_RESET, -1);
         }
         // don't issue respawn yet until DEATHMILLIS has elapsed
+
         // ts.respawn();
 
         if(isdedicated && actor->type == ST_TCPIP && tk)
@@ -1555,8 +1747,7 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
 int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
 {
     if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team) ||
-        (c->type == ST_TCPIP && (c->state.lastdeath > 0 ? gamemillis - c->state.lastdeath : servmillis - c->connectmillis) < (m_arena ? 0 : (m_flags ? 5000 : 2000))) ||
-        (servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000 &&
+ (c->type == ST_TCPIP && (c->state.lastdeath > 0 ? gamemillis - c->state.lastdeath : servmillis - c->connectmillis) < (m_arena ? 0 : (m_flags || m_regen ? 5000 : 2000))) ||        (servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000 &&
           gamemillis > 10000 && totalclients > 3 && !team_isspect(c->team))) return SP_OK_NUM; // equivalent to SP_DENY
     if(!c->isonrightmap) return SP_WRONGMAP;
     if(mastermode == MM_MATCH && matchteamsize)
@@ -1891,6 +2082,7 @@ void resetserver(const char *newname, int newmode, int newtime)
     }
     else savedscores.shrink(0);
     ctfreset();
+    resetbases();
 
     nextmapname[0] = '\0';
     forceintermission = false;
@@ -1949,6 +2141,16 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
                 sflaginfo &f0 = sflaginfos[0], &f1 = sflaginfos[1];
                 FlagFlag = pow2(f0.x - f1.x) + pow2(f0.y - f1.y);
                 coverdist = FlagFlag > 6 * COVERDIST ? COVERDIST : FlagFlag / 6;
+            }
+            loopi(smapstats.bases) if(smapstats.baseents[i][1] > 0)
+            {
+                sbaseinfo &b = sbaseinfos[i];
+                b.radius = smapstats.baseents[i][1];
+                b.valid = b.radius > 0;
+                short *be = smapstats.entposs + smapstats.baseents[i][0] * 3;
+                b.x = *be;
+                be++;
+                b.y = *be;
             }
             entity e;
             loopi(smapstats.hdr.numents)
@@ -3687,14 +3889,14 @@ void loggamestatus(const char *reason)
     logline(ACLOG_INFO, "Game status: %s on %s, %s, %s, %d clients%c %s",
                       modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), totalclients, custom_servdesc ? ',' : '\0', servdesc_current);
     if(!scl.loggamestatus) return;
-    logline(ACLOG_INFO, "cn name             %s%s score frag death %sping role    host", m_teammode ? "team " : "", m_flags ? "flag " : "", m_teammode ? "tk " : "");
+    logline(ACLOG_INFO, "cn name             %s%s score frag death %sping role    host", m_teammode ? "team " : "", m_flags || m_regen ? "flag " : "", m_teammode ? "tk " : "");
     loopv(clients)
     {
         client &c = *clients[i];
         if(c.type == ST_EMPTY || !c.name[0]) continue;
         formatstring(text)("%2d %-16s ", c.clientnum, c.name);                 // cn name
         if(m_teammode) concatformatstring(text, "%-4s ", team_string(c.team, true)); // teamname (abbreviated)
-        if(m_flags) concatformatstring(text, "%4d ", c.state.flagscore);             // flag
+        if(m_flags || m_regen) concatformatstring(text, "%4d ", c.state.flagscore);             // flag
         concatformatstring(text, "%6d ", c.state.points);                            // score
         concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);          // frag death
         if(m_teammode) concatformatstring(text, " %2d", c.state.teamkills);          // tk
@@ -3729,7 +3931,18 @@ void loggamestatus(const char *reason)
     }
     if(m_teammode)
     {
-        loopi(2) logline(ACLOG_INFO, "Team %4s:%3d players,%5d frags%c%5d flags", team_string(i), pnum[i], fragscore[i], m_flags ? ',' : '\0', flagscore[i]);
+        loopi(2) logline(ACLOG_INFO, "Team %4s:%3d players,%5d frags%c%5d flags", team_string(i), pnum[i], fragscore[i], m_flags || m_regen ? ',' : '\0', flagscore[i]);
+        // end game if one of both teams can't win anymore
+        if(m_regen && mastermode == MM_MATCH) 
+        {
+            int numbases = 0;
+            loopi(MAXBASES) if(sbaseinfos[i].valid) ++numbases;
+            if(numbases && abs(flagscore[TEAM_CLA]-flagscore[TEAM_RVSF]) > (4 * minremain * numbases))
+            {
+                logline(ACLOG_INFO, "game automatically stopped (%d minutes remaining, %d bases)", minremain, numbases);
+                forceintermission = true;
+            }
+        }
     }
     logline(ACLOG_INFO, "");
 }
@@ -3839,6 +4052,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
             }
             if(f.state == CTFF_INBASE || f.state == CTFF_STOLEN) ktfflagingame = true;
         }
+        if(m_regen) regenupdate();
         if(m_ktf && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
         if(m_arena) arenacheck();
 //        if(m_lms) lmscheck();

@@ -154,6 +154,114 @@ void renderentarrow(const entity &e, const vec &dir, float radius)
     glEnable(GL_TEXTURE_2D);
 }
 
+void renderbaseent(entity &e)
+{
+    glPushMatrix();
+    glDisable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_FALSE);
+    glStencilMask(GL_FALSE);
+
+    if(camera1->o.distxy(vec(e.x, e.y, 0)) <= e.attr1)
+        glCullFace(GL_FRONT);
+    else glCullFace(GL_BACK);
+
+    glColor4f(1.0f, 1.0f, 0.0f, 0.1f);
+    glBegin(GL_QUAD_STRIP);
+    loopi(100)
+    {
+        float x = e.x + e.attr1 * cos(2*PI*i/100.0f);
+        float y = e.y + e.attr1 * sin(2*PI*i/100.0f);
+
+        glVertex3f(x, y, mapdims[6]);
+        glVertex3f(x, y, mapdims[7]);
+    }
+        
+    glVertex3f(e.x + e.attr1, e.y, mapdims[6]);
+    glVertex3f(e.x + e.attr1, e.y, mapdims[7]);
+    glEnd();
+
+    glCullFace(GL_FRONT);
+    glStencilMask(0xFFFFFF);
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+    glPopMatrix();
+}
+
+void renderbase(baseinfo &b)
+{
+    // draw the base model
+    // ...
+    defformatstring(path)("pickups/flags/%s", b.state == BASE_CAPTURED ? team_basestring(b.curowner) : "ktf");
+    rendermodel(path, ANIM_FLAG|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(b.pos.x, b.pos.y, b.pos.z), 0.0f, 0, 120.0f, 0, 0, 0, 0.7f);
+
+    // draw label
+    if(!stenciling && (b.state == BASE_CAPTURING || (b.state == BASE_CAPTURED && b.power[b.curowner] < 100)))
+    {
+        glPushMatrix();
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDepthMask(GL_FALSE);
+        glStencilMask(GL_FALSE);
+        glDisable(GL_CULL_FACE);
+        
+        glTranslatef(b.pos.x, b.pos.y, b.pos.z + 2.5f);
+        glRotatef(camera1->yaw-180, 0, 0, 1);
+        // background
+        const float width = 2.0f;
+        const float border = 0.05f;
+        glColor4f(0.0f, 0.0f, 0.0f, 0.8f);
+        glBegin(GL_QUADS);
+        glVertex3f(-width/2.0f-border, 0, -0.20f-border);
+        glVertex3f(-width/2.0f-border, 0,  0.20f+border);
+        glVertex3f(width/2.0f+border,  0,  0.20f+border);
+        glVertex3f(width/2.0f+border,  0, -0.20f-border);
+        glEnd();
+
+        float cwidth[2] = { width * float(b.power[0])/100.0f,  width * float(b.power[1])/100.0f };
+        glBegin(GL_QUADS);
+        switch(b.state)
+        {
+            case BASE_CAPTURED:
+                glColor4f(1.0f, 0.0f, 0.0f, 0.8f);
+                glVertex3f(-width/2.0f, 0, -0.20f);
+                glVertex3f(-width/2.0f, 0,  0.20f);
+                glVertex3f(-width/2.0f+cwidth[0],  0,  0.20f);
+                glVertex3f(-width/2.0f+cwidth[0],  0, -0.20f);
+
+                glColor4f(0.0f, 0.0f, 1.0f, 0.8f);
+                glVertex3f(-width/2.0f+cwidth[0], 0, -0.20f);
+                glVertex3f(-width/2.0f+cwidth[0], 0,  0.20f);
+                glVertex3f(width/2.0f,  0,  0.20f);
+                glVertex3f(width/2.0f,  0, -0.20f);
+            break;
+
+            case BASE_CAPTURING:
+            {
+                int team = b.power[0] > b.power[1] ? 0 : 1;
+                glColor4f(team == TEAM_CLA ? 1.0f : 0.0f, 0.0f, team == TEAM_RVSF ? 1.0f : 0.0f, 0.8f);
+                glVertex3f(+width/2.0f, 0, -0.20f);
+                glVertex3f(+width/2.0f, 0,  0.20f);
+                glVertex3f(+width/2.0f-cwidth[team],  0,  0.20f);
+                glVertex3f(+width/2.0f-cwidth[team],  0, -0.20f);
+            }
+            break;
+            default: break;
+        }
+        glEnd();
+
+        glEnable(GL_CULL_FACE);
+        glStencilMask(0xFFFFFF);
+        glDepthMask(GL_TRUE);
+        glDisable(GL_BLEND);
+        glEnable(GL_TEXTURE_2D);
+        glPopMatrix();
+    }
+}
+
 void renderentities()
 {
     int closest = editmode ? closestent() : -1;
@@ -196,6 +304,7 @@ void renderentities()
                     case CLIP:
                     case PLCLIP: sc = PART_ELADDER; break; // grey
                     case CTF_FLAG: sc = PART_EFLAG; break; // turquoise
+                    case BASE: sc = PART_ECARROT; break;
                     default: break;
                 }
                 //particle_splash(sc, i==closest?6:2, i==closest?120:40, v);
@@ -220,6 +329,7 @@ void renderentities()
                 defformatstring(path)("pickups/flags/%s", team_basestring(e.attr2));
                 rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
             }
+            else if(e.type == BASE && !stenciling) renderbaseent(e);
             else if((e.type == CLIP || e.type == PLCLIP) && showclips && !stenciling) renderclip(e);
             else if(e.type == MAPMODEL && showclips && showmodelclipping && !stenciling)
             {
@@ -278,6 +388,7 @@ void renderentities()
                 break;
         }
     }
+    if(m_regen && !editmode) loopi(MAXBASES) if(baseinfos[i].valid) renderbase(baseinfos[i]);
 }
 
 // these two functions are called when the server acknowledges that you really

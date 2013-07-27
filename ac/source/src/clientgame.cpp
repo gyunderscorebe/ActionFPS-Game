@@ -9,6 +9,7 @@ VAR(nextGameMode, 1, 0, 0);
 VARP(modeacronyms, 0, 1, 1);
 
 flaginfo flaginfos[2];
+baseinfo baseinfos[MAXBASES];
 
 void mode(int *n)
 {
@@ -570,7 +571,7 @@ void showrespawntimer()
         if(!arenaintermission) return;
         showhudtimer(5, arenaintermission, "FIGHT!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
     }
-    else if(player1->state==CS_DEAD && m_flags && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
+    else if(player1->state==CS_DEAD && (m_flags || m_regen) && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
     {
         int secs = 5;
         showhudtimer(secs, player1->respawnoffset, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
@@ -670,10 +671,22 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
             loopi(arenaspawn + 1) x = findentity(PLAYERSTART, x+1, type);
             if(x >= 0) e = &ents[x];
         }
-        else if((m_teammode || m_arena) && !m_ktf) // ktf uses ffa spawns
+        else if((m_teammode || m_arena) && !m_ktf) // ktf use ffa spawns
         {
-            loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
-            if(spawncycle >= 0) e = &ents[spawncycle];
+            if(m_regen)
+            {
+                // find a captured base :
+                vector<int> fittingbases;
+                loopi(MAXBASES) if(baseinfos[i].valid && baseinfos[i].state == BASE_CAPTURED
+                    && baseinfos[i].curowner == d->team) fittingbases.add(i);
+                if(fittingbases.length()) e = baseinfos[fittingbases[rnd(fittingbases.length())]].baseent;
+            }
+
+            if(!e)
+            {
+                loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
+                if(spawncycle >= 0) e = &ents[spawncycle];
+            }
         }
         else
         {
@@ -695,9 +708,15 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
         d->o.x = e->x;
         d->o.y = e->y;
         d->o.z = e->z;
-        d->yaw = e->attr1;
+        d->yaw = e->type == BASE ? rnd(360) : e->attr1;
         d->pitch = 0;
         d->roll = 0;
+
+        if(e->type == BASE)
+        {
+            d->o.x += rndscale(8.0f)-4.0f;
+            d->o.y += rndscale(8.0f)-4.0f;
+        }
     }
     else
     {
@@ -783,7 +802,7 @@ bool tryrespawn()
         }
         else
         {
-            int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags ? 5000 : 2000));
+            int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags || m_regen ? 5000 : 2000));
             if(lastmillis>respawnmillis)
             {
                 player1->attacking = false;
@@ -1021,6 +1040,13 @@ entity flagdummies[2] = // in case the map does not provide flags
     entity(-1, -1, -1, CTF_FLAG, 0, 1, 0, 0)
 };
 
+entity basedummies[3] = // in case the map does not provide bases
+{
+    entity(-1, -1, -1, BASE, 0, 0, 0, 0),
+    entity(-1, -1, -1, BASE, 1, 0, 0, 0),
+    entity(-1, -1, -1, BASE, 2, 0, 0, 0)
+};
+
 void initflag(int i)
 {
     flaginfo &f = flaginfos[i];
@@ -1031,6 +1057,16 @@ void initflag(int i)
     f.actor_cn = -1;
     f.team = i;
     f.state = m_ktf ? CTFF_IDLE : CTFF_INBASE;
+}
+
+void initbase(int i)
+{
+    baseinfo &b = baseinfos[i];
+    b.baseent = &basedummies[i];
+    b.pos = vec(b.baseent->x, b.baseent->y, 0);
+    b.state = BASE_NEUTRAL;
+    b.radius = b.baseent->attr1;
+    b.valid = false;
 }
 
 void zapplayerflags(playerent *p)
@@ -1056,6 +1092,29 @@ void preparectf(bool cleanonly=false)
                 f.pos.y = (float) e.y;
                 f.pos.z = (float) e.z;
             }
+        }
+    }
+}
+
+void preparebases(bool cleanonly = false)
+{
+    loopi(MAXBASES) initbase(i);
+    if(cleanonly) return;
+    int index = 0;
+    loopv(ents)
+    {
+        entity &e = ents[i];
+        if(e.type==BASE)
+        {
+            e.spawned = true;
+            if(!e.attr1) continue;
+            baseinfo &b = baseinfos[index++];
+            b.baseent = &e;
+            b.pos.x = (float) e.x;
+            b.pos.y = (float) e.y;
+            b.pos.z = S(b.baseent->x, b.baseent->y)->floor;
+            b.radius = e.attr1;
+            b.valid = b.radius > 0;
         }
     }
 }
@@ -1126,6 +1185,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     // End add by Rick
     clearbounceents();
     preparectf(!m_flags);
+    preparebases(!m_regen);
     suicided = -1;
     spawncycle = -1;
     lasthit = 0;
@@ -1518,7 +1578,7 @@ void clearvote() { DELETEP(curvote); DELETEP(calledvote); }
 const char *modestrings[] =
 {
     "tdm", "coop", "dm", "lms", "ts", "ctf", "pf", "btdm", "bdm", "lss",
-    "osok", "tosok", "bosok", "htf", "tktf", "ktf", "tpf", "tlss", "bpf", "blss", "btsurv", "btosok"
+    "osok", "tosok", "bosok", "htf", "tktf", "ktf", "tpf", "tlss", "bpf", "blss", "btsurv", "btosok", "regen"
 };
 
 void setnext(int *mode, char *arg2)

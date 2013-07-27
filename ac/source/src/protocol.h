@@ -30,6 +30,7 @@ enum
     SV_SENDMAP, SV_RECVMAP, SV_REMOVEMAP,
     SV_SERVMSG, SV_ITEMLIST, SV_WEAPCHANGE, SV_PRIMARYWEAP,
     SV_FLAGACTION, SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
+    SV_BASESTATE, SV_BASECAPTURING, SV_BASECAPTURED, SV_BASEFEED, SV_BASEINFO,
     SV_ARENAWIN,
     SV_SETADMIN, SV_SERVOPINFO,
     SV_CALLVOTE, SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTE, SV_VOTERESULT,
@@ -61,7 +62,8 @@ enum { FA_PICKUP = 0, FA_STEAL, FA_DROP, FA_LOST, FA_RETURN, FA_SCORE, FA_NUM, F
 enum { FM_PICKUP = 0, FM_DROP, FM_LOST, FM_RETURN, FM_SCORE, FM_KTFSCORE, FM_SCOREFAIL, FM_RESET, FM_NUM };
 enum { FTR_INFO = 0, FTR_PLAYERWISH, FTR_AUTOTEAM, FTR_SILENTFORCE, FTR_NUM }; // forceteam-reasons
 enum { SP_OK = 0, SP_REFILLMATCH, SP_OK_NUM, SP_WRONGMAP, SP_SPECT, SP_NUM }; // spawn permission (<OK_NUM && isspect: change to active team allowed)
-enum { HE_COMBO, HE_COMBO2, HE_COMBO3, HE_COMBO4, HE_COMBO5, HE_TEAMWORK, HE_FLAGDEFENDED, HE_FLAGCOVERED, HE_COVER, HE_NUM };
+enum { HE_COMBO, HE_COMBO2, HE_COMBO3, HE_COMBO4, HE_COMBO5,
+    HE_TEAMWORK, HE_FLAGDEFENDED, HE_FLAGCOVERED, HE_COVER, HE_BASEDEFENDED, HE_NUM };
 
 
 #define DMF 16.0f
@@ -109,6 +111,7 @@ enum
     GMODE_BOTLSS,
     GMODE_BOTTEAMSURVIVOR,              // 20
     GMODE_BOTTEAMONESHOTONKILL,
+    GMODE_REGENCAPTURE,
     GMODE_NUM
 };
 
@@ -119,6 +122,7 @@ enum
 #define m_osok        ((gamemode>=10 && gamemode<=12) || gamemode==21)
 #define m_htf         (gamemode==13)
 #define m_ktf         (gamemode==14 || gamemode==15)
+#define m_regen       (gamemode==22)
 
 #define m_noitems     (m_lms || m_osok)
 #define m_noitemsnade (m_lss)
@@ -126,7 +130,7 @@ enum
 #define m_noprimary   (m_pistol || m_lss)
 #define m_noguns      (m_nopistol && m_noprimary)
 #define m_arena       (m_lms || m_lss || m_osok)
-#define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11 || gamemode==13 || gamemode==14 || gamemode==16 || gamemode==17 || gamemode==20 || gamemode==21)
+#define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11 || gamemode==13 || gamemode==14 || gamemode==16 || gamemode==17 || gamemode==20 || gamemode==21 || gamemode == 22 || gamemode == 23)
 #define m_tarena      (m_arena && m_teammode)
 #define m_botmode     (gamemode==7 || gamemode == 8 || gamemode==12 || (gamemode>=18 && gamemode<=21))
 #define m_valid(mode) (((mode)>=0 && (mode)<GMODE_NUM) || (mode) == -1)

@@ -592,6 +592,18 @@ void drawradar_showmap(playerent *p, int w, int h)
             }
         }
     }
+    if(m_regen)
+    {
+        loopi(MAXBASES)
+        {
+            baseinfo &b = baseinfos[i];
+            entity *e = b.baseent;
+            if(!e) continue;
+            if(e->x == -1 && e-> y == -1) continue; // basedummies
+            vec pos = vec(e->x, e->y, 0).sub(mdd).mul(coordtrans);
+            drawradarent(pos.x, pos.y, 0, b.state == BASE_CAPTURED ? b.curowner : 2, 3, iconsize, false); // draw bases
+        }
+    }
     glEnable(GL_BLEND);
     glPopMatrix();
 }
@@ -697,6 +709,23 @@ void drawradar_vicinity(playerent *p, int w, int h)
                         }
                     }
                 }
+            }
+        }
+    }
+    if(m_regen)
+    {
+        loopi(MAXBASES)
+        {
+            baseinfo &b = baseinfos[i];
+            entity *e = b.baseent;
+            if(!e) continue;
+            if(e->x == -1 && e-> y == -1) continue; // basedummies
+            vec pos = vec(e->x, e->y, 0).sub(p->o);
+            vec cpos = vec(b.pos.x, b.pos.y, b.pos.z).sub(p->o);
+            if(pos.magnitude() < d2s)
+            {
+                pos.mul(scaled);
+                drawradarent(pos.x, pos.y, 0, b.state == BASE_CAPTURED ? b.curowner : 2, 3, iconsize, false); // draw bases [circle doesn't need rotating]
             }
         }
     }

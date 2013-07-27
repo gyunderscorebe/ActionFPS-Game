@@ -13,8 +13,11 @@ enum                            // static entity types
     SOUND,
     CLIP,
     PLCLIP,
+    BASE,
     MAXENTTYPES
 };
+
+#define MAXBASES 16
 
 enum {MAP_IS_BAD, MAP_IS_EDITABLE, MAP_IS_GOOD};
 
@@ -572,6 +575,7 @@ public:
 // flag-mode entities
 
 enum { CTFF_INBASE = 0, CTFF_STOLEN, CTFF_DROPPED, CTFF_IDLE };
+enum { BASE_NEUTRAL = 0, BASE_CAPTURING, BASE_CAPTURED };
 
 struct flaginfo
 {
@@ -583,6 +587,18 @@ struct flaginfo
     int state; // one of CTFF_*
     bool ack;
     flaginfo() : flagent(0), actor(0), state(CTFF_INBASE), ack(false) {}
+};
+
+struct baseinfo
+{
+    entity *baseent;
+    vec pos;
+    int radius;
+    bool valid;
+    int state, curowner;
+    int power[2];
+
+    baseinfo() : baseent(NULL), radius(0), valid(false), state(BASE_NEUTRAL), curowner(-1) { power[0] = power[1] = 50; }
 };
 
 // nades, gibs

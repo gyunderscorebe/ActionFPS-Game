@@ -106,6 +106,7 @@ struct projectilestate
 
 static const int DEATHMILLIS = 300;
 
+struct sbaseinfo;
 struct clientstate : playerstate
 {
     vec o;
@@ -117,6 +118,12 @@ struct clientstate : playerstate
     int akimbomillis;
     bool scoped;
     int flagscore, frags, teamkills, deaths, shotdamage, damage, points, events, lastdisc, reconnections;
+
+    // bases
+    bool inbase;
+    sbaseinfo *curbase;
+    int lastbaseaction;
+    int basesdist[MAXBASES], basespts[MAXBASES];
 
     clientstate() : state(CS_DEAD) {}
 
@@ -140,6 +147,10 @@ struct clientstate : playerstate
         akimbomillis = 0;
         scoped = forced = false;
         flagscore = frags = teamkills = deaths = shotdamage = damage = points = events = lastdisc = reconnections = 0;
+        inbase = false;
+        curbase = NULL;
+        loopi(MAXBASES) { basesdist[i] = basespts[i] = 0; }
+        lastbaseaction = 0;
         respawn();
     }
 
@@ -428,6 +439,7 @@ const char *messagenames[SV_NUM] =
     "SV_SENDMAP", "SV_RECVMAP", "SV_REMOVEMAP",
     "SV_SERVMSG", "SV_ITEMLIST", "SV_WEAPCHANGE", "SV_PRIMARYWEAP",
     "SV_FLAGACTION", "SV_FLAGINFO", "SV_FLAGMSG", "SV_FLAGCNT",
+    "SV_BASESTATE", "SV_BASECAPTURING", "SV_BASECAPTURED", "SV_BASEFEED", "SV_BASEINFO",
     "SV_ARENAWIN",
     "SV_SETADMIN", "SV_SERVOPINFO",
     "SV_CALLVOTE", "SV_CALLVOTESUC", "SV_CALLVOTEERR", "SV_VOTE", "SV_VOTERESULT",
@@ -446,7 +458,7 @@ const char *entnames[MAXENTTYPES] =
     "none?",
     "light", "playerstart", "pistol", "ammobox","grenades",
     "health", "helmet", "armour", "akimbo",
-    "mapmodel", "trigger", "ladder", "ctf-flag", "sound", "clip", "plclip"
+    "mapmodel", "trigger", "ladder", "ctf-flag", "sound", "clip", "plclip", "base"
 };
 
 // see entity.h:61: struct itemstat { int add, start, max, sound; };
