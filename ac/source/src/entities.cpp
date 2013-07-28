@@ -25,14 +25,65 @@ const char *entmdlnames[] =
      rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), yaw, 0);
  }
 
-void renderclip(entity &e)
+void renderclip(entity &e, bool hover)
 {
     float xradius = max(float(e.attr2), 0.1f), yradius = max(float(e.attr3), 0.1f);
     vec bbmin(e.x - xradius, e.y - yradius, float(S(e.x, e.y)->floor+e.attr1)),
         bbmax(e.x + xradius, e.y + yradius, bbmin.z + max(float(e.attr4), 0.1f));
 
     glDisable(GL_TEXTURE_2D);
-    switch(e.type)
+    if(hover)
+    {
+        if(curentface && e.selected && e.type != MAPMODEL)
+        {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glColor4f(1.0f, 0, 0, 0.8f);
+            glDisable(GL_CULL_FACE);
+            glBegin(GL_QUADS);
+            switch(curentface)
+            { 
+                case 1: // x-axis
+                    glVertex3f(bbmin.x, bbmin.y, bbmin.z);
+                    glVertex3f(bbmin.x, bbmax.y, bbmin.z);
+                    glVertex3f(bbmin.x, bbmax.y, bbmax.z);
+                    glVertex3f(bbmin.x, bbmin.y, bbmax.z);
+
+                    glVertex3f(bbmax.x, bbmin.y, bbmin.z);
+                    glVertex3f(bbmax.x, bbmax.y, bbmin.z);
+                    glVertex3f(bbmax.x, bbmax.y, bbmax.z);
+                    glVertex3f(bbmax.x, bbmin.y, bbmax.z);
+                   break; 
+                case 2: // y-axis
+                    glVertex3f(bbmin.x, bbmin.y, bbmin.z);
+                    glVertex3f(bbmin.x, bbmin.y, bbmax.z);
+                    glVertex3f(bbmax.x, bbmin.y, bbmax.z);
+                    glVertex3f(bbmax.x, bbmin.y, bbmin.z);
+
+                    glVertex3f(bbmin.x, bbmax.y, bbmin.z);
+                    glVertex3f(bbmin.x, bbmax.y, bbmax.z);
+                    glVertex3f(bbmax.x, bbmax.y, bbmax.z);
+                    glVertex3f(bbmax.x, bbmax.y, bbmin.z);
+                    break; 
+                case 3: // z-axis
+                    glVertex3f(bbmin.x, bbmin.y, bbmin.z);
+                    glVertex3f(bbmax.x, bbmin.y, bbmin.z);
+                    glVertex3f(bbmax.x, bbmax.y, bbmin.z);
+                    glVertex3f(bbmin.x, bbmax.y, bbmin.z);
+
+                    glVertex3f(bbmin.x, bbmin.y, bbmax.z);
+                    glVertex3f(bbmax.x, bbmin.y, bbmax.z);
+                    glVertex3f(bbmax.x, bbmax.y, bbmax.z);
+                    glVertex3f(bbmin.x, bbmax.y, bbmax.z);
+                    break; 
+                break;
+            }
+            glEnd();
+            glEnable(GL_CULL_FACE);
+        }
+        linestyle(1, 128, 0, 0);
+    }
+    else switch(e.type)
     {
         case CLIP:     linestyle(1, 0xFF, 0xFF, 0); break;  // yellow
         case MAPMODEL: linestyle(1, 0, 0xFF, 0);    break;  // green
@@ -215,13 +266,19 @@ void renderentities()
         }
         else if(editmode)
         {
+            bool hover = i == targetentity || ents[i].selected;
             if(e.type==CTF_FLAG)
             {
                 defformatstring(path)("pickups/flags/%s", team_basestring(e.attr2));
                 rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
             }
-            else if((e.type == CLIP || e.type == PLCLIP) && showclips && !stenciling) renderclip(e);
-            else if(e.type == MAPMODEL && showclips && showmodelclipping && !stenciling)
+            else if((e.type == CLIP || e.type == PLCLIP)
+                && (showclips || hover)
+                && !stenciling)
+                renderclip(e, hover);
+            else if(e.type == MAPMODEL
+                && ((showclips && showmodelclipping) || hover)
+                && !stenciling)
             {
                 mapmodelinfo &mmi = getmminfo(e.attr2);
                 if(&mmi && mmi.h)
@@ -231,7 +288,7 @@ void renderentities()
                     ce.attr1 = mmi.zoff+e.attr3;
                     ce.attr2 = ce.attr3 = mmi.rad;
                     ce.attr4 = mmi.h;
-                    renderclip(ce);
+                    renderclip(ce, hover);
                 }
             }
         }

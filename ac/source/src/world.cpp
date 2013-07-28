@@ -166,6 +166,40 @@ int closestent()        // used for delent and edit mode ent display
     return best;
 }
 
+int targetent()
+{
+    float mindist = 0;
+    int target = -1;
+    // TODO ?: is it worth checking for isoccluded?
+    // (all depends on how fast intersection calculations perform)
+    loopv(ents) if(isselectable(ents[i].type))
+    {
+        entity &e = ents[i];
+        bool targeting = false;
+        vec end;
+        switch(e.type)
+        {
+            case MAPMODEL: targeting = intersect(&e, camera1->o, worldpos, &end); break;
+            case CLIP:
+            case PLCLIP:
+                targeting = intersectbox(vec(e.x, e.y, S(e.x,e.y)->floor+e.attr1),
+                    vec(e.attr2 ? e.attr2 : 0.1f, e.attr3 ? e.attr3 : 0.1f, e.attr4),
+                    camera1->o, worldpos, &end);
+            break;
+        }
+        if(targeting)
+        {
+            float dist = camera1->o.dist(end);
+            if(target < 0 || dist <= mindist)
+            {
+                target = i;
+                mindist = dist;
+            }
+        }
+    }
+    return target;
+}
+
 void entproperty(int prop, int amount)
 {
     int n = closestent();
@@ -220,34 +254,6 @@ void getentattr(int *attr)
 
 COMMAND(getenttype, "");
 COMMAND(getentattr, "i");
-
-void delent()
-{
-    int n = closestent();
-    if(n<0) { conoutf("no more entities"); return; }
-    syncentchanges(true);
-    int t = ents[n].type;
-    conoutf("%s entity deleted", entnames[t]);
-
-    entity &e = ents[n];
-
-    if (t == SOUND) //stop playing sound
-    {
-        entityreference entref(&e);
-        location *loc = audiomgr.locations.find(e.attr1, &entref, mapsounds);
-
-        if(loc)
-            loc->drop();
-    }
-
-    ents[n].type = NOTUSED;
-    addmsg(SV_EDITENT, "ri9", n, NOTUSED, 0, 0, 0, 0, 0, 0, 0);
-
-    switch(t)
-    {
-        case LIGHT: calclight(); break;
-    }
-}
 
 int findtype(char *what)
 {
@@ -556,6 +562,5 @@ COMMAND(mapenlarge, "");
 COMMAND(mapshrink, "");
 COMMAND(newmap, "i");
 COMMANDN(recalc, calclight, "");
-COMMAND(delent, "");
 COMMANDF(entproperty, "ii", (int *p, int *a) { entproperty(*p, *a); });
 

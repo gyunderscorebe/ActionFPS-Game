@@ -9,6 +9,8 @@ bool editmode = false;
 // => selections are checked when they are made or when the world is reloaded
 
 vector<block> sels;
+vector<int> entsels;
+int targetentity = -1, curentface = 0;
 
 #define loopselxy(sel, b) { makeundo(sel); loop(x,(sel).xs) loop(y,(sel).ys) { sqr *s = S((sel).x+x, (sel).y+y); b; } remip(sel); }
 #define loopselsxy(b) { loopv(sels) loopselxy(sels[i], b); }
@@ -71,10 +73,8 @@ bool noteditmode(const char* func)
     return !editmode;
 }
 
-inline bool selset()
-{
-    return (sels.length() > 0);
-}
+inline bool selset() { return (sels.length() > 0); }
+inline bool entselset() { return (entsels.length() > 0); }
 
 bool noselection()
 {
@@ -126,7 +126,7 @@ void checkselections()
 void makesel(bool isnew)
 {
     block &cursel = sels.last(); //RR 10/12/12 - FIXEME, error checking should happen with "isnew", not here checking if it really is new.
-    if(isnew || sels.length() == 0) addselection(min(lastx, cx), min(lasty, cy), abs(lastx-cx)+1, abs(lasty-cy)+1, max(lasth, ch));
+    if(isnew || !selset()) addselection(min(lastx, cx), min(lasty, cy), abs(lastx-cx)+1, abs(lasty-cy)+1, max(lasth, ch));
     else
     {
         cursel.x = min(lastx, cx); cursel.y = min(lasty, cy);
@@ -135,6 +135,25 @@ void makesel(bool isnew)
         correctsel(cursel);
     }
     if(selset()) rtex = *S((sels.last()).x, (sels.last()).y);
+}
+
+// entities selections
+void addentselection(int i)
+{
+    if(!ents.inrange(i) || !isselectable(ents[i].type) || ents[i].selected) return;
+    entsels.add(i);
+    ents[i].selected = true;
+    targetentity = i;
+}
+
+void resetentselections()
+{
+    curentface = 0;
+    loopv(entsels)
+    {
+        if(ents.inrange(entsels[i])) ents[entsels[i]].selected = false;
+        entsels.remove(i);
+    }
 }
 
 #define SEL_ATTR(attr) { string buf = ""; loopv(sels) { concatformatstring(buf, "%d ", sels[i].attr); } result(buf); }
@@ -178,7 +197,13 @@ void cursorupdate()                                     // called every frame fr
         if(OUTBORD(cx, cy)) return;
     }
 
-    if(dragging) { makesel(false); };
+    if(editmode)
+    {
+        int target = targetent();
+        targetentity = target;
+    }
+    if(dragging) makesel(false);
+
 
     const int GRIDSIZE = 5;
     const float GRIDW = 0.5f;
@@ -341,16 +366,16 @@ void tofronttex()                                       // maintain most recentl
 
 void editdrag(bool isdown)
 {
+    int target = targetent();
     if((dragging = isdown))
     {
         lastx = cx;
         lasty = cy;
         lasth = ch;
         tofronttex();
-        
         bool ctrlpressed = false;
         
-        if (identexists("newselkeys"))
+        if(identexists("newselkeys"))
         {
             extern vector<keym> keyms;
             vector<char *> elems;
@@ -358,7 +383,7 @@ void editdrag(bool isdown)
 
             loopi(keyms.length()) if(keyms[i].pressed) loopj(elems.length())
             {
-                if (strcmp(keyms[i].name, elems[j]) == 0)
+                if(strcmp(keyms[i].name, elems[j]) == 0)
                 {
                     ctrlpressed = true;
                     break;
@@ -366,9 +391,14 @@ void editdrag(bool isdown)
             }
         }
 
-        if(!ctrlpressed) resetselections();
+        if(!ctrlpressed)
+        {
+            resetselections();
+            resetentselections();
+        }
     }
-    makesel(isdown);
+    if(target < 0) makesel(isdown);
+    else addentselection(target);
 }
 
 // the core editing function. all the *xy functions perform the core operations
@@ -389,11 +419,43 @@ void editheightxy(bool isfloor, int amount, block &sel)
     });
 }
 
+void editentheight(int i, int amount)
+{
+    entity &e = ents[i];
+    switch(e.type)
+    {
+        case MAPMODEL: 
+            e.attr3 += amount;
+        break;
+        case CLIP:
+        case PLCLIP:
+        {
+            switch(curentface)
+            {
+                case 1: e.attr2 += amount; break;
+                case 2: e.attr3 += amount; break;
+                case 3: e.attr4 += amount; break;
+                default:
+                case 0: e.attr1 += amount; break;
+            }
+        }
+        break;
+        default: return;
+    }
+    if(changedents.find(i) == -1) changedents.add(i);
+}
+
 void editheight(int *flr, int *amount)
 {
-    EDITSEL;
+    if(noteditmode("EDITSEL")) return;
+    if(entselset())
+    {
+        loopv(entsels) if(ents.inrange(entsels[i]))
+            editentheight(entsels[i], *amount);
+        return;
+    }
     bool isfloor = *flr==0;
-    loopv(sels)
+    if(!noselection()) loopv(sels)
     {
         editheightxy(isfloor, *amount, sels[i]);
         addmsg(SV_EDITH, "ri6", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, isfloor, *amount);
@@ -417,7 +479,9 @@ void edittexxy(int type, int t, block &sel)
 
 void edittex(int type, int dir)
 {
-    EDITSEL;
+    if(noteditmode("EDITSEL")) return;
+    bool mdl = type == 4;
+    if(type == 4) type = 3;
     if(type<0 || type>3) return;
     if(type!=lasttype) { tofronttex(); lasttype = type; }
     int atype = type==3 ? 1 : type;
@@ -425,7 +489,14 @@ void edittex(int type, int dir)
     i = i<0 ? 0 : i+dir;
     curedittex[atype] = i = min(max(i, 0), 255);
     int t = lasttex = hdr.texlists[atype][i];
-    loopv(sels)
+
+    if(mdl) loopv(entsels) if(ents.inrange(entsels[i])
+    && ents[entsels[i]].type == MAPMODEL)
+    {
+        ents[entsels[i]].attr4 = dir ? t : 0;
+        changedents.add(entsels[i]);
+    }
+    else loopv(sels)
     {
         edittexxy(type, t, sels[i]);
         addmsg(SV_EDITT, "ri6", sels[i].x, sels[i].y, sels[i].xs, sels[i].ys, type, t);
@@ -725,6 +796,51 @@ void selectionflip(char *axis)
     loopv(sels) selfliprotate(sels[i], c == 'X' ? 11 : 12);
 }
 
+void delent(int n)
+{
+    int t = ents[n].type;
+    conoutf("%s entity deleted", entnames[t]);
+    entity &e = ents[n];
+
+    if (t == SOUND) //stop playing sound
+    {
+        entityreference entref(&e);
+        location *loc = audiomgr.locations.find(e.attr1, &entref, mapsounds);
+
+        if(loc)
+            loc->drop();
+    }
+
+    ents[n].type = NOTUSED;
+    addmsg(SV_EDITENT, "ri9", n, NOTUSED, 0, 0, 0, 0, 0, 0, 0);
+
+    switch(t)
+    {
+        case LIGHT: calclight(); break;
+    }
+}
+
+void entrotate(int i)
+{
+    entity &e = ents[i];
+    switch(e.type)
+    {
+        case CTF_FLAG:
+        case MAPMODEL:
+        {
+            if(360-e.attr1 >= 24) e.attr1 += 24;
+            else e.attr1 = 24 - (360-e.attr1);
+            break;
+        }
+        case CLIP:
+        case PLCLIP:
+            swap(e.attr2, e.attr3);
+        break;
+        default: return;
+    }
+    if(changedents.find(i) == -1) changedents.add(i);
+}
+
 COMMANDF(select, "iiii", (int *x, int *y, int *xs, int *ys) { resetselections(); addselection(*x, *y, *xs, *ys, 0); });
 COMMANDF(addselection, "iiii", (int *x, int *y, int *xs, int *ys) { addselection(*x, *y, *xs, *ys, 0); });
 COMMAND(resetselections, "");
@@ -745,3 +861,29 @@ COMMANDF(selectionrotate, "i", (int *d) { selectionrotate(*d); });
 COMMAND(selectionflip, "s");
 COMMAND(countwalls, "i");
 COMMANDF(settex, "ii", (int *texture, int *type) { settex(*texture, *type); });
+COMMANDF(entrotate, "", (void) {
+    if(entselset())
+    {
+        loopv(entsels) if(ents.inrange(entsels[i]))
+            entrotate(entsels[i]);
+        return;
+    }
+    int closest = closestent();
+    if(ents.inrange(closest)) entrotate(closest);
+    else conoutf("no more entities");
+});
+COMMANDF(nextentface, "", (void) { if(++curentface > 3) curentface = 0; });
+COMMANDF(delent, "", (void) { 
+    if(entselset())
+    {
+        loopv(entsels) if(ents.inrange(entsels[i])) delent(entsels[i]);
+        resetentselections();
+    }
+    else
+    {
+        int n = closestent();
+        if(n<0) { conoutf("no more entities"); return; }
+        delent(n);
+    }
+    syncentchanges(true);
+});

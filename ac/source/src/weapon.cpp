@@ -203,7 +203,7 @@ void createrays(vec &from, vec &to) // create random spread of rays for the shot
     }
 }
 
-static inline bool intersectbox(const vec &o, const vec &rad, const vec &from, const vec &to, vec *end) // if lineseg hits entity bounding box
+inline bool intersectbox(const vec &o, const vec &rad, const vec &from, const vec &to, vec *end) // if lineseg hits entity bounding box
 {
     const vec *p;
     vec v = to, w = o;

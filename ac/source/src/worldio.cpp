@@ -356,7 +356,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         entity &e = ents.add();
         f->read(&e, sizeof(persistent_entity));
         lilswap((short *)&e, 4);
-        e.spawned = false;
+        e.spawned = e.selected = false;
         TRANSFORMOLDENTITIES(hdr)
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100))
         {

@@ -20,6 +20,7 @@ enum {MAP_IS_BAD, MAP_IS_EDITABLE, MAP_IS_GOOD};
 
 extern const char *entnames[MAXENTTYPES];
 #define isitem(i) ((i) >= I_CLIPS && (i) <= I_AKIMBO)
+#define isselectable(i) ((i) == MAPMODEL || (i) == CLIP || (i) == PLCLIP)
 
 struct persistent_entity        // map entity
 {
@@ -33,10 +34,12 @@ struct persistent_entity        // map entity
 
 struct entity : persistent_entity
 {
-    bool spawned;               //the dynamic states of a map entity
+    bool spawned;               // the dynamic states of a map entity
+    bool selected;              // selected? (map editor)
     int lastmillis;
-    entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false) {}
-    entity() {}
+    entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4),
+        spawned(false), selected(false) {}
+    entity() : selected(false) {}
     bool fitsmode(int gamemode) { return !m_noitems && isitem(type) && !(m_noitemsnade && type!=I_GRENADE) && !(m_pistol && type==I_AMMO); }
     void transformtype(int gamemode)
     {

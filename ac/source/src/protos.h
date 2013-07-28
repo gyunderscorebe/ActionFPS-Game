@@ -478,6 +478,7 @@ extern bool empty_world(int factor, bool force);
 extern void remip(const block &b, int level = 0);
 extern void remipmore(const block &b, int level = 0);
 extern int closestent();
+extern int targetent();
 extern int findtype(char *what);
 extern int findentity(int type, int index = 0);
 extern int findentity(int type, int index, uchar attr2);
@@ -586,6 +587,8 @@ extern void editheightxy(bool isfloor, int amount, block &sel);
 //extern bool noteditmode();
 extern bool noteditmode(const char* func = NULL);
 extern void pruneundos(int maxremain = 0);
+extern int targetentity, curentface;
+extern vector<int> entsels;
 
 // renderhud
 enum
@@ -737,6 +740,7 @@ extern void setscope(bool activate);
 extern void setburst(bool activate);
 extern int intersect(playerent *d, const vec &from, const vec &to, vec *end = NULL);
 extern bool intersect(entity *e, const vec &from, const vec &to, vec *end = NULL);
+extern inline bool intersectbox(const vec &o, const vec &rad, const vec &from, const vec &to, vec *end = NULL);
 // Structure for storing traceresults
 struct traceresult_s
 {
