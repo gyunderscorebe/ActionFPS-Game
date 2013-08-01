@@ -81,7 +81,8 @@ void renderclip(entity &e, bool hover)
             glEnd();
             glEnable(GL_CULL_FACE);
         }
-        linestyle(1, 128, 0, 0);
+        if(e.selected) linestyle(2 , 150, 0, 0);
+        else linestyle(1, 128, 0, 0);
     }
     else switch(e.type)
     {
