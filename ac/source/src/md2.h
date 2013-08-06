@@ -269,7 +269,11 @@ struct md2 : vertmodel
         per_idents = true;
         loadingmd2 = 0;
         loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, -translate.y, translate.z));
-        radius = calcradius();
+
+        calcbounds(bounds_min, bounds_max);
+        radius = bounds_max.distxy(bounds_min)/2.0f;
+        height = bounds_max.z-bounds_min.z;
+
         if(shadowdist) calcneighbors();
         calcbbs();
         return loaded = true;

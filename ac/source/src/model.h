@@ -42,12 +42,13 @@ class dynent;
 struct model
 {
     bool cullface, vertexlight, alphablend;  //ALX Alpha channel models
-    float alphatest, translucency, scale, radius, shadowdist;
+    float alphatest, translucency, scale, radius, height, shadowdist;
     vec translate;
+    vec bounds_min, bounds_max;
     int cachelimit, batch;
     
     //model() : cullface(true), vertexlight(false), alphatest(0.9f), translucency(0.25f), scale(1), radius(0), shadowdist(0), translate(0, 0, 0), cachelimit(8), batch(-1) {}
-    model() : cullface(true), vertexlight(false),  alphablend(false), alphatest(0.9f), translucency(0.25f), scale(1), radius(0), shadowdist(0), translate(0, 0, 0), cachelimit(8), batch(-1) {}
+    model() : cullface(true), vertexlight(false),  alphablend(false), alphatest(0.9f), translucency(0.25f), scale(1), radius(0), height(0), shadowdist(0), translate(0, 0, 0), cachelimit(8), batch(-1) {}
     virtual ~model() {}
 
     virtual bool load() = 0;

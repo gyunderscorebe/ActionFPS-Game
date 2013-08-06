@@ -282,13 +282,13 @@ void renderentities()
                 && !stenciling)
             {
                 mapmodelinfo &mmi = getmminfo(e.attr2);
-                if(&mmi && mmi.h)
+                if(&mmi && (mmi.h || hover || e.selected))
                 {
                     entity ce = e;
                     ce.type = MAPMODEL;
-                    ce.attr1 = mmi.zoff+e.attr3;
-                    ce.attr2 = ce.attr3 = mmi.rad;
-                    ce.attr4 = mmi.h;
+                    ce.attr1 = (!mmi.h && mmi.m ? mmi.m->bounds_min.z : mmi.zoff) + e.attr3;
+                    ce.attr2 = ce.attr3 = (int)floor((!mmi.h && mmi.m ? mmi.m->radius : mmi.rad)+0.5f);
+                    ce.attr4 = !mmi.h && mmi.m ? mmi.m->height : mmi.h;
                     renderclip(ce, hover);
                 }
             }

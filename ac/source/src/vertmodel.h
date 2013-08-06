@@ -556,11 +556,14 @@ struct vertmodel : model
             return vert;
         }
 
-        float calcradius()
+        void calcbounds(vec &bounds_min, vec &bounds_max)
         {
-            float rad = 0;
-            loopi(numverts) rad = max(rad, verts[i].magnitudexy());
-            return rad;
+            loopi(numverts)
+            loopj(3) 
+            {
+                bounds_min[j] = min(bounds_min[j], verts[i][j]);
+                bounds_max[j] = max(bounds_max[j], verts[i][j]);
+            }
         }
 
         void calcneighbors()
@@ -1185,11 +1188,19 @@ struct vertmodel : model
             return s;
         }
 
-        float calcradius()
+        void calcbounds(vec &bounds_min, vec &bounds_max)
         {
-            float rad = 0;
-            loopv(meshes) rad = max(rad, meshes[i]->calcradius());
-            return rad;
+            loopv(meshes)
+            {
+                vec mesh_min(1000.0f, 1000.0f, 1000.0f);
+                vec mesh_max = -mesh_min;
+                meshes[i]->calcbounds(mesh_min, mesh_max);
+                loopj(3) 
+                {
+                    bounds_min[j] = min(bounds_min[j], mesh_min[j]);
+                    bounds_max[j] = max(bounds_max[j], mesh_max[j]);
+                }
+            }
         }
 
         void calcneighbors()
@@ -1250,9 +1261,18 @@ struct vertmodel : model
         return parts.length()==1 && parts[0]->shadows;
     }
 
-    float calcradius()
+    void calcbounds(vec &bounds_min, vec &bounds_max)
     {
-        return parts.empty() ? 0.0f : parts[0]->calcradius();
+        if(parts.empty())
+        {
+            bounds_min = vec(0, 0, 0);
+            bounds_max = vec(0, 0, 0);
+            return;
+        }
+        bounds_min = vec(1000.0f, 1000.0f, 1000.0f);
+        bounds_max = -bounds_min;
+        parts[0]->calcbounds(bounds_min, bounds_max);
+        
     }
 
     void calcneighbors()
