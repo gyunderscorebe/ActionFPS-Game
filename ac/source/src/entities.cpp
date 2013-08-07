@@ -25,16 +25,12 @@ const char *entmdlnames[] =
      rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), yaw, 0);
  }
 
-void renderclip(entity &e, bool hover)
+void renderclip(int type, const vec &bbmin, const vec &bbmax, bool selected, bool hover)
 {
-    float xradius = max(float(e.attr2), 0.1f), yradius = max(float(e.attr3), 0.1f);
-    vec bbmin(e.x - xradius, e.y - yradius, float(S(e.x, e.y)->floor+e.attr1)),
-        bbmax(e.x + xradius, e.y + yradius, bbmin.z + max(float(e.attr4), 0.1f));
-
     glDisable(GL_TEXTURE_2D);
     if(hover)
     {
-        if(curentface && e.selected && e.type != MAPMODEL)
+        if(curentface && selected && type != MAPMODEL)
         {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -81,10 +77,10 @@ void renderclip(entity &e, bool hover)
             glEnd();
             glEnable(GL_CULL_FACE);
         }
-        if(e.selected) linestyle(2 , 150, 0, 0);
+        if(selected) linestyle(2 , 150, 0, 0);
         else linestyle(1, 128, 0, 0);
     }
-    else switch(e.type)
+    else switch(type)
     {
         case CLIP:     linestyle(1, 0xFF, 0xFF, 0); break;  // yellow
         case MAPMODEL: linestyle(1, 0, 0xFF, 0);    break;  // green
@@ -276,7 +272,12 @@ void renderentities()
             else if((e.type == CLIP || e.type == PLCLIP)
                 && (showclips || hover)
                 && !stenciling)
-                renderclip(e, hover);
+            {
+                    float xradius = max(float(e.attr2), 0.1f), yradius = max(float(e.attr3), 0.1f);
+                        vec bbmin(e.x - xradius, e.y - yradius, float(S(e.x, e.y)->floor+e.attr1)),
+                            bbmax(e.x + xradius, e.y + yradius, bbmin.z + max(float(e.attr4), 0.1f));
+                renderclip(e.type, bbmin, bbmax, e.selected, hover);
+            }
             else if(e.type == MAPMODEL
                 && ((showclips && showmodelclipping) || hover)
                 && !stenciling)
@@ -284,12 +285,10 @@ void renderentities()
                 mapmodelinfo &mmi = getmminfo(e.attr2);
                 if(&mmi && (mmi.h || hover || e.selected))
                 {
-                    entity ce = e;
-                    ce.type = MAPMODEL;
-                    ce.attr1 = (!mmi.h && mmi.m ? mmi.m->bounds_min.z : mmi.zoff) + e.attr3;
-                    ce.attr2 = ce.attr3 = (int)floor((!mmi.h && mmi.m ? mmi.m->radius : mmi.rad)+0.5f);
-                    ce.attr4 = !mmi.h && mmi.m ? mmi.m->height : mmi.h;
-                    renderclip(ce, hover);
+                    float radius = !mmi.h && mmi.m ? mmi.m->radius : mmi.rad;
+                        vec bbmin(e.x - radius, e.y - radius, float(S(e.x, e.y)->floor+(!mmi.h && mmi.m ? mmi.m->bounds_min.z : mmi.zoff) + e.attr3)),
+                            bbmax(e.x + radius, e.y + radius, bbmin.z + max(float(!mmi.h && mmi.m ? mmi.m->height : mmi.h), 0.1f));
+                    renderclip(MAPMODEL, bbmin, bbmax, e.selected, hover);
                 }
             }
         }

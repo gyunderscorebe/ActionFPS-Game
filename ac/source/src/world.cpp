@@ -170,6 +170,10 @@ int targetent()
 {
     float mindist = 0;
     int target = -1;
+    vec to = worldpos, surface; to.sub(camera1->o);
+    float dist = raycube(camera1->o, to, surface);
+    if(dist < 0) dist = 1000.0f;
+    to.mul(dist).add(camera1->o);
     // TODO ?: is it worth checking for isoccluded?
     // (all depends on how fast intersection calculations perform)
     loopv(ents) if(isselectable(ents[i].type))
@@ -179,13 +183,14 @@ int targetent()
         vec end;
         switch(e.type)
         {
-            case MAPMODEL: targeting = intersect(&e, camera1->o, worldpos, &end); break;
+            case MAPMODEL: targeting = intersect(&e, camera1->o, to, &end); break;
             case CLIP:
             case PLCLIP:
-                targeting = intersectbox(vec(e.x, e.y, S(e.x,e.y)->floor+e.attr1),
-                    vec(e.attr2 ? e.attr2 : 0.1f, e.attr3 ? e.attr3 : 0.1f, e.attr4),
-                    camera1->o, worldpos, &end);
+                targeting = intersectbox(vec(e.x, e.y, S(e.x,e.y)->floor+e.attr1+(e.attr4 ? e.attr4 : 0.1f)/2.0f),
+                    vec(e.attr2 ? e.attr2 : 0.1f, e.attr3 ? e.attr3 : 0.1f, (e.attr4 ? e.attr4 : 0.1f)/2.0f),
+                    camera1->o, to, &end);
             break;
+            default: break;
         }
         if(targeting)
         {
