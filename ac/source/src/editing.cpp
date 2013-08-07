@@ -895,7 +895,7 @@ COMMANDF(settex, "ii", (int *texture, int *type) { settex(*texture, *type); });
         return; \
     } \
     int ent = closestent(); \
-    if(ents.inrange(ent)) entrotate(ent); \
+    if(ents.inrange(ent)) { b; } \
     else conoutf("no more entities");
 
 COMMANDF(entrotate, "", (void) { loopents( { entrotate(ent); }); });
