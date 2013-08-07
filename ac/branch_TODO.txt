@@ -1,0 +1,19 @@
+mapediting TODO
+===============
+
+Selectable entities
+-------------------
+ * drag and drop ? or entites displacement controlled with arrow keys ?
+ * "clipify" command to clipify all selected unclipped mapmodels
+ * remove "vector <int> entsels" completely, and use entity::selected only ?
+ * currently using the "radius" (xy) for mapmodels; use the bounds instead (x, y) with rotation ?
+   (actually, clips should be rotate-able too :/ )
+ 
+ Textured clips
+ ------------------
+  * import what is already done
+  
+  Textures/Mapmodels Browser
+  -----------------
+   * Auto generated CFG ? Select content to insert from a menu
+   * Menus with previews + allow to filter content from the CFG
