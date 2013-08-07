@@ -205,34 +205,6 @@ int targetent()
     return target;
 }
 
-void entproperty(int prop, int amount)
-{
-    int n = closestent();
-    if(n<0) return;
-    entity &e = ents[n];
-    switch(prop)
-    {
-        case 0: e.attr1 += amount; break;
-        case 1: e.attr2 += amount; break;
-        case 2: e.attr3 += amount; break;
-        case 3: e.attr4 += amount; break;
-        case 11: e.x += amount; break;
-        case 12: e.y += amount; break;
-        case 13: e.z += amount; break;
-    }
-    switch(e.type)
-    {
-        case LIGHT: calclight(); break;
-        case SOUND:
-            audiomgr.preloadmapsound(e);
-            entityreference entref(&e);
-            location *loc = audiomgr.locations.find(e.attr1-amount, &entref, mapsounds);
-            if(loc)
-                loc->drop();
-    }
-    if(changedents.find(n) == -1) changedents.add(n);   // apply ent changes later (reduces network traffic)
-}
-
 hashtable<char *, enet_uint32> mapinfo, &resdata = mapinfo;
 
 void getenttype()
@@ -567,5 +539,3 @@ COMMAND(mapenlarge, "");
 COMMAND(mapshrink, "");
 COMMAND(newmap, "i");
 COMMANDN(recalc, calclight, "");
-COMMANDF(entproperty, "ii", (int *p, int *a) { entproperty(*p, *a); });
-

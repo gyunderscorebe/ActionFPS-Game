@@ -799,7 +799,7 @@ void selectionflip(char *axis)
 void delent(int n)
 {
     int t = ents[n].type;
-    conoutf("%s entity deleted", entnames[t]);
+    conoutf("%s entity deleted (%d)", entnames[t], n);
     entity &e = ents[n];
 
     if (t == SOUND) //stop playing sound
@@ -841,6 +841,32 @@ void entrotate(int i)
     if(changedents.find(i) == -1) changedents.add(i);
 }
 
+void entproperty(int i, int prop, int amount)
+{
+    entity &e = ents[i];
+    switch(prop)
+    {
+        case 0: e.attr1 += amount; break;
+        case 1: e.attr2 += amount; break;
+        case 2: e.attr3 += amount; break;
+        case 3: e.attr4 += amount; break;
+        case 11: e.x += amount; break;
+        case 12: e.y += amount; break;
+        case 13: e.z += amount; break;
+    }
+    switch(e.type)
+    {
+        case LIGHT: calclight(); break;
+        case SOUND:
+            audiomgr.preloadmapsound(e);
+            entityreference entref(&e);
+            location *loc = audiomgr.locations.find(e.attr1-amount, &entref, mapsounds);
+            if(loc)
+                loc->drop();
+    }
+    if(changedents.find(i) == -1) changedents.add(i);   // apply ent changes later (reduces network traffic)
+}
+
 COMMANDF(select, "iiii", (int *x, int *y, int *xs, int *ys) { resetselections(); addselection(*x, *y, *xs, *ys, 0); });
 COMMANDF(addselection, "iiii", (int *x, int *y, int *xs, int *ys) { addselection(*x, *y, *xs, *ys, 0); });
 COMMAND(resetselections, "");
@@ -861,29 +887,18 @@ COMMANDF(selectionrotate, "i", (int *d) { selectionrotate(*d); });
 COMMAND(selectionflip, "s");
 COMMAND(countwalls, "i");
 COMMANDF(settex, "ii", (int *texture, int *type) { settex(*texture, *type); });
-COMMANDF(entrotate, "", (void) {
-    if(entselset())
-    {
-        loopv(entsels) if(ents.inrange(entsels[i]))
-            entrotate(entsels[i]);
-        return;
-    }
-    int closest = closestent();
-    if(ents.inrange(closest)) entrotate(closest);
+
+#define loopents(b) if(entselset()) { \
+        loopv(entsels) { int ent = entsels[i]; if(ents.inrange(ent)) \
+            b; \
+        } \
+        return; \
+    } \
+    int ent = closestent(); \
+    if(ents.inrange(ent)) entrotate(ent); \
     else conoutf("no more entities");
-});
+
+COMMANDF(entrotate, "", (void) { loopents( { entrotate(ent); }); });
 COMMANDF(nextentface, "", (void) { if(++curentface > 3) curentface = 0; });
-COMMANDF(delent, "", (void) { 
-    if(entselset())
-    {
-        loopv(entsels) if(ents.inrange(entsels[i])) delent(entsels[i]);
-        resetentselections();
-    }
-    else
-    {
-        int n = closestent();
-        if(n<0) { conoutf("no more entities"); return; }
-        delent(n);
-    }
-    syncentchanges(true);
-});
+COMMANDF(delent, "", (void) { loopents( { delent(ent); }); resetentselections(); syncentchanges(true); });
+COMMANDF(entproperty, "ii", (int *p, int *a) { loopents( { entproperty(ent, *p, *a); }) });
