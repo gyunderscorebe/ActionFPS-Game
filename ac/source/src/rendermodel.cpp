@@ -91,7 +91,7 @@ vector<mapmodelinfo> mapmodels;
 void mapmodel(float *rad, float *h, float *zoff, char *snap, char *name)
 {
     mapmodelinfo &mmi = mapmodels.add();
-    mmi.rad = *rad;
+    mmi.rad = max(0.1f, *rad);
     mmi.h = *h;
     mmi.zoff = *zoff;
     mmi.m = NULL;
@@ -163,6 +163,12 @@ model *loadmodel(const char *name, int i, bool trydl)
         }
         else mdllookup.access(m->name(), m);
         loadingmodel = NULL;
+        
+        if(!mapmodels.inrange(i) && m != nomodel) loopvj(mapmodels) if(!strcmp(mapmodels[j].name, name))
+        {
+            i = j;
+            break;
+        }
     }
     if(m == nomodel) return NULL;
     if(mapmodels.inrange(i) && !mapmodels[i].m) mapmodels[i].m = m;
