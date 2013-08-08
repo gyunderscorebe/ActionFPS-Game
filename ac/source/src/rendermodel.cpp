@@ -88,13 +88,14 @@ COMMAND(mdlcachelimit, "i");
 
 vector<mapmodelinfo> mapmodels;
 
-void mapmodel(int *rad, int *h, int *zoff, char *snap, char *name)
+void mapmodel(float *rad, float *h, float *zoff, char *snap, char *name)
 {
     mapmodelinfo &mmi = mapmodels.add();
     mmi.rad = *rad;
     mmi.h = *h;
     mmi.zoff = *zoff;
     mmi.m = NULL;
+    mmi.clipped = mmi.h >= 0.1f;
     formatstring(mmi.name)("mapmodels/%s", name);
 }
 
@@ -105,7 +106,7 @@ void mapmodelreset()
 
 mapmodelinfo &getmminfo(int i) { return mapmodels.inrange(i) ? mapmodels[i] : *(mapmodelinfo *)0; }
 
-COMMAND(mapmodel, "iiiss");
+COMMAND(mapmodel, "fffss");
 COMMAND(mapmodelreset, "");
 
 hashtable<const char *, model *> mdllookup;

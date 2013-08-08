@@ -336,9 +336,9 @@ bool intersect(entity *e, const vec &from, const vec &to, vec *end)
 {
     mapmodelinfo &mmi = getmminfo(e->attr2);
     if(!&mmi) return false;
-    float h = !mmi.h && mmi.m ? mmi.m->height : mmi.h,
-          rad = !mmi.h && mmi.m ? mmi.m->radius : max(0.1f, float(mmi.rad)),
-          zoff = !mmi.h && mmi.m ? mmi.m->bounds_min.z : mmi.zoff;
+    float h = !mmi.clipped && mmi.m ? mmi.m->height : mmi.h,
+          rad = !mmi.clipped && mmi.m ? mmi.m->radius : max(0.1f, float(mmi.rad)),
+          zoff = !mmi.clipped && mmi.m ? mmi.m->bounds_min.z : mmi.zoff;
 
     float lo = float(S(e->x, e->y)->floor+zoff+e->attr3);
     return intersectbox(vec(e->x, e->y, lo+h/2.0f), vec(rad, rad, h/2.0f), from, to, end);

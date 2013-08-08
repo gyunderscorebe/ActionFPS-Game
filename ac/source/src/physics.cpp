@@ -131,7 +131,7 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
         else if(e.type==MAPMODEL)
         {
             mapmodelinfo &mmi = getmminfo(e.attr2);
-            if(!&mmi || !mmi.h) continue;
+            if(!&mmi || !mmi.clipped) continue;
             const float r = mmi.rad+d->radius;
             if(fabs(e.x-d->o.x)<r && fabs(e.y-d->o.y)<r)
             {

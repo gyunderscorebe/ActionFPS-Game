@@ -68,4 +68,4 @@ struct model
     virtual void endrender() {}
 };
 
-struct mapmodelinfo { int rad, h, zoff; string name; model *m; };
+struct mapmodelinfo { float rad, h, zoff; string name; model *m; bool clipped; };

@@ -283,11 +283,11 @@ void renderentities()
                 && !stenciling)
             {
                 mapmodelinfo &mmi = getmminfo(e.attr2);
-                if(&mmi && (mmi.h || hover || e.selected))
+                if(&mmi && (mmi.clipped || hover || e.selected))
                 {
-                    float radius = !mmi.h && mmi.m ? mmi.m->radius : mmi.rad;
-                        vec bbmin(e.x - radius, e.y - radius, float(S(e.x, e.y)->floor+(!mmi.h && mmi.m ? mmi.m->bounds_min.z : mmi.zoff) + e.attr3)),
-                            bbmax(e.x + radius, e.y + radius, bbmin.z + max(float(!mmi.h && mmi.m ? mmi.m->height : mmi.h), 0.1f));
+                    float radius = !mmi.clipped && mmi.m ? mmi.m->radius : mmi.rad;
+                        vec bbmin(e.x - radius, e.y - radius, float(S(e.x, e.y)->floor+(!mmi.clipped && mmi.m ? mmi.m->bounds_min.z : mmi.zoff) + e.attr3)),
+                            bbmax(e.x + radius, e.y + radius, bbmin.z + max(float(!mmi.clipped && mmi.m ? mmi.m->height : mmi.h), 0.1f));
                     renderclip(MAPMODEL, bbmin, bbmax, e.selected, hover);
                 }
             }
@@ -685,7 +685,7 @@ void entstats(void)
             case MAPMODEL:
             {
                 mapmodelinfo &mmi = getmminfo(e.attr2);
-                if(&mmi && mmi.h) clipents++;
+                if(&mmi && mmi.clipped) clipents++;
                 break;
             }
             case PLAYERSTART:
