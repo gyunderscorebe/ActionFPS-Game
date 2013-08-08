@@ -266,9 +266,13 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
             break;
 
         case MAPMODEL:
+        {
             e.attr4 = e.attr3;
             e.attr3 = e.attr2;
             e.attr2 = (uchar)e.attr1;
+            mapmodelinfo &mmi = getmminfo(e.attr2);
+            if(&mmi && !mmi.m) mmi.m = loadmodel(NULL, e.attr2);
+        }
         case PLAYERSTART:
         case CTF_FLAG:
             e.attr2 = v1;
