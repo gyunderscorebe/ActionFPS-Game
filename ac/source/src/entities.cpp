@@ -285,7 +285,7 @@ void renderentities()
                 mapmodelinfo &mmi = getmminfo(e.attr2);
                 if(&mmi && (mmi.clipped || hover || e.selected))
                 {
-                    float radius = !mmi.clipped && mmi.m ? mmi.m->radius : mmi.rad;
+                    float radius = !mmi.clipped && mmi.m ? max(0.5f, mmi.m->radius) : mmi.rad;
                         vec bbmin(e.x - radius, e.y - radius, float(S(e.x, e.y)->floor+(!mmi.clipped && mmi.m ? mmi.m->bounds_min.z : mmi.zoff) + e.attr3)),
                             bbmax(e.x + radius, e.y + radius, bbmin.z + max(float(!mmi.clipped && mmi.m ? mmi.m->height : mmi.h), 0.1f));
                     renderclip(MAPMODEL, bbmin, bbmax, e.selected, hover);
