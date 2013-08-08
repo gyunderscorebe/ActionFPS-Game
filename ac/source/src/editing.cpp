@@ -828,8 +828,8 @@ void entrotate(int i)
         case CTF_FLAG:
         case MAPMODEL:
         {
-            if(360-e.attr1 >= 24) e.attr1 += 24;
-            else e.attr1 = 24 - (360-e.attr1);
+            if(360-e.attr1 >= 12) e.attr1 += 12;
+            else e.attr1 = 12 - (360-e.attr1);
             break;
         }
         case CLIP:
