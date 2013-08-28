@@ -1,19 +1,26 @@
 mapediting TODO
 ===============
+The mapediting branch is supposed to extend the cube engine possibilities,
+by making mapping easier and also maybe improving performances.
 
 Selectable entities
 -------------------
  * drag and drop ? or entites displacement controlled with arrow keys ?
  * "clipify" command to clipify all selected unclipped mapmodels
+   could generate many little clips (with a max. resolution?)
+   or we could make an octree based system idk
  * remove "vector <int> entsels" completely, and use entity::selected only ?
  * currently using the "radius" (xy) for mapmodels; use the bounds instead (x, y) with rotation ?
    (actually, clips should be rotate-able too :/ )
  
- Textured clips
- ------------------
-  * import what is already done
+Textured clips
+------------------
+ * should it be based on entities, or should the map format change ?
+    - If entity based : the editing part would be more "mapmodel/clip" oriented
+    - Else : more integrated to the cube system (would be more complicated ? raycubelos should be changed then ?)
+    
   
-  Textures/Mapmodels Browser
-  -----------------
-   * Auto generated CFG ? Select content to insert from a menu
-   * Menus with previews + allow to filter content from the CFG
+ Textures/Mapmodels Browser
+ -----------------
+  * Auto generated CFG ? Select content to insert from a menu
+  * Menus with previews + allow to filter content from the CFG
