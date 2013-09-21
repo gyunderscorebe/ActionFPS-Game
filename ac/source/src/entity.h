@@ -703,6 +703,7 @@ namespace packagesmanager
     void setupcurl();
     bool requirepackage(int type, const char *path);
     int downloadpackages();
+    void sortpckservers();
     void writepcksourcecfg();
 
     void browsetextures(char *path = NULL);
