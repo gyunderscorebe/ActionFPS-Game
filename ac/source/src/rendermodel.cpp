@@ -97,11 +97,18 @@ void mapmodel(float *rad, float *h, float *zoff, char *snap, char *name)
     mmi.m = NULL;
     mmi.clipped = mmi.h >= 0.1f;
     formatstring(mmi.name)("mapmodels/%s", name);
+    defformatstring(fullname)("packages/models/mapmodels/%s", name);
+    unixpath(path(fullname));
+    packagesmanager::linktomap(fullname);
 }
 
 void mapmodelreset()
 {
-    if(execcontext==IEXC_MAPCFG) mapmodels.shrink(0);
+    if(execcontext==IEXC_MAPCFG)
+    {
+        mapmodels.shrink(0);
+        packagesmanager::reset(PCK_MAPMODEL);
+    }
 }
 
 mapmodelinfo &getmminfo(int i) { return mapmodels.inrange(i) ? mapmodels[i] : *(mapmodelinfo *)0; }
@@ -141,7 +148,7 @@ model *loadmodel(const char *name, int i, bool trydl)
                 if(trydl)
                 {
                     defformatstring(dl)("packages/models/%s", name);
-                    requirepackage(PCK_MAPMODEL, dl);
+                    packagesmanager::requirepackage(PCK_MAPMODEL, dl);
                 }
                 else
                 {

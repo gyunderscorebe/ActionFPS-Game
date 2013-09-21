@@ -90,7 +90,7 @@ extern bool bindc(int code, const char *action, int type = keym::ACTION_DEFAULT)
 extern void rendermenu();
 extern bool menuvisible();
 extern void menureset(void *menu);
-extern void menumanual(void *menu, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
+extern void menumanual(void *menu, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL, char *hoveraction = NULL);
 extern void menuimagemanual(void *menu, const char *filename1, const char *filename2, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
 extern void menutitle(void *menu, const char *title = NULL);
 extern bool needscoresreorder;
@@ -154,13 +154,14 @@ struct gmenu
     bool (__cdecl *keyfunc)(void *, int, bool, int);
     char *initaction;
     char *usefont;
-    bool allowblink;
+    bool allowblink, showthumb, preload;
     const char *mdl;
+    vec mdlpos;
     int anim, rotspeed, scale;
     int footlen;
     mdirlist *dirlist;
 
-    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), usefont(0), allowblink(0), mdl(0), footlen(0), dirlist(0) {}
+    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), usefont(0), allowblink(0), showthumb(true), preload(true), mdl(0), mdlpos(vec(2.0f, 0, 1.7f)), footlen(0), dirlist(0) {}
     virtual ~gmenu()
     {
         DELETEA(name);
@@ -327,12 +328,6 @@ static inline Texture *lookupworldtexture(int tex, bool trydl = true)
 extern float skyfloor;
 extern void draw_envbox(int fogdist);
 
-extern int autodownload;
-extern void setupcurl();
-extern bool requirepackage(int type, const char *path);
-extern int downloadpackages();
-extern void writepcksourcecfg();
-
 extern int maxtmus;
 extern void inittmus();
 extern void resettmu(int n);
@@ -482,7 +477,7 @@ extern int targetent();
 extern int findtype(char *what);
 extern int findentity(int type, int index = 0);
 extern int findentity(int type, int index, uchar attr2);
-extern entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, int v3, int v4);
+extern entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, int v3, int v4, int v5);
 
 // worldlight
 extern int lastcalclight;

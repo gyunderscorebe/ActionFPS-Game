@@ -700,10 +700,10 @@ void edittag(int *tag)
     loopselsxy(s->tag = *tag);
 }
 
-void newent(char *what, int *a1, int *a2, int *a3, int *a4)
+void newent(char *what, int *a1, int *a2, int *a3, int *a4, int *a5)
 {
     EDITSEL;
-    loopv(sels) newentity(-1, sels[i].x, sels[i].y, (int)camera1->o.z, what, *a1, *a2, *a3, *a4);
+    loopv(sels) newentity(-1, sels[i].x, sels[i].y, (int)camera1->o.z, what, *a1, *a2, *a3, *a4, *a5);
 }
 
 void movemap(int xo, int yo, int zo) // move whole map

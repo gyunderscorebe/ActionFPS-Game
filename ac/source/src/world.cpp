@@ -239,7 +239,7 @@ int findtype(char *what)
     return NOTUSED;
 }
 
-entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, int v3, int v4)
+entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, int v3, int v4, int v5)
 {
     int type = findtype(what);
     if(type==NOTUSED) return NULL;
@@ -263,6 +263,13 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
             if(v1>64) e.attr1 = 64;
             if(!v1) e.attr1 = 16;
             if(!v2 && !v3 && !v4) e.attr2 = 255;
+            break;
+        
+        case TCLIP:
+            e.attr1 = v2&0xFF | ((v3&0xFF) << 8);
+            e.attr2 = v1;
+            e.attr3 = v4;
+            e.attr4 = v5;
             break;
 
         case MAPMODEL:
@@ -301,13 +308,13 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
     return index<0 ? &ents.last() : &ents[index];
 }
 
-void entset(char *what, int *a1, int *a2, int *a3, int *a4)
+void entset(char *what, int *a1, int *a2, int *a3, int *a4, int *a5)
 {
     int n = closestent();
     if(n>=0)
     {
         entity &e = ents[n];
-        newentity(n, e.x, e.y, e.z, what, *a1, *a2, *a3, *a4);
+        newentity(n, e.x, e.y, e.z, what, *a1, *a2, *a3, *a4, *a5);
     }
 }
 

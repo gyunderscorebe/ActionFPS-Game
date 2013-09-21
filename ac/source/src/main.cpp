@@ -34,7 +34,7 @@ void quit()                     // normal exit
     extern void writeinitcfg();
     writeinitcfg();
     writeservercfg();
-    writepcksourcecfg();
+    packagesmanager::writepcksourcecfg();
     if(resetcfg) deletecfg();
     else writecfg();
     cleanup(NULL);
@@ -981,7 +981,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 }
 #endif
 
-VARP(compatibilitymode, 0, 1, 1); // FIXME : find a better place to put this ?
+VARP(compatibilitymode, 0, 0, 1); // FIXME : find a better place to put this ?
 
 int main(int argc, char **argv)
 {
@@ -1129,6 +1129,29 @@ int main(int argc, char **argv)
     nomodel = loadmodel("misc/gib01", -1);      //FIXME: need actual placeholder model
     if(!notexture) fatal("could not find core models");
 
+    // list all installed packages.
+    // maybe it should not be run @ startup, although it is quite fast.
+    stopwatch watch;
+    watch.start();
+    packagesmanager::browsetextures();
+    packagesmanager::browsesounds();
+    packagesmanager::browsemapmodels();
+    packagesmanager::browseskymaps();
+    /*FILE *fp = fopen("test.txt", "w+");
+    enumerate(packagesmanager::packages, package *, pack,
+    {
+        switch(pack->type)
+        {
+            case PCK_TEXTURE: fprintf(fp, "tex: %s | %s | %s\n", pack->name, pack->shortname, pack->basename); break;
+            case PCK_SKYBOX: fprintf(fp, "sbx: %s | %s | %s\n", pack->name, pack->shortname, pack->basename); break;
+            case PCK_MAPMODEL: fprintf(fp, "mdl: %s | %s | %s\n", pack->name, pack->shortname, pack->basename); break;
+            case PCK_AUDIO: fprintf(fp, "snd: %s | %s | %s\n", pack->name, pack->shortname, pack->basename); break;
+            default: break;
+        }
+    });
+    fclose(fp);*/
+    conoutf("listed %d installed packages (%d milliseconds)", packagesmanager::packages.numelems, watch.stop());
+
     initlog("console");
     per_idents = false;
     // Main font file, all other font files execute from here.
@@ -1156,6 +1179,10 @@ int main(int argc, char **argv)
     giveadminmenu = addmenu("give admin", NULL, true, refreshsopmenu);
     docmenu = addmenu("reference", NULL, true, renderdocmenu);
     applymenu = addmenu("apply", "apply changes now?", true, refreshapplymenu);
+    packagesmanager::texturesmenu = addmenu("pcktextures", "textures", true, packagesmanager::refreshtexmenu);
+    packagesmanager::mapmodelsmenu = addmenu("pckmapmodels", "mapmodels", true, packagesmanager::refreshmdlmenu);
+    ((gmenu *)packagesmanager::texturesmenu)->showthumb = ((gmenu *)packagesmanager::mapmodelsmenu)->showthumb = false;
+    ((gmenu *)packagesmanager::texturesmenu)->preload = ((gmenu *)packagesmanager::mapmodelsmenu)->preload = false;
 
     exec("config/scontext.cfg");
     exec("config/locale.cfg");
@@ -1207,7 +1234,7 @@ int main(int argc, char **argv)
     preload_playermodels();
     preload_hudguns();
     initlog("curl");
-    setupcurl();
+    packagesmanager::setupcurl();
 
     preload_entmodels();
 
@@ -1235,7 +1262,7 @@ int main(int argc, char **argv)
     initlog("mainloop");
 
     inputgrab(grabinput = true);
-
+    
     inmainloop = true;
 #ifdef _DEBUG
     int lastflush = 0;

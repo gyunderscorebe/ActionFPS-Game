@@ -380,7 +380,7 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
     if(!s)
     {
         if(trydl)
-            requirepackage(PCK_TEXTURE, file);
+            packagesmanager::requirepackage(PCK_TEXTURE, file);
         else if(!silent_texture_load) conoutf("couldn't load texture %s", texname);
         return 0;
     }
@@ -478,19 +478,18 @@ Texture *createtexturefromsurface(const char *name, SDL_Surface *s)
     return t;
 }
 
-struct Slot
-{
-    string name;
-    float scale;
-    Texture *tex;
-    bool loaded;
-};
-
 vector<Slot> slots;
 
-void texturereset() { if(execcontext==IEXC_MAPCFG) slots.setsize(0); }
+void texturereset()
+{
+    if(execcontext==IEXC_MAPCFG)
+    {
+        slots.setsize(0);
+        packagesmanager::reset(PCK_TEXTURE);
+    }
+}
 
-void texture(char *scale, char *name)
+void texture(float *scale, char *name)
 {
     Slot &s = slots.add();
     copystring(s.name, name);
@@ -498,6 +497,10 @@ void texture(char *scale, char *name)
     s.tex = NULL;
     s.loaded = false;
     s.scale = (*scale > 0 && *scale <= 2.0f) ? *scale : 1.0f;
+    
+    defformatstring(fullname)("packages/textures/%s", s.name);
+    unixpath(fullname);
+    packagesmanager::linktomap(fullname);
 }
 
 COMMAND(texturereset, "");
@@ -566,10 +569,10 @@ void loadsky(char *basename, bool reload)
     {
         defformatstring(name)("packages/%s_%s.jpg", basename, side[i]);
         sky[i] = textureload(name, 3);
-        if(sky[i] == notexture && !reload && autodownload)
+        if(sky[i] == notexture && !reload && packagesmanager::autodownload)
         {
             defformatstring(dl)("packages/%s", basename);
-            requirepackage(PCK_SKYBOX, dl);
+            packagesmanager::requirepackage(PCK_SKYBOX, dl);
             break;
         }
     }

@@ -117,11 +117,15 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
     {
         entity &e = ents[i];
         // if(e.type==CLIP || (e.type == PLCLIP && d->type == ENT_PLAYER))
-        if (e.type==CLIP || (e.type == PLCLIP && (d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped)))) // don't allow bots to hack themselves into plclips - Bukz 2011/04/14
+        if (e.type==CLIP || e.type==TCLIP || (e.type == PLCLIP && (d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped)))) // don't allow bots to hack themselves into plclips - Bukz 2011/04/14
         {
-            if(fabs(e.x-d->o.x) < e.attr2 + d->radius && fabs(e.y-d->o.y) < e.attr3 + d->radius)
+            int xs = e.type == TCLIP ? (e.attr1&0xFF) : e.attr2;
+            int ys = e.type == TCLIP ? ((e.attr1&0xFF00)>>8) : e.attr3;
+            int zs = e.type == TCLIP ? e.attr3 : e.attr4;
+            int h = e.type == TCLIP ? e.attr2 : e.attr1;
+            if(fabs(e.x-d->o.x) < xs + d->radius && fabs(e.y-d->o.y) < ys + d->radius)
             {
-                const float cz = float(S(e.x, e.y)->floor+e.attr1), ch = float(e.attr4);
+                const float cz = float(S(e.x, e.y)->floor+h), ch = float(zs);
                 const float dz = d->o.z-d->eyeheight;
                 if(dz < cz - 0.001) { if(cz<hi) hi = cz; }
                 else if(cz+ch>lo) lo = cz+ch;

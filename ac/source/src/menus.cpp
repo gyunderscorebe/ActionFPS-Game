@@ -60,7 +60,7 @@ void menuset(void *m, bool save)
         else curmenu->close();
     }
     if((curmenu = (gmenu *)m)) curmenu->open();
-}
+} 
 
 void showmenu(const char *name, bool top)
 {
@@ -275,7 +275,7 @@ struct mitemimagemanual : mitemmanual
 
     mitemimagemanual(gmenu *parent, const char *filename, const char *altfontname, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, hoveraction, bgcolor, desc), filename(filename)
     {
-        image = filename ? textureload(filename, 3) : NULL;
+        image = filename && parent->preload ? textureload(filename, 3) : NULL;
         altfont = altfontname ? getfont(altfontname) : NULL;
     }
     virtual ~mitemimagemanual() {}
@@ -287,10 +287,10 @@ struct mitemimagemanual : mitemmanual
     virtual void render(int x, int y, int w)
     {
         mitem::render(x, y, w);
-        if(image || altfont)
+        if((image || !parent->preload) || altfont)
         {
             int xs = 0;
-            if(image)
+            if(image && parent->showthumb)
             {
                 glBindTexture(GL_TEXTURE_2D, image->id);
                 glDisable(GL_BLEND);
@@ -320,8 +320,9 @@ struct mitemimagemanual : mitemmanual
                 }
                 delete[] r;
             }
-            if(image && isselection() && !hidebigmenuimages && image->ys > FONTH)
+            if((image || !parent->preload) && isselection() && !hidebigmenuimages)
             {
+                if(!image && !(image = textureload(filename, 3))) return;
                 w += FONTH;
                 int xs = (2 * VIRTW - w) / 5, ys = (xs * image->ys) / image->xs;
                 x = (6 * VIRTW + w - 2 * xs) / 4; y = VIRTH - ys / 2;
@@ -843,10 +844,10 @@ void delmenu(const char *name)
 
 COMMAND(delmenu, "s");
 
-void menumanual(void *menu, char *text, char *action, color *bgcolor, const char *desc)
+void menumanual(void *menu, char *text, char *action, color *bgcolor, const char *desc, char *hoveraction)
 {
     gmenu &m = *(gmenu *)menu;
-    m.items.add(new mitemmanual(&m, text, action, NULL, bgcolor, desc));
+    m.items.add(new mitemmanual(&m, text, action, hoveraction, bgcolor, desc));
 }
 
 void menuimagemanual(void *menu, const char *filename, const char *altfontname, char *text, char *action, color *bgcolor, const char *desc)
@@ -1186,7 +1187,17 @@ void rendermenumdl()
 
     vec pos;
     if(isplayermodel) pos = vec(2.0f, 1.2f, -0.4f);
-    else pos = vec(2.0f, 0, 1.7f);
+    //else pos = vec(2.0f, 0, 1.7f);
+    else
+    {
+        pos = m.mdlpos;
+        model *mdl = (model *)m.mdl;
+        vec dr = mdl->bounds_min;
+        dr.add(mdl->bounds_max);
+        dr.mul(0.5f);
+        pos.add(dr);
+    }
+    glTranslatef(pos.x, pos.y, pos.z);
 
     float yaw = 1.0f;
     if(m.rotspeed) yaw += lastmillis/5.0f/100.0f*m.rotspeed;
@@ -1203,7 +1214,8 @@ void rendermenumdl()
         a[0].name = "weapons/subgun/world";
         a[0].tag = "tag_weapon";
     }
-    rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim|ANIM_DYNALLOC, tex, -1, pos, yaw, 0, 0, 0, NULL, a, m.scale ? m.scale/25.0f : 1.0f);
+
+    rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim|ANIM_DYNALLOC, tex, -1, vec(0, 0, 0), yaw, 0, 0, 0, NULL, a, m.scale ? m.scale/25.0f : 1.0f);
 
     glPopMatrix();
 }

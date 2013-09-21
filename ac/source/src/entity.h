@@ -13,6 +13,7 @@ enum                            // static entity types
     SOUND,
     CLIP,
     PLCLIP,
+    TCLIP,
     MAXENTTYPES
 };
 
@@ -663,16 +664,59 @@ struct pckserver
     pckserver() : addr(NULL), pending(false), responsive(true), ping(-1) {}
 };
 
-enum { PCK_TEXTURE, PCK_SKYBOX, PCK_MAPMODEL, PCK_AUDIO, PCK_MAP, PCK_NUM };
+enum { PCK_TEXTURE = 0, PCK_SKYBOX, PCK_MAPMODEL, PCK_AUDIO, PCK_MAP, PCK_NUM };
 
 struct package
 {
-    char *name;
-    int type, number;
-    bool pending;
+    char *name, *shortname, *basename;
+    int type, number, offset;
+    bool pending, inmap, writetocfg;
     pckserver *source;
     CURL *curl;
 
-    package() : name(NULL), type(-1), number(0), pending(false), source(NULL), curl(NULL) {}
+    package() : name(NULL), shortname(NULL), basename(NULL),
+        type(-1), number(0), offset(0),
+        pending(false), inmap(false), writetocfg(false),
+        source(NULL), curl(NULL) {}
 };
+
+struct Texture;
+struct Slot
+{
+    string name;
+    float scale;
+    Texture *tex;
+    bool loaded;
+};
+
+// packages manager
+namespace packagesmanager
+{
+    extern hashtable<const char *, package *> packages;
+    extern int offsets[PCK_NUM];
+    extern bool doreset[PCK_NUM];
+    extern void *texturesmenu, *mapmodelsmenu;
+    extern bool writetocfg;
+
+    extern int autodownload;
+    
+    void setupcurl();
+    bool requirepackage(int type, const char *path);
+    int downloadpackages();
+    void writepcksourcecfg();
+
+    void browsetextures(char *path = NULL);
+    void browsemapmodels(char *path = NULL);
+    void browsesounds(char *path = NULL);
+    void browseskymaps(char *path = NULL);
+
+    void reset(int type = -1);
+    bool linktomap(char *name);
+
+    int offsetsort(package **a, package **b);
+
+    void refreshtexmenu(void *menu, bool init);
+    void refreshmdlmenu(void *menu, bool init);
+}
+
 #endif

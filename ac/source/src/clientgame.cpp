@@ -1611,7 +1611,7 @@ void setadmin(int *claim, char *password)
 
 COMMAND(setadmin, "is");
 
-struct mline { string name, cmd; };
+struct mline { string name, cmd, desc, hoveraction; };
 static vector<mline> mlines;
 
 void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *giveadminmenu = NULL;
@@ -1757,3 +1757,275 @@ void serverextension(char *ext, char *args)
 }
 
 COMMAND(serverextension, "ss");
+
+// packages browser
+// certainly not the best file to put this though
+
+namespace packagesmanager
+{
+    hashtable<const char *, package *> packages; // installed packages (hashtable vs vector?)
+    int offsets[PCK_NUM] = { 0, 0, 0, 0, 0 };
+    bool doreset[PCK_NUM] = { false, false, false, false, false };
+    void *texturesmenu = NULL, *mapmodelsmenu = NULL;
+    bool writetocfg = false;
+
+    // basic managment
+    void add(package *pck, bool map)
+    {
+        package *cpy = new package();
+        *cpy = *pck;
+        cpy->inmap = map;
+        packages.access(newstring(pck->name), cpy);
+    }
+
+    bool linktomap(char *name)
+    {
+        package **p = packages.access(name);
+        if(p && *p)
+        {
+            (*p)->inmap = true;
+            (*p)->offset = offsets[(*p)->type]++;
+            (*p)->writetocfg = writetocfg;
+            //conoutf("Linked \"%s\" (%d)", (*p)->shortname, (*p)->offset);
+            return true;
+        }
+        else return false;
+    }
+
+    void reset(int type)
+    {
+        enumerate(packages, package *, pck,
+        {
+            if(type < 0 || type == pck->type)
+            {
+                pck->inmap = false;
+                pck->writetocfg = false;
+                pck->offset = -1;
+            }
+        });
+        loopi(offsets) if(type < 0 || type == i)
+        {
+            offsets[i] = 0;
+            if(writetocfg) doreset[i] = type >= 0 ? true : false;
+        }
+    }
+
+    int offsetsort(package **a, package **b)
+    {
+        return (*a)->offset == (*b)->offset ? 0 : ((*a)->offset < (*b)->offset ? -1 : 1);
+    }
+
+    // menus
+
+    // list of textures.
+    // TODO:
+    // - preload first texture at least
+    // - make it more user friendly
+    void refreshtexmenu(void *menu, bool init)
+    {
+        static vector<mline> lines;
+        menureset(menu);
+        lines.shrink(0);
+
+        enumerate(packages, package *, pck,
+        {
+            if(pck->type == PCK_TEXTURE)
+            {
+                mline &l = lines.add();
+                copystring(l.name, pck->shortname);
+                formatstring(l.cmd)("toggletexture \"%s\"", pck->name);
+                copystring(l.desc, pck->inmap ? "\f2Click to remove from the list of textures" : "\f2Click to add to the list of textures");
+                menuimagemanual(menu, pck->name, NULL, l.name, l.cmd, NULL, l.desc);
+            }
+        });
+    }
+
+    void refreshmdlmenu(void *menu, bool init)
+    {
+        static vector<mline> lines;
+        menureset(menu);
+        lines.shrink(0);
+        gmenu *m = (gmenu *)menu;
+        m->mdlpos = vec(3.0f, 2.5f, -1.0f);
+
+        enumerate(packages, package *, pck,
+        {
+            if(pck->type == PCK_MAPMODEL)
+            {
+                mline &l = lines.add();
+                copystring(l.name, pck->shortname);
+                formatstring(l.cmd)("togglemapmodel \"%s\"", pck->name);
+                formatstring(l.hoveraction)("chmenumdl pckmapmodels \"mapmodels/%s\" all 50 4", pck->shortname);
+                copystring(l.desc, pck->name);
+                menumanual(menu, l.name, NULL, NULL, l.desc, l.hoveraction);
+            }
+        });
+        if(init && lines.inrange(m->menusel)) execute(lines[m->menusel].hoveraction);
+    }
+
+    // remove/add action from the menus
+    void toggletexture(char *name)
+    {
+        package **pp = packages.access(name);
+        if(pp)
+        {
+            if(!(*pp)->inmap)
+            {
+                if(offsets[PCK_TEXTURE] >= 255) conoutf("\f3can't add more textures: 256-slot limit reached");
+                else
+                {
+                    conoutf("added \"%s\" to the list of textures", (*pp)->shortname);
+                    linktomap(name);
+                    (*pp)->writetocfg = true;
+                }
+            }
+            else
+            {
+                conoutf("removed \"%s\" from the list of textures", (*pp)->shortname);
+                (*pp)->inmap = false;
+                enumerate(packages, package *, pck,
+                {
+                    if(pck->type == PCK_TEXTURE && pck->offset > (*pp)->offset)
+                        --pck->offset;
+                });
+                (*pp)->offset = 0;
+                offsets[PCK_TEXTURE]--;
+            }
+        }
+    }
+    COMMAND(toggletexture, "s");
+
+    // installed packages listing
+    // inspired from akimbo's platform code
+    // possible FIXME: too many redundancies ?
+    void browsetextures(char *path)
+    {
+        vector<char *> files;
+        defformatstring(realpath)("packages/textures%s", path ? path : "");
+        if(!path)
+            path = "";
+
+        listdir(realpath, NULL, files);
+        loopv(files) if(files[i][0] != '.')
+        {
+            char *extension = strrchr(files[i], '.');
+            if(extension && (!strcmp(extension, ".jpg") || !strcmp(extension, ".png")))
+            {
+                // valid package
+                package pck;
+                defformatstring(fullname)("%s/%s", realpath, files[i]);
+                defformatstring(shortname)("%s/%s", path, files[i]);
+                pck.basename = newstring(files[i]);
+                pck.name = newstring(fullname);
+                pck.shortname = newstring(shortname+1);
+                pck.type = PCK_TEXTURE;
+                add(&pck, false);
+            }
+            else if(strcmp(files[i], "skymaps"))
+            {
+                // possibly a directory
+                defformatstring(newpath)("%s/%s", path, files[i]);
+                browsetextures(newpath);
+            }
+        }
+    }
+
+    void browseskymaps(char *path)
+    {
+        vector<char *> files;
+        defformatstring(realpath)("packages/textures/skymaps%s", path ? path : "");
+        if(!path)
+            path = "";
+
+        listdir(realpath, NULL, files);
+        loopv(files) if(files[i][0] != '.')
+        {
+            char *extension = strrchr(files[i], '.');
+            char *suffix = strrchr(files[i], '_');
+            int suffix_len = suffix ? strlen(suffix) : 0;
+            if(extension && (!strcmp(extension, ".jpg") || !strcmp(extension, ".png"))
+                && suffix_len > 3 && suffix[1] == 'f' && suffix[2] == 't')
+            {
+                // valid package
+                package pck;
+                string file = ""; copystring(file, files[i], suffix-files[i]+1);
+                defformatstring(fullname)("%s/%s", realpath, file);
+                defformatstring(shortname)("%s/%s", path, file);
+                pck.basename = newstring(file);
+                pck.name = newstring(fullname);
+                pck.shortname = newstring(shortname+1);
+                pck.type = PCK_SKYBOX;
+                add(&pck, false);
+            }
+            else
+            {
+                // possibly a directory
+                defformatstring(newpath)("%s/%s", path, files[i]);
+                browseskymaps(newpath);
+            }
+        }
+    }
+
+    void browsesounds(char *path)
+    {
+        vector<char *> files;
+        defformatstring(realpath)("packages/audio%s", path ? path : "");
+        if(!path)
+            path = "";
+
+        listdir(realpath, NULL, files);
+        loopv(files) if(files[i][0] != '.')
+        {
+            char *extension = strrchr(files[i], '.');
+            if(extension && !strcmp(extension, ".ogg"))
+            {
+                // valid package
+                package pck;
+                defformatstring(fullname)("%s/%s", realpath, files[i]);
+                defformatstring(shortname)("%s/%s", path, files[i]);
+                pck.basename = newstring(files[i]);
+                pck.name = newstring(fullname);
+                pck.shortname = newstring(shortname+1);
+                pck.type = PCK_AUDIO;
+                add(&pck, false);
+            }
+            else
+            {
+                // possibly a directory
+                defformatstring(newpath)("%s/%s", path, files[i]);
+                browsesounds(newpath);
+            }
+        }
+    }
+
+    void browsemapmodels(char *path)
+    {
+        vector<char *> files;
+        defformatstring(realpath)("packages/models/mapmodels%s", path ? path : "");
+        if(!path)
+            path = "";
+
+        listdir(realpath, NULL, files);
+        loopv(files) if(files[i][0] != '.')
+        {
+            char *extension = strrchr(files[i], '.');
+            if(extension && (!strcmp(extension, ".md2") || !strcmp(extension, ".md3")))
+            {
+                // valid package
+                package pck;
+                pck.basename = newstring(strrchr(path, '/')+1);
+                pck.name = newstring(realpath);
+                pck.shortname = newstring(path[0] == '/' ? path+1 : path);
+                pck.type = PCK_MAPMODEL;
+                add(&pck, false);
+                break;
+            }
+            else
+            {
+                // possibly a directory
+                defformatstring(newpath)("%s/%s", path, files[i]);
+                browsemapmodels(newpath);
+            }
+        }
+    }
+}

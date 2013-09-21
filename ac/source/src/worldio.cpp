@@ -502,8 +502,10 @@ bool load_world(char *mname)        // still supports all map formats that have 
     per_idents = false;
     neverpersist = true;
     execfile("config/default_map_settings.cfg");
+    packagesmanager::writetocfg = true;
     execfile(pcfname);
     execfile(mcfname);
+    packagesmanager::writetocfg = false;
     neverpersist = false;
     per_idents = true;
     popscontext();
@@ -511,25 +513,25 @@ bool load_world(char *mname)        // still supports all map formats that have 
     c2skeepalive();
 
     watch.start();
-    loopi(256) if(texuse[i]) lookupworldtexture(i, autodownload ? true : false);
+    loopi(256) if(texuse[i]) lookupworldtexture(i, packagesmanager::autodownload ? true : false);
     int texloadtime = watch.stop();
 
     c2skeepalive();
 
     watch.start();
-    preload_mapmodels(autodownload ? true : false);
+    preload_mapmodels(packagesmanager::autodownload ? true : false);
     int mdlloadtime = watch.stop();
 
     c2skeepalive();
 
     watch.start();
-    audiomgr.preloadmapsounds(autodownload ? true : false);
+    audiomgr.preloadmapsounds(packagesmanager::autodownload ? true : false);
     int audioloadtime = watch.stop();
 
     c2skeepalive();
 
     watch.start();
-    int downloaded = downloadpackages();
+    int downloaded = packagesmanager::downloadpackages();
     if(downloaded > 0) printf("downloaded content (%d KB in %d seconds)\n", downloaded/1000, watch.stop()/1000);
 
     c2skeepalive();
@@ -556,3 +558,62 @@ bool load_world(char *mname)        // still supports all map formats that have 
 }
 
 COMMANDN(savemap, save_world, "s");
+
+// generate map cfg.
+// TODO ? avoid redundancies with default_map_settings.cfg
+// (e.g., don't use texturesreset when it's not necessary?)
+
+void savemapcfg()
+{
+    vector<package *> mappackages;
+    extern int fog, fogcolour, shadowyaw;
+    extern vector<Slot> slots;
+    enumerate(packagesmanager::packages, package *, pck,
+    {
+        if(pck->inmap && pck->writetocfg) mappackages.add(pck);
+    });
+    mappackages.sort(packagesmanager::offsetsort);
+
+    stream *f = openrawfile(mcfname, "w+");
+    if(!f)
+    {
+        conoutf("\f3failed to write the CFG file");
+        return;
+    }
+    f->printf("// Auto generated map-cfg file.\n");
+    f->printf("\n");
+
+    // allowed idents (reminder)
+    // loadnotexture loadsky mapmodelreset mapmodel texturereset texture fog fogcolour mapsoundreset mapsound watercolour shadowyaw
+    
+    f->printf("fog %d\n", fog);
+    f->printf("fogcolour 0x%x\n", fogcolour);
+    f->printf("watercolour %d %d %d %d\n", hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], hdr.watercolor[3]);
+    f->printf("shadowyaw %d\n", shadowyaw);
+
+    if(packagesmanager::doreset[PCK_MAPMODEL]) f->printf("\nmapmodelreset\n");
+    loopv(mappackages) if(mappackages[i]->type == PCK_MAPMODEL)
+    {
+        mapmodelinfo &mmi = getmminfo(mappackages[i]->offset);
+        f->printf("mapmodel %.2f %.2f %.2f 0 \"%s\" // %d\n",
+            &mmi ? mmi.rad : 0, &mmi ? mmi.h : 0, &mmi ? mmi.zoff : 0,
+            mappackages[i]->shortname, mappackages[i]->offset);
+    }
+    
+    if(packagesmanager::doreset[PCK_TEXTURE]) f->printf("\ntexturereset\n");
+    loopv(mappackages) if(mappackages[i]->type == PCK_TEXTURE)
+    {
+        string scale = "0";
+        if(slots.inrange(mappackages[i]->offset) && abs(slots[mappackages[i]->offset].scale-1.0f) > 0.01f)
+            ftoa(scale, slots[mappackages[i]->offset].scale);
+        f->printf("texture %s \"%s\" // %d\n", scale, mappackages[i]->shortname, mappackages[i]->offset);
+    }
+
+    if(packagesmanager::doreset[PCK_AUDIO]) f->printf("\nmapsoundreset\n");
+    loopv(mappackages) if(mappackages[i]->type == PCK_AUDIO)
+    {
+        f->printf("mapsound \"%s\" -1 // %d\n", mappackages[i]->shortname, mappackages[i]->offset);
+    }
+    f->close();
+}
+COMMAND(savemapcfg, "");

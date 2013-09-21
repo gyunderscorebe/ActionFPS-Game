@@ -15,12 +15,19 @@ Selectable entities
  
 Textured clips
 ------------------
- * should it be based on entities, or should the map format change ?
-    - If entity based : the editing part would be more "mapmodel/clip" oriented
-    - Else : more integrated to the cube system (would be more complicated ? raycubelos should be changed then ?)
+ * the basis is ready (let's try with something entity based).
+ * finish the rendering system :
+   - walls
+   - don't use render_flat: it renders thing line by line, here it should be rectangle-based
+     to be more efficient
+   - simplify physics check
+ * update the entity selection code so as to support TCLIP
     
   
  Textures/Mapmodels Browser
  -----------------
-  * Auto generated CFG ? Select content to insert from a menu
-  * Menus with previews + allow to filter content from the CFG
+  * Auto generated CFG is messed because of mapmodels (nothing_clip ignored?)  - the rest looks fine.
+  * Menus : change the menu code to allow images + checkboxes ? would be better as it would allow to manage 
+    additions/removal from the list and insertion in the map from the same menu.
+
+    

@@ -290,6 +290,7 @@ void audiomanager::clearworldsounds(bool fullclean)
 void audiomanager::mapsoundreset()
 {
     mapsounds.shrink(0);
+    packagesmanager::reset(PCK_AUDIO);
     locations.deleteworldobjsounds();
 }
 
@@ -806,6 +807,9 @@ COMMANDF(registersound, "siii", (char *name, int *vol, int *loop, int *audiblera
 COMMANDF(mapsound, "si", (char *name, int *maxuses)
 {
     audiomgr.addsound(name, 255, *maxuses, true, mapsounds, false, 0);
+    defformatstring(fullname)("packages/audio/%s", name);
+    unixpath(path(fullname));
+    packagesmanager::linktomap(fullname);
 });
 
 COMMANDF(registermusic, "s", (char *name)
