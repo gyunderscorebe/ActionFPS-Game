@@ -601,7 +601,9 @@ void drawradar_showmap(playerent *p, int w, int h)
             if(!e) continue;
             if(e->x == -1 && e-> y == -1) continue; // basedummies
             vec pos = vec(e->x, e->y, 0).sub(mdd).mul(coordtrans);
-            drawradarent(pos.x, pos.y, 0, b.state == BASE_CAPTURED ? b.curowner : 2, 3, iconsize, false); // draw bases
+            string base = "";
+            itoa(base, i);
+            drawradarent(pos.x, pos.y, 0, b.state == BASE_CAPTURED ? b.curowner : 2, 3, iconsize, false, base); // draw bases
         }
     }
     glEnable(GL_BLEND);
@@ -724,8 +726,10 @@ void drawradar_vicinity(playerent *p, int w, int h)
             vec cpos = vec(b.pos.x, b.pos.y, b.pos.z).sub(p->o);
             if(pos.magnitude() < d2s)
             {
+                string base = "";
+                itoa(base, i);
                 pos.mul(scaled);
-                drawradarent(pos.x, pos.y, 0, b.state == BASE_CAPTURED ? b.curowner : 2, 3, iconsize, false); // draw bases [circle doesn't need rotating]
+                drawradarent(pos.x, pos.y, 0, b.state == BASE_CAPTURED ? b.curowner : 2, 3, iconsize, false, base); // draw bases [circle doesn't need rotating]
             }
         }
     }
