@@ -169,10 +169,11 @@ void renderbaseent(entity &e)
 
     glColor4f(1.0f, 1.0f, 0.0f, 0.1f);
     glBegin(GL_QUAD_STRIP);
-    loopi(100)
+    const int loops = 50;
+    loopi(loops)
     {
-        float x = e.x + e.attr1 * cos(2*PI*i/100.0f);
-        float y = e.y + e.attr1 * sin(2*PI*i/100.0f);
+        float x = e.x + e.attr1 * cos(2*PI*i/float(loops));
+        float y = e.y + e.attr1 * sin(2*PI*i/float(loops));
 
         glVertex3f(x, y, mapdims[6]);
         glVertex3f(x, y, mapdims[7]);
@@ -202,9 +203,9 @@ void renderbase(baseinfo &b)
     {
         glPushMatrix();
         glDisable(GL_TEXTURE_2D);
+        glDepthMask(GL_FALSE);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDepthMask(GL_FALSE);
         glStencilMask(GL_FALSE);
         glDisable(GL_CULL_FACE);
         
@@ -255,8 +256,8 @@ void renderbase(baseinfo &b)
 
         glEnable(GL_CULL_FACE);
         glStencilMask(0xFFFFFF);
-        glDepthMask(GL_TRUE);
         glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
         glEnable(GL_TEXTURE_2D);
         glPopMatrix();
     }
