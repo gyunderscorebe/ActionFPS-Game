@@ -445,7 +445,7 @@ void checkcover(client *target, client *actor)
             }
         }
     }
-    else if(m_regen)
+    else if(m_domination)
     {
         loopi(MAXBASES) if(sbaseinfos[i].valid)
         {
@@ -483,7 +483,7 @@ void checkfrag(client *target, client *actor, int gun, bool gib)
     bool tk = !isteam(target->team, actor->team);
     if(target != actor)
     {
-        if(m_regen && target->state.inbase)
+        if(m_domination && target->state.inbase)
         {
             addpt(actor, tk ? RGBASETKPT : RGBASEKPT);
             loopi(MAXBASES) if(&sbaseinfos[i] == target->state.curbase)

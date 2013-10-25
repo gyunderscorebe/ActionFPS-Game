@@ -884,7 +884,7 @@ inline void send_item_list(packetbuf &p)
     loopv(sents) if(sents[i].spawned) putint(p, i);
     putint(p, -1);
     if(m_flags) loopi(2) putflaginfo(p, i);
-    if(m_regen) putbaseinfo(p);
+    if(m_domination) putbaseinfo(p);
 }
 
 #include "serverchecks.h"
@@ -1166,9 +1166,9 @@ void htf_forceflag(int flag)
 
 // bases code
 
-// regen capture routine
+// domination routine
 // does almost everything
-void regenupdate()
+void basesupdate()
 {
     loopv(clients) clients[i]->state.inbase = false;
     loopi(MAXBASES) if(sbaseinfos[i].valid)
@@ -1747,7 +1747,7 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
 int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
 {
     if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team) ||
- (c->type == ST_TCPIP && (c->state.lastdeath > 0 ? gamemillis - c->state.lastdeath : servmillis - c->connectmillis) < (m_arena ? 0 : (m_flags || m_regen ? 5000 : 2000))) ||        (servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000 &&
+ (c->type == ST_TCPIP && (c->state.lastdeath > 0 ? gamemillis - c->state.lastdeath : servmillis - c->connectmillis) < (m_arena ? 0 : (m_flags || m_domination ? 5000 : 2000))) ||        (servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000 &&
           gamemillis > 10000 && totalclients > 3 && !team_isspect(c->team))) return SP_OK_NUM; // equivalent to SP_DENY
     if(!c->isonrightmap) return SP_WRONGMAP;
     if(mastermode == MM_MATCH && matchteamsize)
@@ -3889,14 +3889,14 @@ void loggamestatus(const char *reason)
     logline(ACLOG_INFO, "Game status: %s on %s, %s, %s, %d clients%c %s",
                       modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), totalclients, custom_servdesc ? ',' : '\0', servdesc_current);
     if(!scl.loggamestatus) return;
-    logline(ACLOG_INFO, "cn name             %s%s score frag death %sping role    host", m_teammode ? "team " : "", m_flags || m_regen ? "flag " : "", m_teammode ? "tk " : "");
+    logline(ACLOG_INFO, "cn name             %s%s score frag death %sping role    host", m_teammode ? "team " : "", m_flags || m_domination ? "flag " : "", m_teammode ? "tk " : "");
     loopv(clients)
     {
         client &c = *clients[i];
         if(c.type == ST_EMPTY || !c.name[0]) continue;
         formatstring(text)("%2d %-16s ", c.clientnum, c.name);                 // cn name
         if(m_teammode) concatformatstring(text, "%-4s ", team_string(c.team, true)); // teamname (abbreviated)
-        if(m_flags || m_regen) concatformatstring(text, "%4d ", c.state.flagscore);             // flag
+        if(m_flags || m_domination) concatformatstring(text, "%4d ", c.state.flagscore);             // flag
         concatformatstring(text, "%6d ", c.state.points);                            // score
         concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);          // frag death
         if(m_teammode) concatformatstring(text, " %2d", c.state.teamkills);          // tk
@@ -3931,9 +3931,9 @@ void loggamestatus(const char *reason)
     }
     if(m_teammode)
     {
-        loopi(2) logline(ACLOG_INFO, "Team %4s:%3d players,%5d frags%c%5d flags", team_string(i), pnum[i], fragscore[i], m_flags || m_regen ? ',' : '\0', flagscore[i]);
+        loopi(2) logline(ACLOG_INFO, "Team %4s:%3d players,%5d frags%c%5d flags", team_string(i), pnum[i], fragscore[i], m_flags || m_domination ? ',' : '\0', flagscore[i]);
         // end game if one of both teams can't win anymore
-        if(m_regen && mastermode == MM_MATCH) 
+        if(m_domination && mastermode == MM_MATCH) 
         {
             int numbases = 0;
             loopi(MAXBASES) if(sbaseinfos[i].valid) ++numbases;
@@ -4052,7 +4052,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
             }
             if(f.state == CTFF_INBASE || f.state == CTFF_STOLEN) ktfflagingame = true;
         }
-        if(m_regen) regenupdate();
+        if(m_domination) basesupdate();
         if(m_ktf && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
         if(m_arena) arenacheck();
 //        if(m_lms) lmscheck();

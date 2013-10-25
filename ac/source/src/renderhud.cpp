@@ -592,7 +592,7 @@ void drawradar_showmap(playerent *p, int w, int h)
             }
         }
     }
-    if(m_regen)
+    if(m_domination)
     {
         loopi(MAXBASES)
         {
@@ -714,7 +714,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
             }
         }
     }
-    if(m_regen)
+    if(m_domination)
     {
         loopi(MAXBASES)
         {

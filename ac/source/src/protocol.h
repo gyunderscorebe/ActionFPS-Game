@@ -111,7 +111,7 @@ enum
     GMODE_BOTLSS,
     GMODE_BOTTEAMSURVIVOR,              // 20
     GMODE_BOTTEAMONESHOTONKILL,
-    GMODE_REGENCAPTURE,
+    GMODE_DOMINATION,
     GMODE_NUM
 };
 
@@ -122,7 +122,7 @@ enum
 #define m_osok        ((gamemode>=10 && gamemode<=12) || gamemode==21)
 #define m_htf         (gamemode==13)
 #define m_ktf         (gamemode==14 || gamemode==15)
-#define m_regen       (gamemode==22)
+#define m_domination       (gamemode==22)
 
 #define m_noitems     (m_lms || m_osok)
 #define m_noitemsnade (m_lss)

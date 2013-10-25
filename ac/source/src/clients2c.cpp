@@ -403,7 +403,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
         {
             if(type > SV_IPLIST) --type;            // SV_WHOIS removed
             if(type >= SV_TEXTPRIVATE) ++type;      // SV_TEXTPRIVATE added
-            if(type >= SV_BASESTATE) type += 5;     // regen capture
+            if(type >= SV_BASESTATE) type += 5;     // domination
             if(type == SV_SWITCHNAME)               // SV_SPECTCN removed
             {
                 getint(p);

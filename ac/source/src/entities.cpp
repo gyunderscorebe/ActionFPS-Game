@@ -389,7 +389,7 @@ void renderentities()
                 break;
         }
     }
-    if(m_regen && !editmode) loopi(MAXBASES) if(baseinfos[i].valid) renderbase(baseinfos[i]);
+    if(m_domination && !editmode) loopi(MAXBASES) if(baseinfos[i].valid) renderbase(baseinfos[i]);
 }
 
 // these two functions are called when the server acknowledges that you really

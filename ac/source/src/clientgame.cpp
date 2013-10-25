@@ -571,7 +571,7 @@ void showrespawntimer()
         if(!arenaintermission) return;
         showhudtimer(5, arenaintermission, "FIGHT!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
     }
-    else if(player1->state==CS_DEAD && (m_flags || m_regen) && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
+    else if(player1->state==CS_DEAD && (m_flags || m_domination) && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
     {
         int secs = 5;
         showhudtimer(secs, player1->respawnoffset, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
@@ -673,7 +673,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
         }
         else if((m_teammode || m_arena) && !m_ktf) // ktf use ffa spawns
         {
-            if(m_regen)
+            if(m_domination)
             {
                 // find a captured base :
                 vector<int> fittingbases;
@@ -802,7 +802,7 @@ bool tryrespawn()
         }
         else
         {
-            int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags || m_regen ? 5000 : 2000));
+            int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags || m_domination ? 5000 : 2000));
             if(lastmillis>respawnmillis)
             {
                 player1->attacking = false;
@@ -1185,7 +1185,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     // End add by Rick
     clearbounceents();
     preparectf(!m_flags);
-    preparebases(!m_regen);
+    preparebases(!m_domination);
     suicided = -1;
     spawncycle = -1;
     lasthit = 0;
@@ -1578,7 +1578,7 @@ void clearvote() { DELETEP(curvote); DELETEP(calledvote); }
 const char *modestrings[] =
 {
     "tdm", "coop", "dm", "lms", "ts", "ctf", "pf", "btdm", "bdm", "lss",
-    "osok", "tosok", "bosok", "htf", "tktf", "ktf", "tpf", "tlss", "bpf", "blss", "btsurv", "btosok", "regen"
+    "osok", "tosok", "bosok", "htf", "tktf", "ktf", "tpf", "tlss", "bpf", "blss", "btsurv", "btosok", "dom"
 };
 
 void setnext(int *mode, char *arg2)
