@@ -446,7 +446,7 @@ const char *entnames[MAXENTTYPES] =
     "none?",
     "light", "playerstart", "pistol", "ammobox","grenades",
     "health", "helmet", "armour", "akimbo",
-    "mapmodel", "trigger", "ladder", "ctf-flag", "sound", "clip", "plclip", "tclip"
+    "mapmodel", "trigger", "ladder", "ctf-flag", "sound", "clip", "plclip"
 };
 
 // see entity.h:61: struct itemstat { int add, start, max, sound; };

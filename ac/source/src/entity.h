@@ -13,7 +13,6 @@ enum                            // static entity types
     SOUND,
     CLIP,
     PLCLIP,
-    TCLIP,
     MAXENTTYPES
 };
 

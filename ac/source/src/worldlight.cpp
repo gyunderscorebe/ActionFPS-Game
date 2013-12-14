@@ -146,6 +146,52 @@ void postlightarea(const block &a)    // median filter, smooths out random noise
     remip(a);
 }
 
+VAR(sunlight, 0, 1, 1);
+VAR(sundir, 0, 180, 360);
+VAR(sunnormal, 0, 23, 90);
+VAR(sunintensity, 0, 10, 1000);
+
+void calcsunlight()
+{
+    const vec dr = vec(cos(RAD*sundir) * sin(RAD*sunnormal),
+        sin(RAD*sundir) * sin(RAD*sunnormal),
+        cos(RAD*sunnormal));
+
+     // min/max X/Y and delta X/Y and min/max Z
+    for(int x = mapdims[0]; x < mapdims[2]; ++x) for(int y = mapdims[1]; y < mapdims[3]; ++y)
+    {
+        if(OUTBORD(x, y) || S(x, y)->type == SOLID || S(x, y)->ftex == DEFAULT_SKY) continue;
+
+        vec cr = vec(0, 0, 0);
+        for(int n = 1; n < 128; ++n)
+        {
+            cr = dr;
+            cr.mul(float(n));
+            int cx = x+cr.x, cy = y+cr.y, cz = S(x, y)->floor+cr.z;
+            if(OUTBORD(cx, cy)) break;
+            if(S(cx, cy)->ceil <= cz || S(cx, cy)->floor > cz || S(cx, cy)->type == SOLID)
+            {
+                bool light = (S(cx, cy)->floor > cz || S(cx, cy)->type == SOLID)
+                    ? S(cx, cy)->wtex == DEFAULT_SKY // hit wall
+                    : S(cx, cy)->ctex == DEFAULT_SKY; // hit ceiling
+                if(light)
+                {
+                    S(x, y)->r = min((int)(S(x, y)->r * (1.0f+float(sunintensity)/100.0f)), 255);
+                    S(x, y)->g = min((int)(S(x, y)->g * (1.0f+float(sunintensity)/100.0f)), 255);
+                    S(x, y)->b = min((int)(S(x, y)->b * (1.0f+float(sunintensity)/100.0f)), 255);
+                }
+                else
+                {
+                    S(x, y)->r = max((int)(S(x, y)->r * (1.0f-float(sunintensity)/100.0f)), 0);
+                    S(x, y)->g = max((int)(S(x, y)->g * (1.0f-float(sunintensity)/100.0f)), 0);
+                    S(x, y)->b = max((int)(S(x, y)->b * (1.0f-float(sunintensity)/100.0f)), 0);
+                }
+                break;
+            }
+        }
+    }
+}
+
 int lastcalclight = 0;
 
 VARP(fullbrightlevel, 0, 176, 255);
@@ -176,6 +222,8 @@ void calclight()
         s->g = acol.y;
         s->b = acol.z;
     }
+
+    if(sunlight) calcsunlight(); // "natural" lightning
 
     loopv(ents)
     {

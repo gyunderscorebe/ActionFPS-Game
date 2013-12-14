@@ -264,13 +264,6 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
             if(!v1) e.attr1 = 16;
             if(!v2 && !v3 && !v4) e.attr2 = 255;
             break;
-        
-        case TCLIP:
-            e.attr1 = v2&0xFF | ((v3&0xFF) << 8);
-            e.attr2 = v1;
-            e.attr3 = v4;
-            e.attr4 = v5;
-            break;
 
         case MAPMODEL:
         {

@@ -307,28 +307,6 @@ void render_world(float vx, float vy, float vh, float changelod, int yaw, int pi
     render_ceil  = -pitch<0.5f*fovy;
 
     render_seg_new(vx, vy, vh, MAX_MIP, 0, 0, ssize>>MAX_MIP, ssize>>MAX_MIP);
-
-    loopv(ents) if(ents[i].type == TCLIP)
-    {
-        entity &e = ents[i];
-        int x0 = e.x, y0 = e.y;
-        int xs = e.attr1&0x00FF;
-        int ys = (e.attr1&0xFF00)>>8;
-        int fh = S(e.x, e.y)->floor + e.attr2, ch =  S(e.x, e.y)->floor + e.attr2 + e.attr3;
-
-        for(int y = y0-ys; y < y0 + ys; ++y) for(int x = x0-xs; x < x0 + xs; ++x)
-        {
-            if(S(x, y)->occluded) continue;
-            render_flat(e.attr4, x, y, 1, ch, S(x, y), S(x+1, y), S(x+1, y+1), S(x, y-1), false);
-        }
-
-        for(int y = y0-ys; y < y0 + ys; ++y) for(int x = x0-xs; x < x0 + xs; ++x)
-        {
-            if(S(x, y)->occluded) continue;
-            render_flat(e.attr4, x, y, 1, fh, S(x, y), S(x+1, y), S(x+1, y+1), S(x, y-1), true);
-        }
-     
-    }
     mipstats(stats[0], stats[1], stats[2]);
 }
 

@@ -988,7 +988,7 @@ namespace packagesmanager
         return fwrite(ptr, size, nmemb, stream);
     }
 
-    int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
+    static int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
     {
         package *pck = (package *)clientp;
         loadingscreen(_("downloading package %d out of %d...\n%s %.0f/%.0f KB (%.1f%%)\n(ESC to cancel)"), pck->number + 1, pck->number + pendingpackages.numelems,
