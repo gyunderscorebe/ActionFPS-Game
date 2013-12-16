@@ -1,6 +1,7 @@
 #include "cube.h"
 
 VARP(animationinterpolationtime, 0, 150, 1000);
+VARFP(mdltexreduce, 0, 0, 1, initwarning("texture quality", INIT_LOAD));
 
 model *loadingmodel = NULL;
 
@@ -506,7 +507,7 @@ int findanim(const char *name)
 
 void loadskin(const char *dir, const char *altdir, Texture *&skin) // model skin sharing
 {
-    #define ifnoload if((skin = textureload(path))==notexture)
+    #define ifnoload if((skin = textureload(path, 0, true, (bool)mdltexreduce))==notexture)
     defformatstring(path)("packages/models/%s/skin.jpg", dir);
     ifnoload
     {
