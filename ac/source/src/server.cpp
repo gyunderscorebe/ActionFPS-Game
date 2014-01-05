@@ -1213,8 +1213,9 @@ void basesupdate()
             b.power[team_opposite(dominant)] -= 5;
             loopvj(playersinbase[dominant])
             {
-                clients[j]->state.basespts[i] += RGCAPTPT;
-                addpt(clients[j], RGCAPTPT);
+				client *cl = clients[playersinbase[dominant][j]];
+                cl->state.basespts[i] += RGCAPTPT;
+                addpt(cl, RGCAPTPT);
             }
 
             if(b.power[dominant] > 50)
@@ -1295,7 +1296,7 @@ void basesupdate()
             if(!b.players[team_opposite(b.curowner)])
             loopvj(playersinbase[b.curowner])
             {
-                clientstate &cs = clients[j]->state;
+                clientstate &cs = clients[playersinbase[b.curowner][j]]->state;
                 if(gamemillis - cs.lastbaseaction > 2000
                     && (cs.health < 100 || cs.armour < 100))
                 {
