@@ -149,7 +149,8 @@ void postlightarea(const block &a)    // median filter, smooths out random noise
 VAR(sunlight, 0, 1, 1);
 VAR(sundir, 0, 180, 360);
 VAR(sunnormal, 0, 23, 90);
-VAR(sunintensity, 0, 10, 1000);
+VAR(sunlightlevel, 0, 100, 255);
+VAR(sunshadowlevel, 0, 100, 255);
 
 void calcsunlight()
 {
@@ -157,8 +158,12 @@ void calcsunlight()
         sin(RAD*sundir) * sin(RAD*sunnormal),
         cos(RAD*sunnormal));
 
+    float c[3] = { (hdr.ambient>>16)&0xFF, (hdr.ambient>>8)&0xFF, hdr.ambient&0xFF };
+    float intensity = sqrt(c[0]*c[0] + c[1]*c[1] + c[2]*c[2]);
+    loopi(3) c[i] /= intensity;
+
      // min/max X/Y and delta X/Y and min/max Z
-    for(int x = mapdims[0]; x < mapdims[2]; ++x) for(int y = mapdims[1]; y < mapdims[3]; ++y)
+    for(int x = mapdims[0] - 1; x < mapdims[2] + 1; ++x) for(int y = mapdims[1] - 1; y < mapdims[3] + 1; ++y)
     {
         if(OUTBORD(x, y) || S(x, y)->type == SOLID || S(x, y)->ftex == DEFAULT_SKY) continue;
 
@@ -174,20 +179,48 @@ void calcsunlight()
                 bool light = (S(cx, cy)->floor > cz || S(cx, cy)->type == SOLID)
                     ? S(cx, cy)->wtex == DEFAULT_SKY // hit wall
                     : S(cx, cy)->ctex == DEFAULT_SKY; // hit ceiling
+                
                 if(light)
                 {
-                    S(x, y)->r = min((int)(S(x, y)->r * (1.0f+float(sunintensity)/100.0f)), 255);
-                    S(x, y)->g = min((int)(S(x, y)->g * (1.0f+float(sunintensity)/100.0f)), 255);
-                    S(x, y)->b = min((int)(S(x, y)->b * (1.0f+float(sunintensity)/100.0f)), 255);
+                    S(x, y)->r = (int)(sunlightlevel * float(S(x, y)->r)/255.0f);
+                    S(x, y)->g = (int)(sunlightlevel * float(S(x, y)->g)/255.0f);
+                    S(x, y)->b = (int)(sunlightlevel * float(S(x, y)->b)/255.0f);
                 }
                 else
                 {
-                    S(x, y)->r = max((int)(S(x, y)->r * (1.0f-float(sunintensity)/100.0f)), 0);
-                    S(x, y)->g = max((int)(S(x, y)->g * (1.0f-float(sunintensity)/100.0f)), 0);
-                    S(x, y)->b = max((int)(S(x, y)->b * (1.0f-float(sunintensity)/100.0f)), 0);
+                    S(x, y)->r = (int)(sunshadowlevel * float(S(x, y)->r)/255.0f);
+                    S(x, y)->g = (int)(sunshadowlevel * float(S(x, y)->g)/255.0f);
+                    S(x, y)->b = (int)(sunshadowlevel * float(S(x, y)->b)/255.0f);
                 }
                 break;
             }
+        }
+    }
+
+    for(int x = mapdims[0] - 1; x < mapdims[2] + 1; ++x) for(int y = mapdims[1] - 1; y < mapdims[3] + 1; ++y)
+    {
+        if(OUTBORD(x, y) || S(x, y)->type != SOLID) continue;
+        S(x, y)->r = (int)(sunshadowlevel * float(S(x, y)->r)/255.0f);
+        S(x, y)->g = (int)(sunshadowlevel * float(S(x, y)->g)/255.0f);
+        S(x, y)->b = (int)(sunshadowlevel * float(S(x, y)->b)/255.0f);
+
+        int r = 0, g = 0, b = 0, count = 0;
+        for(int i = -1; i <= 1; ++i) for(int j = -1; j <= 1; ++j) if(i && j)
+        {
+            if(!OUTBORD(x+i, y+j) && S(x+i, y+j)->type != SOLID)
+            {
+                r += S(x+i, y+j)->r;
+                g += S(x+i, y+j)->g;
+                b += S(x+i, y+j)->b;
+                ++count;
+            }
+        }
+
+        if(count)
+        {
+            S(x, y)->r = r/count;
+            S(x, y)->g = g/count;
+            S(x, y)->b = b/count;
         }
     }
 }
