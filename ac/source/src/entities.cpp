@@ -191,78 +191,6 @@ void renderbaseent(entity &e)
     glPopMatrix();
 }
 
-void renderbase(baseinfo &b)
-{
-    // draw the base model
-    // ...
-    defformatstring(path)("pickups/flags/%s", b.state == BASE_CAPTURED ? team_basestring(b.curowner) : "ktf");
-    rendermodel(path, ANIM_FLAG|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(b.pos.x, b.pos.y, b.pos.z), 0.0f, 0, 120.0f, 0, 0, 0, 0.7f);
-
-    // draw label
-    if(!stenciling && (b.state == BASE_CAPTURING || (b.state == BASE_CAPTURED && b.power[b.curowner] < 100)))
-    {
-        glPushMatrix();
-        glDisable(GL_TEXTURE_2D);
-        glDepthMask(GL_FALSE);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glStencilMask(GL_FALSE);
-        glDisable(GL_CULL_FACE);
-        
-        glTranslatef(b.pos.x, b.pos.y, b.pos.z + 2.5f);
-        glRotatef(camera1->yaw-180, 0, 0, 1);
-        // background
-        const float width = 2.0f;
-        const float border = 0.05f;
-        glColor4f(0.0f, 0.0f, 0.0f, 0.8f);
-        glBegin(GL_QUADS);
-        glVertex3f(-width/2.0f-border, 0, -0.20f-border);
-        glVertex3f(-width/2.0f-border, 0,  0.20f+border);
-        glVertex3f(width/2.0f+border,  0,  0.20f+border);
-        glVertex3f(width/2.0f+border,  0, -0.20f-border);
-        glEnd();
-
-        float cwidth[2] = { width * float(b.power[0])/100.0f,  width * float(b.power[1])/100.0f };
-        glBegin(GL_QUADS);
-        switch(b.state)
-        {
-            case BASE_CAPTURED:
-                glColor4f(1.0f, 0.0f, 0.0f, 0.8f);
-                glVertex3f(-width/2.0f, 0, -0.20f);
-                glVertex3f(-width/2.0f, 0,  0.20f);
-                glVertex3f(-width/2.0f+cwidth[0],  0,  0.20f);
-                glVertex3f(-width/2.0f+cwidth[0],  0, -0.20f);
-
-                glColor4f(0.0f, 0.0f, 1.0f, 0.8f);
-                glVertex3f(-width/2.0f+cwidth[0], 0, -0.20f);
-                glVertex3f(-width/2.0f+cwidth[0], 0,  0.20f);
-                glVertex3f(width/2.0f,  0,  0.20f);
-                glVertex3f(width/2.0f,  0, -0.20f);
-            break;
-
-            case BASE_CAPTURING:
-            {
-                int team = b.power[0] > b.power[1] ? 0 : 1;
-                glColor4f(team == TEAM_CLA ? 1.0f : 0.0f, 0.0f, team == TEAM_RVSF ? 1.0f : 0.0f, 0.8f);
-                glVertex3f(+width/2.0f, 0, -0.20f);
-                glVertex3f(+width/2.0f, 0,  0.20f);
-                glVertex3f(+width/2.0f-cwidth[team],  0,  0.20f);
-                glVertex3f(+width/2.0f-cwidth[team],  0, -0.20f);
-            }
-            break;
-            default: break;
-        }
-        glEnd();
-
-        glEnable(GL_CULL_FACE);
-        glStencilMask(0xFFFFFF);
-        glDisable(GL_BLEND);
-        glDepthMask(GL_TRUE);
-        glEnable(GL_TEXTURE_2D);
-        glPopMatrix();
-    }
-}
-
 void renderentities()
 {
     int closest = editmode ? closestent() : -1;
@@ -389,7 +317,11 @@ void renderentities()
                 break;
         }
     }
-    if(m_domination && !editmode) loopi(MAXBASES) if(baseinfos[i].valid) renderbase(baseinfos[i]);
+    if(m_domination && !editmode) loopi(MAXBASES) if(baseinfos[i].valid)
+    {
+        defformatstring(path)("pickups/flags/%s", baseinfos[i].state == BASE_CAPTURED ? team_basestring(baseinfos[i].curowner) : "ktf");
+        rendermodel(path, ANIM_FLAG|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(baseinfos[i].pos.x, baseinfos[i].pos.y, baseinfos[i].pos.z), 0.0f, 0, 120.0f, 0, 0, 0, 0.7f);
+    }
 }
 
 // these two functions are called when the server acknowledges that you really

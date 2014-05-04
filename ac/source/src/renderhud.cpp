@@ -1155,6 +1155,55 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 drawctficon(VIRTW-225-10, VIRTH*5/8, 225, ft, 1, 1/2.0f, (sinf(lastmillis/100.0f)+1.0f) *128);
             }
         }
+
+        if(m_domination)
+        {
+            glLoadIdentity();
+            glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+         
+            const float width = 325, height = 60;
+            const float border = 6;
+
+            const float pos_x = VIRTW-width/2.0-border-70;
+            const float pos_y = 500;
+
+            glTranslatef(pos_x, pos_y, 0);
+
+            loopi(MAXBASES) if(baseinfos[i].valid)
+            {
+                baseinfo &b = baseinfos[i];
+                if(p->o.dist(b.pos) > b.radius) continue;
+                
+                float cwidth[2] = { width * float(b.power[0])/100.0f,  width * float(b.power[1])/100.0f };
+
+                color blue, red, gray;
+                blue.b = red.r = 1.0f;
+                blue.r = red.b = blue.g = red.g = 0.0f;
+                blue.alpha = red.alpha = 0.8f;
+                gray.r = gray.g = gray.b = 0.2f;
+                gray.alpha = 0.8f;
+
+                blendbox(-width/2.0-border, -height/2.0-border, +width/2.0+border, +height/2.0+border, false, -1, &gray);
+                
+                switch(b.state)
+                {
+                    case BASE_CAPTURED:
+                        blendbox(-width/2.0, -height/2.0, -width/2.0 + cwidth[0], +height/2.0, false, -1, &red);
+                        blendbox(-width/2.0 + cwidth[0], -height/2.0, +width/2.0, +height/2.0, false, -1, &blue);
+                    break;
+
+                    case BASE_CAPTURING:
+                    {
+                        int team = b.power[0] > b.power[1] ? 0 : 1;
+                        blendbox(-width/2.0, -height/2.0, -width/2.0 + cwidth[team], +height/2.0, false, -1, team == TEAM_CLA ? &red : &blue);
+                    }
+                    break;
+                    default: break;
+               }
+               break;
+            }
+        }
     }
 
     glDisable(GL_BLEND);
