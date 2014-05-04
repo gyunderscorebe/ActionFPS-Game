@@ -1165,6 +1165,11 @@ void htf_forceflag(int flag)
 }
 
 // bases code
+#define MAX_POWER_UPDATE_INTERVAL 700   // max. amount of milliseconds a team has to dominate a base to increase its ownership by 10%
+#define MIN_POWER_UPDATE_INTERVAL 200   // min. amount of milliseconds a team has to dominate a base to increase its ownership by 10%
+#define POWER_UPDATE_REDUCTION 175      // domination time reduction by player in base
+
+#define REGEN_INTERVAL 1500             // how long it takes for a player to get more health and armor from a base he owns
 
 // domination routine
 // does almost everything
@@ -1199,7 +1204,8 @@ void basesupdate()
         }
 
         int dp = playersinbase[TEAM_CLA].length() - playersinbase[TEAM_RVSF].length();
-        int powerdt = max(700 - 175 * (abs(dp)-1), 200); // interval between 2 power updates
+        int powerdt = max(MAX_POWER_UPDATE_INTERVAL - POWER_UPDATE_REDUCTION * (abs(dp)-1),
+            MIN_POWER_UPDATE_INTERVAL); // interval between 2 power updates
         int dominant = dp == 0 ? -1 : (dp > 0 ? TEAM_CLA : TEAM_RVSF);
         // if the dominant team changed, we reset lastaction
         if(dominant != b.dominant) b.lastaction = gamemillis;
@@ -1297,7 +1303,7 @@ void basesupdate()
             loopvj(playersinbase[b.curowner])
             {
                 clientstate &cs = clients[playersinbase[b.curowner][j]]->state;
-                if(gamemillis - cs.lastbaseaction > 2000
+                if(gamemillis - cs.lastbaseaction > REGEN_INTERVAL
                     && (cs.health < 100 || cs.armour < 100))
                 {
                     cs.health = min(cs.health + 10, powerupstats[0].max);
