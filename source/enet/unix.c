@@ -1,4 +1,4 @@
-/** 
+/**
  @file  unix.c
  @brief ENet Unix system specific functions
 */
@@ -84,7 +84,7 @@ enet_time_set (enet_uint32 newTimeBase)
     struct timeval timeVal;
 
     gettimeofday (& timeVal, NULL);
-    
+
     timeBase = timeVal.tv_sec * 1000 + timeVal.tv_usec / 1000 - newTimeBase;
 }
 
@@ -132,6 +132,7 @@ enet_address_get_host_ip (const ENetAddress * address, char * name, size_t nameL
     char * addr = inet_ntoa (* (struct in_addr *) & address -> host);
     if (addr != NULL)
         strncpy (name, addr, nameLength);
+        name[nameLength - 1] = '\0';
     else
 #endif
         return -1;
@@ -165,6 +166,7 @@ enet_address_get_host (const ENetAddress * address, char * name, size_t nameLeng
       return enet_address_get_host_ip (address, name, nameLength);
 
     strncpy (name, hostEntry -> h_name, nameLength);
+    name[nameLength - 1] = '\0';
 
     return 0;
 }
@@ -191,10 +193,10 @@ enet_socket_bind (ENetSocket socket, const ENetAddress * address)
 
     return bind (socket,
                  (struct sockaddr *) & sin,
-                 sizeof (struct sockaddr_in)); 
+                 sizeof (struct sockaddr_in));
 }
 
-int 
+int
 enet_socket_listen (ENetSocket socket, int backlog)
 {
     return listen (socket, backlog < 0 ? SOMAXCONN : backlog);
@@ -276,10 +278,10 @@ enet_socket_accept (ENetSocket socket, ENetAddress * address)
     struct sockaddr_in sin;
     socklen_t sinLength = sizeof (struct sockaddr_in);
 
-    result = accept (socket, 
-                     address != NULL ? (struct sockaddr *) & sin : NULL, 
+    result = accept (socket,
+                     address != NULL ? (struct sockaddr *) & sin : NULL,
                      address != NULL ? & sinLength : NULL);
-    
+
     if (result == -1)
       return ENET_SOCKET_NULL;
 
@@ -290,8 +292,8 @@ enet_socket_accept (ENetSocket socket, ENetAddress * address)
     }
 
     return result;
-} 
-    
+}
+
 int
 enet_socket_shutdown (ENetSocket socket, ENetSocketShutdown how)
 {
@@ -333,7 +335,7 @@ enet_socket_send (ENetSocket socket,
     msgHdr.msg_iovlen = bufferCount;
 
     sentLength = sendmsg (socket, & msgHdr, MSG_NOSIGNAL);
-    
+
     if (sentLength == -1)
     {
        if (errno == EWOULDBLOCK)
@@ -407,7 +409,7 @@ enet_socket_wait (ENetSocket socket, enet_uint32 * condition, enet_uint32 timeou
 #ifdef HAS_POLL
     struct pollfd pollSocket;
     int pollCount;
-    
+
     pollSocket.fd = socket;
     pollSocket.events = 0;
 
@@ -429,7 +431,7 @@ enet_socket_wait (ENetSocket socket, enet_uint32 * condition, enet_uint32 timeou
 
     if (pollSocket.revents & POLLOUT)
       * condition |= ENET_SOCKET_WAIT_SEND;
-    
+
     if (pollSocket.revents & POLLIN)
       * condition |= ENET_SOCKET_WAIT_RECEIVE;
 

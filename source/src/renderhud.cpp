@@ -14,10 +14,10 @@ inline void turn_on_transparency(int alpha = 255)
     glColor4ub(255, 255, 255, alpha);
 }
 
-void drawequipicon(float x, float y, int col, int row, float blend)
+void drawequipicon(float x, float y, int col, int row)
 {
     static Texture *tex = NULL;
-    if(!tex) tex = textureload("packages/misc/items.png", 4);
+    if(!tex) tex = textureload("packages/misc/items.png", 3);
     if(tex)
     {
         turn_on_transparency();
@@ -77,7 +77,7 @@ void drawvoteicon(float x, float y, int col, int row, bool noblend)
 
 VARP(crosshairsize, 0, 15, 50);
 VARP(showstats, 0, 1, 2);
-VARP(crosshairfx, 0, 1, 1);
+VARP(crosshairfx, 0, 1, 3);
 VARP(crosshairteamsign, 0, 1, 1);
 VARP(hideradar, 0, 0, 1);
 VARP(hidecompass, 0, 0, 1);
@@ -89,90 +89,6 @@ VARP(hidehudequipment, 0, 0, 1);
 VARP(hideconsole, 0, 0, 1);
 VARP(hidespecthud, 0, 0, 1);
 VAR(showmap, 0, 0, 1);
-
-
-//shotty::
-/*
-VAR(showsgpat, 0, 0, 1);
-
-void drawsgpat(int w, int h)
-{
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_TEXTURE_2D);
-    glColor3ub(0, 0, 0);
-    float sz = min(VIRTW, VIRTH),
-    x1 = VIRTW/2 - sz/2,
-    x2 = VIRTW/2 + sz/2,
-    y1 = VIRTH/2 - sz/2,
-    y2 = VIRTH/2 + sz/2,
-    border = (512 - 64*2)/512.0f;
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex2f(x1 + 0.5f*sz, y1 + 0.5f*sz);
-    int rgbcv = 0;
-    loopi(8+1)
-    {
-        // if((i%3)==0) { glColor3ub(rgbcv,rgbcv,rgbcv); rgbcv += 4; //rgbcv -= 255/(8+1); }
-        if(i%2) glColor3ub(64,64,64); else glColor3ub(32,32,32);
-        float c = 0.5f*(1 + border*cosf(i*2*M_PI/8.0f)), s = 0.5f*(1 + border*sinf(i*2*M_PI/8.0f));
-        glVertex2f(x1 + c*sz, y1 + s*sz);
-    }
-    glColor3ub(255,255,255);
-    glEnd();
-
-    glDisable(GL_BLEND);
-
-    rgbcv = 32;
-    glBegin(GL_TRIANGLE_STRIP);
-    loopi(8+1)
-    {
-        // if((i%3)==0) { glColor3ub(rgbcv,rgbcv,rgbcv); //,128); rgbcv += 8; //rgbcv -= 255/(8+1); }
-        if(i%2) glColor3ub(16,16,16); else glColor3ub(32,32,32);
-        float c = 0.5f*(1 + border*cosf(i*2*M_PI/8.0f)), s = 0.5f*(1 + border*sinf(i*2*M_PI/8.0f));
-        glVertex2f(x1 + c*sz, y1 + s*sz);
-        c = c < 0.4f ? 0 : (c > 0.6f ? 1 : 0.5f);
-        s = s < 0.4f ? 0 : (s > 0.6f ? 1 : 0.5f);
-        glVertex2f(x1 + c*sz, y1 + s*sz);
-    }
-    glColor3ub(255,255,255);
-    glEnd();
-
-    glEnable(GL_TEXTURE_2D);
-    static Texture *pattex = NULL;
-    if(!pattex) pattex = textureload("packages/misc/sgpat.png", 4);
-    loopk(3)
-    {
-        switch(k)
-        {
-            case 0:  glColor3ub(  32, 250, 250); break; // center
-            case 1:  glColor3ub( 250,  64,  64); break; // middle
-            case 2:  glColor3ub( 250, 250,  64); break; // outer
-            default: glColor3ub( 255, 255, 255); break;
-        }
-        extern sgray pat[SGRAYS*3];
-        int j = k * SGRAYS;
-        loopi(SGRAYS)
-        {
-            if(pattex)
-            {
-                vec p = pat[j+i].rv;
-                int ppx = VIRTW/2 + p.x*(sz/2);
-                int ppy = VIRTH/2 + p.y*(sz/2);
-                drawicon(pattex, ppx, ppy, 16, 1, 1, 1);
-            }
-        }
-    }
-    glEnable(GL_BLEND);
-    /\*
-     // 2011may31: dmg/hits output comes upon each shot, let the pattern be shown "pure"
-     extern int lastsgs_hits;
-     extern int lastsgs_dmgt;
-     //draw_textf("H: %d DMG: %d", 8, 32, lastsgs_hits, lastsgs_dmgt);
-     defformatstring(t2show4hitdmg)("H: %d DMG: %d", lastsgs_hits, lastsgs_dmgt);
-     draw_text(t2show4hitdmg, VIRTW/2-text_width(t2show4hitdmg), VIRTH/2-3*FONTH/4);
-     *\/
-}
-*/
-//::shotty
 
 void drawscope(bool preload)
 {
@@ -241,39 +157,44 @@ void drawscope(bool preload)
     glEnable(GL_BLEND);
 }
 
-const char *crosshairnames[CROSSHAIR_NUM] = { "default", "teammate", "scope", "knife", "pistol", "carbine", "shotgun", "smg", "sniper", "ar", "cpistol", "grenades", "akimbo" };
+const char *crosshairnames[CROSSHAIR_NUM + 1];  // filled in main.cpp
 Texture *crosshairs[CROSSHAIR_NUM] = { NULL }; // weapon specific crosshairs
 
 Texture *loadcrosshairtexture(const char *c)
 {
-    defformatstring(p)("packages/crosshairs/%s", c);
+    defformatstring(p)("packages/crosshairs/%s", behindpath(c));
     Texture *crosshair = textureload(p, 3);
     if(crosshair==notexture) crosshair = textureload("packages/crosshairs/default.png", 3);
     return crosshair;
 }
 
-void loadcrosshair(char *c, char *name)
+void loadcrosshair(char *type, char *filename)
 {
-    if (strcmp(name, "") == 0 || strcmp(name, "all") == 0)
-    {
-        for (int i = 0; i < CROSSHAIR_NUM; i++)
-        {
-            if (i == CROSSHAIR_TEAMMATE || i == CROSSHAIR_SCOPE) continue;
-            crosshairs[i] = loadcrosshairtexture(c);
-        }
-        return;
+    int index = CROSSHAIR_DEFAULT;
+    if(!*filename)
+    {   // special form: loadcrosshair filename   // short for "loadcrosshair default filename"
+        filename = type;
     }
-
-    int n = -1;
-
-    for (int i = 0; i < CROSSHAIR_NUM; i++)
-    {
-       if(strcmp(crosshairnames[i], name) == 0) { n = i; break; }
+    else if(strchr(type, '.'))
+    {   // old syntax "loadcrosshair filename type", remove this in 2020
+        const char *oldcrosshairnames[CROSSHAIR_NUM + 1] = { "default", "teammate", "scope", "knife", "pistol", "carbine", "shotgun", "smg", "sniper", "ar", "cpistol", "grenades", "akimbo", "" };
+        index = getlistindex(filename, oldcrosshairnames, false, 0);
+        if(index > 2) index -= 3;
+        else index += NUMGUNS;
+        filename = type;
     }
-
-    if (n < 0 || n >= CROSSHAIR_NUM) return;
-
-    crosshairs[n] = loadcrosshairtexture(c);
+    else
+    {   // new syntax with proper gun names
+        index = getlistindex(type, crosshairnames, false, CROSSHAIR_DEFAULT);
+    }
+    if(index == CROSSHAIR_DEFAULT)
+    {
+        loopi(CROSSHAIR_NUM) if(i != CROSSHAIR_TEAMMATE && i != CROSSHAIR_SCOPE) crosshairs[i] = loadcrosshairtexture(filename);
+    }
+    else
+    {
+        crosshairs[index] = loadcrosshairtexture(filename);
+    }
 }
 
 COMMAND(loadcrosshair, "ss");
@@ -292,7 +213,7 @@ void drawcrosshair(playerent *p, int n, color *c, float size)
     glBindTexture(GL_TEXTURE_2D, crosshair->id);
     glColor3ub(255,255,255);
     if(c) glColor3f(c->r, c->g, c->b);
-    else if(crosshairfx || n==CROSSHAIR_TEAMMATE)
+    else if(crosshairfx==1 || crosshairfx==2 || n==CROSSHAIR_TEAMMATE)
     {
         if(n==CROSSHAIR_TEAMMATE) glColor3ub(255, 0, 0);
         else if(!m_osok)
@@ -302,7 +223,7 @@ void drawcrosshair(playerent *p, int n, color *c, float size)
         }
     }
     float s = size>0 ? size : (float)crosshairsize;
-    float chsize = s * (p->weaponsel->type==GUN_ASSAULT && p->weaponsel->shots > 3 ? 1.4f : 1.0f) * (n==CROSSHAIR_TEAMMATE ? 2.0f : 1.0f);
+    float chsize = s * ((p->weaponsel->type==GUN_ASSAULT && p->weaponsel->shots > 3) && (crosshairfx==1 || crosshairfx==3) ? 1.4f : 1.0f) * (n==CROSSHAIR_TEAMMATE ? 2.0f : 1.0f);
     glBegin(GL_TRIANGLE_STRIP);
     glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
     glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
@@ -367,6 +288,8 @@ void drawdmgindicator()
     glEnable(GL_TEXTURE_2D);
 }
 
+extern int oldfashionedgunstats;
+
 void drawequipicons(playerent *p)
 {
     glDisable(GL_BLEND);
@@ -374,9 +297,9 @@ void drawequipicons(playerent *p)
     glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f);
 
     // health & armor
-    if(p->armour) drawequipicon(560, 1650, (p->armour-1)/25, 2, false);
-    drawequipicon(20, 1650, 2, 3, (p->state!=CS_DEAD && p->health<=20 && !m_osok));
-    if(p->mag[GUN_GRENADE]) drawequipicon(1520, 1650, 3, 1, false);
+    if(p->armour) drawequipicon(HUDPOS_ARMOUR*2, 1650, (p->armour-1)/25, 2);
+    drawequipicon(HUDPOS_HEALTH*2, 1650, 2, 3);
+    if(p->mag[GUN_GRENADE]) drawequipicon(oldfashionedgunstats ? (HUDPOS_GRENADE + 25)*2 : HUDPOS_GRENADE*2, 1650, 3, 1);
 
     // weapons
     int c = p->weaponsel->type != GUN_GRENADE ? p->weaponsel->type : p->prevweaponsel->type, r = 0;
@@ -384,11 +307,13 @@ void drawequipicons(playerent *p)
     if(c>3) { c -= 4; r = 1; }
 
     if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
-        drawequipicon(1020, 1650, c, r, (!p->weaponsel->mag && p->weaponsel->type != GUN_KNIFE && p->weaponsel->type != GUN_GRENADE));
+        drawequipicon(HUDPOS_WEAPON*2, 1650, c, r);
     glEnable(GL_BLEND);
 }
 
-void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool pulse, const char *label = NULL, ...)
+void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool pulse, const char *label = NULL, ...) PRINTFARGS(8, 9);
+
+void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool pulse, const char *label, ...)
 {
     glPushMatrix();
     if(pulse) glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/30.0f)+1.0f)/2.0f);
@@ -507,6 +432,9 @@ void drawradar_showmap(playerent *p, int w, int h)
     float iconsize = radarentsize/0.2f;
     glColor3f(1.0f, 1.0f, 1.0f);
     glPushMatrix();
+    bool spect3rd = p->spectatemode > SM_FOLLOW1ST && p->spectatemode <= SM_FOLLOW3RD_TRANSPARENT;
+    playerent *d = spect3rd ? players[p->followplayercn] : p;
+    int p_baseteam = p->team == TEAM_SPECT && spect3rd ? team_base(players[p->followplayercn]->team) : team_base(p->team);
     extern GLuint minimaptex;
     vec centerpos(VIRTW/2 , VIRTH/2, 0.0f);
     if(showmapbackdrop)
@@ -542,16 +470,19 @@ void drawradar_showmap(playerent *p, int w, int h)
     float offy = gdim == mapdims.xspan ? offd : 0;
 
     vec mdd = vec(mapdims.x1 - offx, mapdims.y1 - offy, 0);
-    vec cod(offx, offy, 0);
     vec ppv = vec(p->o).sub(mdd).mul(coordtrans);
 
-    if(team_isactive(p->team)) drawradarent(ppv.x, ppv.y, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
+    if(!(p->isspectating() && spect3rd)) drawradarent(ppv.x, ppv.y, p->yaw, (p->state==CS_ALIVE || p->state==CS_EDITING) ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
     loopv(players) // other players
     {
         playerent *pl = players[i];
-        if(!pl || pl==p || !isteam(p->team, pl->team) || !team_isactive(pl->team)) continue;
+        if(!pl || pl == p || !team_isactive(pl->team)) continue;
+        if(OUTBORD(pl->o.x, pl->o.y)) continue;
+        int pl_baseteam = team_base(pl->team);
+        if(p->team < TEAM_SPECT && ((m_teammode && !isteam(p_baseteam, pl_baseteam)) || (!m_teammode && !(spect3rd && d == pl)))) continue;
+        if(p->team == TEAM_SPECT && !(spect3rd && (isteam(p_baseteam, pl_baseteam) || d == pl))) continue;
         vec rtmp = vec(pl->o).sub(mdd).mul(coordtrans);
-        drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
+        drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, spect3rd && d == pl ? 2 : pl_baseteam, iconsize, isattacking(pl), "%s", colorname(pl));
     }
     if(m_flags)
     {
@@ -575,12 +506,13 @@ void drawradar_showmap(playerent *p, int w, int h)
             if(m_ktf && f.state == CTFF_IDLE) continue;
             if(f.state==CTFF_STOLEN)
             {
+                if(m_teammode && player1->team == TEAM_SPECT && p->spectatemode > SM_FOLLOW3RD_TRANSPARENT) continue;
                 float d2c = 1.6f * radarentsize/16.0f;
                 vec apos(d2c, -d2c, 0);
                 if(f.actor)
                 {
                     apos.add(f.actor->o);
-                    bool tm = i != team_base(p->team);
+                    bool tm = i != p_baseteam;
                     if(m_htf) tm = !tm;
                     else if(m_ktf) tm = true;
                     if(tm)
@@ -598,6 +530,9 @@ void drawradar_showmap(playerent *p, int w, int h)
 
 void drawradar_vicinity(playerent *p, int w, int h)
 {
+    bool spect3rd = p->spectatemode > SM_FOLLOW1ST && p->spectatemode <= SM_FOLLOW3RD_TRANSPARENT;
+    playerent *d = spect3rd ? players[p->followplayercn] : p;
+    int p_baseteam = p->team == TEAM_SPECT && spect3rd ? team_base(players[p->followplayercn]->team) : team_base(p->team);
     extern GLuint minimaptex;
     int gdim = max(mapdims.xspan, mapdims.yspan);
     float radarviewsize = min(VIRTW,VIRTH)/5;
@@ -618,32 +553,37 @@ void drawradar_vicinity(playerent *p, int w, int h)
     glTranslatef(centerpos.x, centerpos.y, 0);
     glRotatef(-camera1->yaw, 0, 0, 1);
     glTranslatef(-halfviewsize, -halfviewsize, 0);
-    vec d4rc = vec(p->o).sub(rsd).normalize().mul(0);
-    vec usecenter = vec(p->o).sub(rtr).sub(d4rc);
+    vec d4rc = vec(d->o).sub(rsd).normalize().mul(0);
+    vec usecenter = vec(d->o).sub(rtr).sub(d4rc);
     if(showradarvalues)
     {
         conoutf("vicinity @ gdim = %d | scaleh = %.2f", gdim, scaleh);
         conoutf("offd: %.2f [%.2f:%.2f]", offd, offx, offy);
         conoutf("RTR: %.2f %.2f", rtr.x, rtr.y);
         conoutf("RSD: %.2f %.2f", rsd.x, rsd.y);
-        conoutf("P.O: %.2f %.2f", p->o.x, p->o.y);
+        conoutf("P.O: %.2f %.2f", d->o.x, d->o.y);
         conoutf("U4C: %.2f %.2f | %.2f %.2f", usecenter.x, usecenter.y, usecenter.x/gdim, usecenter.y/gdim);
         //showradarvalues = 0;
     }
     glDisable(GL_BLEND);
     circle(minimaptex, halfviewsize, halfviewsize, halfviewsize, usecenter.x/(float)gdim, usecenter.y/(float)gdim, scaleh, 31); //Draw mimimaptext as radar background
     glTranslatef(halfviewsize, halfviewsize, 0);
-    if(team_isactive(p->team)) drawradarent(0, 0, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
+
+    if(!(p->isspectating() && spect3rd)) drawradarent(0, 0, p->yaw, (p->state==CS_ALIVE || p->state==CS_EDITING) ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
     loopv(players) // other players
     {
         playerent *pl = players[i];
-        if(!pl || pl==p || !isteam(p->team, pl->team) || !team_isactive(pl->team)) continue;
-        vec rtmp = vec(pl->o).sub(p->o);
+        if(!pl || pl == p || !team_isactive(pl->team)) continue;
+        if(OUTBORD(pl->o.x, pl->o.y)) continue;
+        int pl_baseteam = team_base(pl->team);
+        if(p->team < TEAM_SPECT && ((m_teammode && !isteam(p_baseteam, pl_baseteam)) || (!m_teammode && !(spect3rd && d == pl)))) continue;
+        if(p->team == TEAM_SPECT && !(spect3rd && (isteam(p_baseteam, pl_baseteam) || d == pl))) continue;
+        vec rtmp = vec(pl->o).sub(d->o);
         bool isok = rtmp.magnitude() < d2s;
         if(isok)
         {
             rtmp.mul(scaled);
-            drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
+            drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, spect3rd && d == pl ? 2 : pl_baseteam, iconsize, isattacking(pl), "%s", colorname(pl));
         }
     }
     if(m_flags)
@@ -657,8 +597,8 @@ void drawradar_vicinity(playerent *p, int w, int h)
             entity *e = f.flagent;
             if(!e) continue;
             if(e->x == -1 && e-> y == -1) continue; // flagdummies
-            vec pos = vec(e->x, e->y, 0).sub(p->o);
-            vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(p->o);
+            vec pos = vec(e->x, e->y, 0).sub(d->o);
+            vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(d->o);
             //if(showradarvalues) { conoutf("dist2F[%d]: %.2f|%.2f || %.2f|%.2f", i, pos.x, pos.y, cpos.x, cpos.y); }
             if(pos.magnitude() < d2s)
             {
@@ -680,16 +620,17 @@ void drawradar_vicinity(playerent *p, int w, int h)
             if(m_ktf && f.state == CTFF_IDLE) continue;
             if(f.state==CTFF_STOLEN)
             {
+                if(m_teammode && player1->team == TEAM_SPECT && p->spectatemode > SM_FOLLOW3RD_TRANSPARENT) continue;
                 vec apos(d2c, -d2c, 0);
                 if(f.actor)
                 {
                     apos.add(f.actor->o);
-                    bool tm = i != team_base(p->team);
+                    bool tm = i != p_baseteam;
                     if(m_htf) tm = !tm;
                     else if(m_ktf) tm = true;
                     if(tm)
                     {
-                        apos.sub(p->o);
+                        apos.sub(d->o);
                         if(apos.magnitude() < d2s)
                         {
                             apos.mul(scaled);
@@ -719,7 +660,6 @@ void drawradar_vicinity(playerent *p, int w, int h)
         quad(compasstex->id, -halfviewsize-8, -halfviewsize-8, radarviewsize+16, 0, 0, 1, 1);
         glPopMatrix();
     }
-
 }
 
 void drawradar(playerent *p, int w, int h)
@@ -734,7 +674,7 @@ void drawteamicons(int w, int h, bool spect)
     glColor3f(1, 1, 1);
     static Texture *icons = NULL;
     if(!icons) icons = textureload("packages/misc/teamicons.png", 3);
-    quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, team_base(spect ? players[player1->followplayercn]->team : player1->team) ? 0.5f : 0, 0, 0.49f, 1.0f);
+    if(player1->team < TEAM_SPECT || spect) quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, team_base(spect ? players[player1->followplayercn]->team : player1->team) ? 0.5f : 0, 0, 0.49f, 1.0f);
 }
 
 int damageblendmillis = 0;
@@ -800,15 +740,16 @@ string enginestateinfo = "";
 void CSgetEngineState() { result(enginestateinfo); }
 COMMANDN(getEngineState, CSgetEngineState, "");
 
-VARP(clockdisplay,0,1,1);
-VARP(clockcount,0,0,1);
+VARP(gametimedisplay,0,1,2);
 VARP(dbgpos,0,0,1);
 VARP(showtargetname,0,1,1);
 VARP(showspeed, 0, 0, 1);
+VAR(blankouthud, 0, 0, 10000); //for "clean" screenshot
 string gtime;
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
+    if(blankouthud > 0) { blankouthud--; return; }
     playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
     bool spectating = player1->isspectating();
 
@@ -897,9 +838,16 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if (!is_spect) r_accuracy(commandh);
     if(!hideconsole) renderconsole();
     formatstring(enginestateinfo)("%d %d %d %d %d", curfps, lod_factor(), nquads, curvert, xtraverts);
+
+    string ltime;
+    const char *ltimeformat = getalias("wallclockformat");
+    bool wallclock = ltimeformat && *ltimeformat;
+    //wallclockformat beginning with "U" shows UTC/GMT time
+    if(wallclock) filtertext(ltime, timestring(*ltimeformat != 'U', ltimeformat + int(*ltimeformat == 'U')), FTXT_TOLOWER);
+
     if(showstats)
     {
-        if(showstats==2)
+        if(showstats==2 && !dbgpos)
         {
             const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;
             const int ttll = VIRTW*2 - 3*FONTH/2;
@@ -948,7 +896,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             c_num = xtraverts>3999?(xtraverts>5999?(xtraverts>7999?3:2):1):0; TXTCOLRGB
             draw_text(c_val, ttll - text_width(c_val), top+320, c_r, c_g, c_b);
 
-            if(unsavededits) draw_text("U", ttll - text_width("U"), top - 90);
+            if(wallclock) draw_text(ltime, ttll - text_width(ltime), top - 90);
+            if(unsavededits) draw_text("U", ttll - text_width("U"), top - 90 - (wallclock ? 2*FONTH/2 : 0));
         }
         else
         {
@@ -956,28 +905,32 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             {
                 pushfont("mono");
                 defformatstring(o_yw)("%05.2f YAW", player1->yaw);
-                draw_text(o_yw, VIRTW*2 - ( text_width(o_yw) + FONTH ), VIRTH*2 - 15*FONTH/2);
+                draw_text(o_yw, VIRTW*2 - ( text_width(o_yw) + FONTH ), VIRTH*2 - 17*FONTH/2);
                 defformatstring(o_p)("%05.2f PIT", player1->pitch);
-                draw_text(o_p, VIRTW*2 - ( text_width(o_p) + FONTH ), VIRTH*2 - 13*FONTH/2);
+                draw_text(o_p, VIRTW*2 - ( text_width(o_p) + FONTH ), VIRTH*2 - 15*FONTH/2);
                 defformatstring(o_x)("%05.2f X  ", player1->o.x);
-                draw_text(o_x, VIRTW*2 - ( text_width(o_x) + FONTH ), VIRTH*2 - 11*FONTH/2);
+                draw_text(o_x, VIRTW*2 - ( text_width(o_x) + FONTH ), VIRTH*2 - 13*FONTH/2);
                 defformatstring(o_y)("%05.2f Y  ", player1->o.y);
-                draw_text(o_y, VIRTW*2 - ( text_width(o_y) + FONTH ), VIRTH*2 - 9*FONTH/2);
+                draw_text(o_y, VIRTW*2 - ( text_width(o_y) + FONTH ), VIRTH*2 - 11*FONTH/2);
                 defformatstring(o_z)("%05.2f Z  ", player1->o.z);
-                draw_text(o_z, VIRTW*2 - ( text_width(o_z) + FONTH ), VIRTH*2 - 7*FONTH/2);
+                draw_text(o_z, VIRTW*2 - ( text_width(o_z) + FONTH ), VIRTH*2 - 9*FONTH/2);
                 popfont();
             }
             defformatstring(c_val)("fps %d", curfps);
             draw_text(c_val, VIRTW*2 - ( text_width(c_val) + FONTH ), VIRTH*2 - 3*FONTH/2);
-            if(unsavededits) draw_text("U", VIRTW*2 - text_width("U") - FONTH, VIRTH*2 - 5*FONTH/2);
+
+            if(wallclock) draw_text(ltime, VIRTW*2 - text_width(ltime) - FONTH, VIRTH*2 - 5*FONTH/2);
+            if(unsavededits) draw_text("U", VIRTW*2 - text_width("U") - FONTH, VIRTH*2 - (wallclock ? 7 : 5)*FONTH/2);
         }
     }
+    else if(wallclock) draw_text(ltime, VIRTW*2 - text_width(ltime) - FONTH, VIRTH*2 - 3*FONTH/2);
+
     if(!intermission && lastgametimeupdate!=0)
     {
         int cssec = (gametimecurrent+(lastmillis-lastgametimeupdate))/1000;
         int gtsec = cssec%60;
         int gtmin = cssec/60;
-        if(!clockcount)
+        if(gametimedisplay == 1)
         {
             int gtmax = gametimemaximum/60000;
             gtmin = gtmax - gtmin;
@@ -988,7 +941,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             }
         }
         formatstring(gtime)("%02d:%02d", gtmin, gtsec);
-        if(clockdisplay) draw_text(gtime, (VIRTW-225-10)*2 - (text_width(gtime)/2 + FONTH/2), 20);
+        if(gametimedisplay) draw_text(gtime, (VIRTW-225-10)*2 - (text_width(gtime)/2 + FONTH/2), 20);
     }
 
     if(hidevote < 2 && multiplayer(false))
@@ -1034,6 +987,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         if(!m_botmode) draw_textf("SCROLL to change player", left - (text_width("SCROLL to change player") + FONTH/2), top+80);
     }
 
+    extern void renderhudtexturepreviews();
+    if(editmode) renderhudtexturepreviews();
+
     /* * /
     glLoadIdentity();
     glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
@@ -1042,7 +998,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     draw_textf("!TEST BUILD!", tbMSGleft, tbMSGtop);
     / * */
 
-    if(showspeed)
+    if(showspeed && !menu)
     {
         glLoadIdentity();
         glPushMatrix();
@@ -1064,23 +1020,22 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_text(specttext, VIRTW/40, VIRTH/10*7);
         if(is_spect)
         {
-            defformatstring(name)("Player %s", players[player1->followplayercn]->name);
+            defformatstring(name)("Player %s", colorname(players[player1->followplayercn]));
             draw_text(name, VIRTW/40, VIRTH/10*8);
         }
     }
 
     if(!hidehudmsgs) hudmsgs.render();
-
-    if(p->state==CS_ALIVE)
+    if(p->state == CS_ALIVE || (p->state == CS_DEAD && p->spectatemode == SM_DEATHCAM))
     {
         glLoadIdentity();
         glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
 
-        if(!hidehudequipment)
+        if(p->state == CS_ALIVE && !hidehudequipment)
         {
             pushfont("huddigits");
-            draw_textf("%d",  90, 823, p->health);
-            if(p->armour) draw_textf("%d", 360, 823, p->armour);
+            draw_textf("%d", HUDPOS_HEALTH + HUDPOS_NUMBERSPACING, 823, p->health);
+            if(p->armour) draw_textf("%d", HUDPOS_ARMOUR + HUDPOS_NUMBERSPACING, 823, p->armour);
             if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
             {
                 glMatrixMode(GL_MODELVIEW);
@@ -1110,7 +1065,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                     defformatstring(count)("%d", flagscores[i]);
                     int cw, ch;
                     text_bounds(count, cw, ch);
-                    draw_textf(count, i*120+VIRTW/4.0f*3.0f+60-cw/2, 1590);
+                    draw_textf("%s", i * 120 + VIRTW / 4.0f * 3.0f + 60 - cw / 2, 1590, count);
                 }
             }
 
@@ -1131,10 +1086,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glMatrixMode(GL_MODELVIEW);
 }
 
+
+Texture *startscreen = NULL;
+
 void loadingscreen(const char *fmt, ...)
 {
-    static Texture *logo = NULL;
-    if(!logo) logo = textureload("packages/misc/startscreen.png", 3);
+    if(!startscreen) startscreen = textureload("packages/misc/startscreen.png", 3);
 
     glEnable(GL_TEXTURE_2D);
     glDisable(GL_DEPTH_TEST);
@@ -1152,7 +1109,7 @@ void loadingscreen(const char *fmt, ...)
     loopi(fmt ? 1 : 2)
     {
         glClear(GL_COLOR_BUFFER_BIT);
-        quad(logo->id, (VIRTW-VIRTH)/2, 0, VIRTH, 0, 0, 1);
+        quad(startscreen->id, (VIRTW-VIRTH)/2, 0, VIRTH, 0, 0, 1);
         if(fmt)
         {
             glEnable(GL_BLEND);

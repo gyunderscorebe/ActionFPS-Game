@@ -4,6 +4,7 @@
 
 void cleanup(char *msg)         // single program exit point;
 {
+    if(clientlogfile) clientlogfile->fflush();
     if(!msg)
     {
         cleanupclient();
@@ -29,9 +30,11 @@ VAR(resetcfg, 0, 0, 1);
 
 void quit()                     // normal exit
 {
-    const char *mapstartonce = getalias("mapstartonce"), *onquit = getalias("onQuit");
-    if(mapstartonce && mapstartonce[0]) alias("mapstartonce", "");
-    if(onquit && onquit[0]) { execute(onquit); alias("onQuit", ""); }
+    if(clientlogfile) clientlogfile->fflush();
+    const char *onquit = getalias("onQuit");
+    if(onquit && onquit[0]) execute(onquit);
+    alias("onQuit", "");
+    alias("mapstartonce", "");
     extern void writeinitcfg();
     writeinitcfg();
     writeservercfg();
@@ -39,10 +42,10 @@ void quit()                     // normal exit
     if(resetcfg) deletecfg();
     else writecfg();
     savehistory();
+    writemapmodelattributes();
     writeallxmaps();
     cleanup(NULL);
     popscontext();
-    extern stream *clientlogfile;
     DELETEP(clientlogfile);
     exit(EXIT_SUCCESS);
 }
@@ -121,6 +124,8 @@ VARF(fullscreen, 0, 0, 1, setfullscreen(fullscreen!=0));
 VARF(fullscreen, 0, 1, 1, setfullscreen(fullscreen!=0));
 #endif
 
+SVARFP(lang, "en", filterlang(lang, lang));
+
 void writeinitcfg()
 {
     if(!restoredinits) return;
@@ -140,7 +145,9 @@ void writeinitcfg()
     extern int audio, soundchannels;
     f->printf("audio %d\n", audio > 0 ? 1 : 0);
     f->printf("soundchannels %d\n", soundchannels);
-    f->printf("lang %s\n", lang);
+    if(lang && *lang) f->printf("lang %s\n", lang);
+    extern void writezipmodconfig(stream *f);
+    writezipmodconfig(f);
     delete f;
 }
 
@@ -655,9 +662,10 @@ void resetgl()
 
     extern void reloadfonts();
     extern void reloadtextures();
+    extern Texture *startscreen;
     c2skeepalive();
     if(!reloadtexture(*notexture) ||
-       !reloadtexture("packages/misc/startscreen.png"))
+       !reloadtexture(*startscreen))
         fatal("failed to reload core texture");
     loadingscreen();
     c2skeepalive();
@@ -894,7 +902,6 @@ static int clockrealbase = 0, clockvirtbase = 0;
 static void clockreset() { clockrealbase = SDL_GetTicks(); clockvirtbase = totalmillis; }
 VARFP(clockerror, 990000, 1000000, 1010000, clockreset());
 VARFP(clockfix, 0, 0, 1, clockreset());
-VARP(gamestarts, 0, 0, INT_MAX);
 
 const char *rndmapname()
 {
@@ -909,6 +916,59 @@ const char *rndmapname()
     else return "";
 }
 
+#define AUTOSTARTPATH "config" PATHDIVS "autostart" PATHDIVS
+
+void autostartscripts(const char *prefix)
+{
+    static vector<char *> *files = NULL;
+    if(!files)
+    {  // first run: fetch file names and sort them
+        files = new vector<char *>;
+        listfiles(AUTOSTARTPATH, "cfg", *files);
+        files->sort(stringsort);
+        for(int i = files->length() - 1; i > 0; i--)
+        {
+            if(!strcmp((*files)[i], (*files)[i - 1])) delstring(files->remove(i));   // delete doubles
+        }
+    }
+    loopv(*files)
+    {
+        if(*prefix && strncmp((*files)[i], prefix, strlen(prefix))) continue;
+        defformatstring(p)(AUTOSTARTPATH "%s.cfg", (*files)[i]);
+        execfile(p);
+        delstring(files->remove(i--));
+    }
+}
+
+void createconfigtemplates(const char *templatezip)  // create customisable config files in homedir - only if missing
+{
+    vector<const char *> files;
+    void *mz = zipmanualopen(openfile(templatezip, "rb"), files);
+    if(mz)
+    {
+        loopv(files)
+        {
+            const char *filename = behindpath(files[i]); // only look for config files in the zip file, ignore all paths in the zip
+            if(strlen(filename) > 4 && !strcmp(filename + strlen(filename) - 4, ".cfg"))
+            {
+                defformatstring(fname)("config%c%s.cfg", PATHDIV, files[i]);
+                if(getfilesize(fname) <= 0) // config does not exist or is empty
+                {
+                    stream *zf = openfile(fname, "wb");
+                    if(zf)
+                    {
+                        zipmanualread(mz, i, zf, MAXCFGFILESIZE); // fetch file content from zip, write to new config file
+                        delete zf;
+                        conoutf("created %s from template %s", fname, templatezip);
+                    }
+                }
+            }
+        }
+        zipmanualclose(mz);
+    }
+    findfile(AUTOSTARTPATH "dummy", "w"); // create empty autostart directory, if it doesn't exist yet
+}
+
 extern void connectserv(char *, int *, char *);
 
 void connectprotocol(char *protocolstring, string &servername, int &serverport, string &password, bool &direct_connect)
@@ -920,7 +980,7 @@ void connectprotocol(char *protocolstring, string &servername, int &serverport, 
     servername[0] = password[0] = '\0';
     serverport = 0;
     while(*c && *c!='/' && *c!='?' && *c!=':') { len++; c++; }
-    if(!len) { conoutf("\f3bad commandline syntax", protocolstring); return; }
+    if(!len) { conoutf("\f3bad commandline syntax (\"%s\")", protocolstring); return; }
     copystring(servername, p, min(len+1, MAXSTRLEN));
     direct_connect = true;
     if(*c && *c==':')
@@ -1029,6 +1089,13 @@ int main(int argc, char **argv)
     if(bootclientlog) cvecprintf(*bootclientlog, "######## start logging: %s\n", timestring(true));
 
     const char *initmap = rndmapname();
+    loopi(NUMGUNS) crosshairnames[i] = gunnames[i] = guns[i].modelname;
+    crosshairnames[GUN_AKIMBO] = gunnames[GUN_AKIMBO] = "akimbo";
+    crosshairnames[CROSSHAIR_DEFAULT] = "default";
+    crosshairnames[CROSSHAIR_TEAMMATE] = "teammate";
+    crosshairnames[CROSSHAIR_SCOPE] = "scope";
+    crosshairnames[CROSSHAIR_EDIT] = "edit";
+    crosshairnames[CROSSHAIR_NUM] = gunnames[NUMGUNS] = "";
 
     pushscontext(IEXC_CFG);
 
@@ -1105,7 +1172,7 @@ int main(int argc, char **argv)
     initclientlog();
     if(quitdirectly) return EXIT_SUCCESS;
 
-    i18nmanager i18n("AC", path("packages/locale", true));
+    createconfigtemplates("config" PATHDIVS "configtemplates.zip");
 
     initing = NOT_INITING;
 
@@ -1163,6 +1230,7 @@ int main(int argc, char **argv)
 
     initlog("console");
     per_idents = false;
+    autostartscripts("_veryfirst_");
     // Main font file, all other font files execute from here.
     if(!execfile("config/font.cfg")) fatal("cannot find default font definitions");
     // Check these 2 standard fonts have been executed.
@@ -1191,8 +1259,8 @@ int main(int argc, char **argv)
     downloaddemomenu = addmenu("Download demo", NULL, true);
 
     exec("config/scontext.cfg");
-    exec("config/locale.cfg");
     exec("config/keymap.cfg");
+    execfile("config/mapmodelattributes.cfg");
     exec("config/menus.cfg");
     exec("config/scripts.cfg");
     exec("config/prefabs.cfg");
@@ -1200,7 +1268,9 @@ int main(int argc, char **argv)
     exec("config/securemaps.cfg");
     exec("config/admin.cfg");
     execfile("config/servers.cfg");
+    execfile("config/pcksources.cfg");
     loadhistory();
+    setupautodownload();
     int xmn = loadallxmaps();
     if(xmn) conoutf("loaded %d xmaps", xmn);
     per_idents = true;
@@ -1220,19 +1290,22 @@ int main(int argc, char **argv)
         delete f;
     }
 
+    autostartscripts("_beforesaved_");
     initing = INIT_LOAD;
     if(!execfile("config/saved.cfg"))
     {
         exec("config/defaults.cfg");
         firstrun = true;
     }
-    if(identexists("afterinit")) execute("afterinit");
+    autostartscripts("_aftersaved_");
+    exechook(HOOK_SP_MP, "afterinit", "");
     if(compatibilitymode)
     {
         per_idents = false;
         exec("config/compatibility.cfg"); // exec after saved.cfg to get "compatibilitymode", but before user scripts..
         per_idents = true;
     }
+    autostartscripts("");    // all remaining scripts
     execfile("config/autoexec.cfg");
     execfile("config/auth.cfg");
     execute("addallfavcatmenus");  // exec here, to add all categories (including those defined in autoexec.cfg)
@@ -1242,9 +1315,6 @@ int main(int argc, char **argv)
     initlog("models");
     preload_playermodels();
     preload_hudguns();
-    initlog("curl");
-    setupcurl();
-
     preload_entmodels();
 
     initlog("docs");
@@ -1267,9 +1337,6 @@ int main(int argc, char **argv)
     localconnect();
 
     if(initscript) execute(initscript);
-
-    gamestarts = max(1, gamestarts+1);
-    if(autodownload && (gamestarts % 100 == 1)) sortpckservers();
 
     initlog("mainloop");
 
@@ -1351,6 +1418,7 @@ int main(int argc, char **argv)
             direct_connect = false;
             connectserv(servername, &serverport, password);
         }
+        pollautodownloadresponse();
     }
 
     quit();

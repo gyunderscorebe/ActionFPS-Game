@@ -33,43 +33,45 @@ char *makerelpath(const char *dir, const char *file, const char *prefix, const c
     return tmp;
 }
 
-
 char *path(char *s)
 {
-    for(char *curpart = s;;)
+    char *c = s;
+    // skip "<decal>"
+    if(c[0] == '<')
     {
-        char *endpart = strchr(curpart, '&');
-        if(endpart) *endpart = '\0';
-        if(curpart[0]=='<')
-        {
-            char *file = strrchr(curpart, '>');
-            if(!file) return s;
-            curpart = file+1;
+        char *enddecal = strrchr(c, '>');
+        if(!enddecal) return s;
+        c = enddecal + 1;
+    }
+    // substitute with single, proper path delimiters
+    for(char *t = c; (t = strpbrk(t, "/\\")); )
+    {
+        *t++ = PATHDIV;
+        size_t d = strspn(t, "/\\");
+        if(d) memmove(t, t + d, strlen(t + d) + 1); // remove multiple path delimiters
+    }
+    // collapse ".."-parts
+    for(char *prevdir = NULL, *curdir = s;;)
+    {
+        prevdir = curdir[0] == PATHDIV ? curdir + 1 : curdir;
+        curdir = strchr(prevdir, PATHDIV);
+        if(!curdir) break;
+        if(prevdir + 1 == curdir && prevdir[0]=='.')
+        { // simply remove "./"
+            memmove(prevdir, curdir + 1, strlen(curdir));
+            curdir = prevdir;
         }
-        for(char *t = curpart; (t = strpbrk(t, "/\\")); *t++ = PATHDIV);
-        for(char *prevdir = NULL, *curdir = s;;)
-        {
-            prevdir = curdir[0]==PATHDIV ? curdir+1 : curdir;
-            curdir = strchr(prevdir, PATHDIV);
-            if(!curdir) break;
-            if(prevdir+1==curdir && prevdir[0]=='.')
+        else if(curdir[1] == '.' && curdir[2] == '.' && curdir[3] == PATHDIV)
+        { // collapse "/foo/../" to "/"
+            if(prevdir + 2 == curdir && prevdir[0] == '.' && prevdir[1] == '.') continue; // foo is also ".." -> skip
+            memmove(prevdir, curdir + 4, strlen(curdir + 3));
+            if(prevdir >= c + 2 && prevdir[-1] == PATHDIV)
             {
-                memmove(prevdir, curdir+1, strlen(curdir+1)+1);
-                curdir = prevdir;
+                prevdir -= 2;
+                while(prevdir > c && prevdir[-1] != PATHDIV) --prevdir;
             }
-            else if(curdir[1]=='.' && curdir[2]=='.' && curdir[3]==PATHDIV)
-            {
-                if(prevdir+2==curdir && prevdir[0]=='.' && prevdir[1]=='.') continue;
-                memmove(prevdir, curdir+4, strlen(curdir+4)+1);
-                curdir = prevdir;
-            }
+            curdir = prevdir;
         }
-        if(endpart)
-        {
-            *endpart = '&';
-            curpart = endpart+1;
-        }
-        else break;
     }
     return s;
 }
@@ -215,10 +217,15 @@ void addpackagedir(const char *dir)
     }
 }
 
+int findfilelocation;
+
 const char *findfile(const char *filename, const char *mode)
 {
+    while(filename[0] == PATHDIV) filename++; // skip leading pathdiv
+    while(!strncmp(".." PATHDIVS, filename, 3)) filename += 3; // skip leading "../" (don't allow access to files below "AC root dir")
     static string s;
     formatstring(s)("%s%s", homedir, filename);         // homedir may be ""
+    findfilelocation = FFL_HOME;
     if(homedir[0] && fileexists(s, mode)) return s;
     if(mode[0]=='w' || mode[0]=='a')
     { // create missing directories, if necessary
@@ -234,11 +241,18 @@ const char *findfile(const char *filename, const char *mode)
         }
         return s;
     }
+    findfilelocation = FFL_ZIP;
+#ifndef STANDALONE
+    formatstring(s)("zip://%s", filename);
+    if(findzipfile(filename)) return s;
+#endif
     loopv(packagedirs)
     {
+        findfilelocation++;
         formatstring(s)("%s%s", packagedirs[i], filename);
         if(fileexists(s, mode)) return s;
     }
+    findfilelocation = FFL_WORKDIR;
     return filename;
 }
 
@@ -281,30 +295,55 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
     else return false;
 }
 
-int listfiles(const char *dir, const char *ext, vector<char *> &files)
+void listfiles(const char *dir, const char *ext, vector<char *> &files)
 {
-    int dirs = 0;
-    if(listdir(dir, ext, files)) dirs++;
+    listdir(dir, ext, files);
     string s;
     if(homedir[0])
     {
         formatstring(s)("%s%s", homedir, dir);
-        if(listdir(s, ext, files)) dirs++;
+        listdir(s, ext, files);
     }
     loopv(packagedirs)
     {
         formatstring(s)("%s%s", packagedirs[i], dir);
-        if(listdir(s, ext, files)) dirs++;
+        listdir(s, ext, files);
     }
 #ifndef STANDALONE
-    dirs += listzipfiles(dir, ext, files);
+    listzipfiles(dir, ext, files);
 #endif
-    return dirs;
 }
+
+#ifndef STANDALONE
+void listfilesrecursive(const char *dir, vector<char *> &files, int level)
+{
+    if(level > 8) return; // 8 levels is insane enough...
+    vector<char *> thisdir;
+    listfiles(dir, NULL, thisdir);
+    loopv(thisdir)
+    {
+        if(thisdir[i][0] != '.')  // ignore "." and ".." (and also other directories starting with '.', like it is unix-convention - and doesn't hurt on windows)
+        {
+            defformatstring(name)("%s/%s", dir, thisdir[i]);
+            files.add(newstring(name));
+            listfilesrecursive(name, files, level + 1);
+        }
+        delstring(thisdir[i]);
+    }
+}
+#endif
 
 bool delfile(const char *path)
 {
-    return !remove(path);
+    return strncmp(path, "zip://", 6) ? !remove(path) : false;
+}
+
+void backup(char *name, char *backupname)
+{
+    string backupfile;
+    copystring(backupfile, findfile(backupname, "wb"));
+    remove(backupfile);
+    rename(findfile(name, "wb"), backupfile);
 }
 
 #ifndef STANDALONE
@@ -414,6 +453,7 @@ struct filestream : stream
     bool end() { return feof(file)!=0; }
     long tell() { return ftell(file); }
     bool seek(long offset, int whence) { return fseek(file, offset, whence) >= 0; }
+    void fflush() { if(file) ::fflush(file); }
     int read(void *buf, int len) { return (int)fread(buf, 1, len, file); }
     int write(const void *buf, int len) { return (int)fwrite(buf, 1, len, file); }
     int getchar() { return fgetc(file); }
@@ -574,7 +614,7 @@ struct gzstream : stream
             if(checkcrc != crc)
                 conoutf("gzip crc check failed: read %X, calculated %X", checkcrc, crc);
             if(checksize != zfile.total_out)
-                conoutf("gzip size check failed: read %d, calculated %d", checksize, zfile.total_out);
+                conoutf("gzip size check failed: read %u, calculated %u", checksize, (uint) zfile.total_out);
         }
 #endif
     }
@@ -713,16 +753,147 @@ struct gzstream : stream
     }
 };
 
+struct vecstream : stream
+{
+    vector<uchar> *data;
+    int pointer;
+
+    vecstream(vector<uchar> *s) : data(s), pointer(0) {}
+    ~vecstream() { DELETEP(data); }
+
+    void close() { DELETEP(data); }
+    bool end() { return data ? pointer >= data->length() : true; }
+    long tell() { return data ? pointer : -1; }
+    long size() { return data ? data->length() : -1; }
+
+    bool seek(long offset, int whence)
+    {
+        int newpointer = -1;
+        if(data) switch(whence)
+        {
+            case SEEK_SET: newpointer = 0; break;
+            case SEEK_CUR: newpointer = pointer; break;
+            case SEEK_END: newpointer = data->length(); break;
+        }
+        if(newpointer >= 0) newpointer += offset;
+        if(newpointer >= 0 && data && newpointer <= data->length())
+        {
+            pointer = newpointer;
+            return true;
+        }
+        return false;
+    }
+
+    int read(void *buf, int len)
+    {
+        int got = 0;
+        if(data && data->inrange(pointer))
+        {
+            got = min(len, data->length() - pointer);
+            memcpy(buf, data->getbuf() + pointer, got);
+            pointer += got;
+        }
+        return got;
+    }
+
+    int write(const void *buf, int len)
+    {
+        if(data)
+        {
+            while(data->length() < pointer + len) data->add(0);
+            memcpy(data->getbuf() + pointer, buf, len);
+            pointer += len;
+        }
+        else len = 0;
+        return len;
+    }
+
+    int printf(const char *fmt, ...) // limited to MAXSTRLEN
+    {
+        int len = 0;
+        if(data)
+        {
+            defvformatstring(temp, fmt, fmt);
+            len = strlen(temp);
+            if(len) data->put((uchar *)temp, len);
+        }
+        return len;
+    }
+};
+
+struct memstream : stream
+{
+    const uchar *data;
+    int memsize;
+    int pointer;
+    int *refcount;
+
+    memstream(const uchar *s, int size, int *refcnt) : data(s), memsize(size), pointer(0), refcount(refcnt) { if(refcnt) (*refcnt)++; }
+    ~memstream() { close(); }
+
+    void close()
+    {
+        if(data && refcount)
+        {
+            (*refcount)--;
+            data = NULL;
+        }
+        else DELETEA(data);
+        memsize = -1;
+    }
+    bool end() { return data ? pointer >= memsize : true; }
+    long tell() { return data ? pointer : -1; }
+    long size() { return data ? memsize : -1; }
+
+    bool seek(long offset, int whence)
+    {
+        int newpointer = -1;
+        if(data) switch(whence)
+        {
+            case SEEK_SET: newpointer = 0; break;
+            case SEEK_CUR: newpointer = pointer; break;
+            case SEEK_END: newpointer = memsize; break;
+        }
+        if(newpointer >= 0) newpointer += offset;
+        if(newpointer >= 0 && newpointer <= memsize)
+        {
+            pointer = newpointer;
+            return true;
+        }
+        return false;
+    }
+
+    int read(void *buf, int len)
+    {
+        int got = 0;
+        if(data && pointer >= 0 && pointer < memsize)
+        {
+            got = min(len, memsize - pointer);
+            memcpy(buf, data + pointer, got);
+            pointer += got;
+        }
+        return got;
+    }
+};
+
+stream *openvecfile(vector<uchar> *s)
+{
+    return new vecstream(s ? s : new vector<uchar>);
+}
+
+stream *openmemfile(const uchar *buf, int size, int *refcnt)
+{
+    return new memstream(buf, size, refcnt);
+}
 
 stream *openrawfile(const char *filename, const char *mode)
 {
-    const char *found = findfile(filename, mode);
 #ifndef STANDALONE
-    if(mode && (mode[0]=='w' || mode[0]=='a')) conoutf("writing to file: %s", found);
+    if(mode && (mode[0]=='w' || mode[0]=='a')) conoutf("writing to file: %s", filename);
 #endif
-    if(!found) return NULL;
+    if(!strncmp(filename, "zip://", 6)) return NULL;
     filestream *file = new filestream;
-    if(!file->open(found, mode))
+    if(!file->open(filename, mode))
     {
 #ifndef STANDALONE
 //         conoutf("file failure! %s",filename);
@@ -734,11 +905,11 @@ stream *openrawfile(const char *filename, const char *mode)
 
 stream *openfile(const char *filename, const char *mode)
 {
+    const char *found = findfile(filename, mode);
 #ifndef STANDALONE
-    stream *s = openzipfile(filename, mode);
-    if(s) return s;
+    if(!strncmp(found, "zip://", 6)) return openzipfile(found + 6, mode);
 #endif
-    return openrawfile(filename, mode);
+    return openrawfile(found, mode);
 }
 
 int getfilesize(const char *filename)
@@ -787,6 +958,15 @@ char *loadfile(const char *fn, int *size, const char *mode)
     return buf;
 }
 
+int streamcopy(stream *dest, stream *source, int maxlen)
+{
+    int got = 0, len;
+    uchar copybuf[1024];
+    while(got < maxlen && (len = source->read(copybuf, 1024))) got += dest->write(copybuf, len);
+    return got;
+}
+
+#ifndef STANDALONE
 void filerotate(const char *basename, const char *ext, int keepold, const char *oldformat)  // rotate old logfiles
 {
     char fname1[MAXSTRLEN * 2], fname2[MAXSTRLEN] = "";
@@ -802,4 +982,4 @@ void filerotate(const char *basename, const char *ext, int keepold, const char *
         copystring(fname2, fname1);
     }
 }
-
+#endif

@@ -11,6 +11,9 @@
 #define DEMO_MINTIME 10000              // don't keep demo recordings with less than 10 seconds
 #define MAXMAPSENDSIZE 65536
 #define MAXCFGFILESIZE 65536
+#define MAXMEDIADOWNLOADFILESIZE 1024000 // hard cap on filesizes (raw and unzipped) - to limit the effect of zip bombs - no nice error messages: just cap
+#define MAXMODDOWNLOADSIZE 1024000      // hard cap on the filesize of downloaded mod packages - to keep stuff reasonable
+#define MAXFILESINADZIP 21              // max number of files extracted from a zip by autodownload
 
 extern bool modprotocol;
 #define CUR_PROTOCOL_VERSION (modprotocol ? -PROTOCOL_VERSION : PROTOCOL_VERSION)
@@ -150,11 +153,15 @@ enum
 #define FTXT_TOUPPER     (1<<17)
 #define FTXT_TOLOWER     (1<<18)
 #define FTXT_FILENAME    (1<<19)
-#define FTXT_MAPNAME     (1<<20)
+#define FTXT_ALLOWSLASH  (1<<20)
+#define FTXT_MAPNAME     (1<<21)
+#define FTXT_CROPWHITE   (1<<22)
 // character classes
+#define FTXT__ALIAS      (FTXT_NOWHITE | FTXT_NOCOLOR | FTXT_SAFECS | FTXT_MAPNAME)
 #define FTXT__SERVDESC   (FTXT_NOWHITE | FTXT_ALLOWBLANKS | FTXT_TABTOBLANK)
 #define FTXT__MAPMSG     (FTXT_NOWHITE | FTXT_ALLOWBLANKS | FTXT_TABTOBLANK)
 #define FTXT__MAPNAME    (FTXT_NOCOLOR | FTXT_MAPNAME | FTXT_TOLOWER)
+#define FTXT__MDLATTR    (FTXT_NOWHITE | FTXT_ALLOWBLANKS | FTXT_TABTOBLANK | FTXT_NOCOLOR | FTXT_SAFECS)
 #define FTXT__DEMONAME   (FTXT_NOCOLOR | FTXT_MAPNAME)
 #define FTXT__PLAYERNAME (FTXT_NOWHITE | FTXT_NOCOLOR)
 #define FTXT__SERVERINFO (FTXT_ALLOWTAB)
@@ -167,4 +174,6 @@ enum
 #define FTXT__KICKBANREASON (FTXT_NOWHITE | FTXT_ALLOWBLANKS | FTXT_NOCOLOR | FTXT_TABTOBLANK)
 #define FTXT__FAVCATEGORY   (FTXT_NOWHITE | FTXT_ALLOWBLANKS | FTXT_NOCOLOR)
 #define FTXT__GLOBALNAME    (FTXT_NOWHITE | FTXT_NOCOLOR | FTXT_FILLBLANKS)
-
+#define FTXT__MEDIAFILENAME (FTXT_FILENAME)
+#define FTXT__MEDIAFILEPATH (FTXT_FILENAME | FTXT_ALLOWSLASH)
+#define FTXT__ZIPDESC       (FTXT_NOWHITE | FTXT_ALLOWBLANKS | FTXT_TABTOBLANK | FTXT_NOCOLOR | FTXT_SAFECS)

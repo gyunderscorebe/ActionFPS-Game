@@ -53,7 +53,7 @@ struct sline
 
     sline() : bgcolor(NULL), textcolor(0) { copystring(s, ""); }
 
-    void addcol(int priority, const char *format = NULL, ...)
+    void addcol(int priority, const char *format = NULL, ...) PRINTFARGS(3, 4)
     {
         if(priority < 0) return;
         coldata &col = cols.add();
@@ -193,9 +193,9 @@ void renderdiscscores(int team)
         line.addcol(sc_deaths, "%d", d.deaths);
         line.addcol(sc_ratio, "%.2f", SCORERATIO(d.frags, d.deaths));
         if(multiplayer(false) || watchingdemo) line.addcol(sc_score, "%d", max(d.points, 0));
-        line.addcol(sc_lag, clag);
+        line.addcol(sc_lag, "%s", clag);
         line.addcol(sc_clientnum, "DISC");
-        line.addcol(sc_name, d.name);
+        line.addcol(sc_name, "%s", d.name);
     }
 }
 
@@ -227,15 +227,23 @@ void renderscore(playerent *d)
     if(multiplayer(false) || watchingdemo)
     {
         line.addcol(sc_score, "%d", max(d->points, 0));
-        line.addcol(sc_lag, lagping);
+        line.addcol(sc_lag, "%s", lagping);
     }
     line.addcol(sc_clientnum, "\fs\f%d%d\fr", cncolumncolor, d->clientnum);
-    line.addcol(sc_name, "\fs%s%s\fr%s", status, colorname(d), ign);
+    char flagicon = '\0';
+    if(m_flags) //show flag icon at flag carrier with use radaricons font
+    {
+        loopi(2)
+        {
+            if(flaginfos[i].state == CTFF_STOLEN && flaginfos[i].actor == d) flagicon = m_ktf ? 'L' : "DH"[i];
+        }
+    }
+    line.addcol(sc_name, "\fs%s%s\fr%s%s%c ", status, colorname(d), ign, flagicon ? " \a" : "", flagicon);
 }
 
 int totalplayers = 0;
 
-int renderteamscore(teamscore *t)
+void renderteamscore(teamscore *t)
 {
     if(!scorelines.empty()) // space between teams
     {
@@ -243,8 +251,6 @@ int renderteamscore(teamscore *t)
         space.s[0] = 0;
     }
     sline &line = scorelines.add();
-    int n = t->teammembers.length();
-    defformatstring(plrs)("(%d %s)", n, n == 1 ? "player" : "players");
 
     if(m_flags) line.addcol(sc_flags, "%d", t->flagscore);
     line.addcol(sc_frags, "%d", t->frags);
@@ -255,19 +261,20 @@ int renderteamscore(teamscore *t)
         line.addcol(sc_score, "%d", max(t->points, 0));
         line.addcol(sc_lag);
     }
-    line.addcol(sc_clientnum, team_string(t->team));
-    line.addcol(sc_name, plrs);
+    line.addcol(sc_clientnum, "%s", team_string(t->team));
+    int n = t->teammembers.length();
+    line.addcol(sc_name, "(%d %s)", n, n == 1 ? "player" : "players");
 
     static color teamcolors[2] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f) };
     line.bgcolor = &teamcolors[team_base(t->team)];
     loopv(t->teammembers) renderscore(t->teammembers[i]);
-    return n;
 }
 
 extern bool watchingdemo;
 
 void reorderscorecolumns()
 {
+    static string scoreboardtitle;
     needscoresreorder = false;
     extern void *scoremenu;
     sline sscore;
@@ -283,7 +290,8 @@ void reorderscorecolumns()
     }
     sscore.addcol(sc_clientnum, "cn");
     sscore.addcol(sc_name, "name");
-    menutitle(scoremenu, newstring(sscore.getcols()));
+    copystring(scoreboardtitle, sscore.getcols());
+    menutitle(scoremenu, scoreboardtitle);
 }
 
 void renderscores(void *menu, bool init)
@@ -355,7 +363,7 @@ void renderscores(void *menu, bool init)
         formatstring(modeline)("\"%s\" on map %s", modestr(gamemode, modeacronyms > 0), fldrprefix ? getclientmap()+strlen("maps/") : getclientmap());
     }
 
-    extern int minutesremaining, clockcount;
+    extern int minutesremaining, gametimedisplay;
     extern string gtime;
 
     if((gamemode>1 || (gamemode==0 && (multiplayer(false) || watchingdemo))) && minutesremaining >= 0)
@@ -385,8 +393,8 @@ void renderscores(void *menu, bool init)
         else
         {
             concatformatstring(modeline, ", %s", gtime);
-            if(!clockcount) concatformatstring(modeline, " remaining");
-            else concatformatstring(modeline, " / %d:00", gametimemaximum/60000);
+            if(gametimedisplay == 2) concatformatstring(modeline, " / %d:00", gametimemaximum/60000);
+            else concatformatstring(modeline, " remaining");
         }
     }
 
@@ -395,7 +403,11 @@ void renderscores(void *menu, bool init)
         serverinfo *s = getconnectedserverinfo();
         if(s)
         {
-            if(servstate.mastermode > MM_OPEN) concatformatstring(serverline, servstate.mastermode == MM_MATCH ? "M%d " : "P ", servstate.matchteamsize);
+            if(servstate.mastermode > MM_OPEN)
+            {
+                if(servstate.mastermode == MM_MATCH) concatformatstring(serverline, "M%d ", servstate.matchteamsize);
+                else concatstring(serverline, "P ");
+            }
             // ft: 2010jun12: this can write over the menu boundary
             //concatformatstring(serverline, "%s:%d %s", s->name, s->port, s->sdesc);
             // for now we'll just cut it off, same as the serverbrowser
@@ -410,7 +422,7 @@ void renderscores(void *menu, bool init)
     }
 
     menureset(menu);
-    loopv(scorelines) menumanual(menu, scorelines[i].getcols(), NULL, scorelines[i].bgcolor);
+    loopv(scorelines) menuimagemanual(menu, NULL, "radaricons", scorelines[i].getcols(), NULL, scorelines[i].bgcolor);
     menuheader(menu, modeline, serverline);
 
     // update server stats
@@ -448,7 +460,7 @@ const char *asciiscores(bool destjpg)
     }
     if(getclientmap()[0])
     {
-        formatstring(text)("\n\"%s\" on map %s", modestr(gamemode, 0), getclientmap(), asctime());
+        formatstring(text)("\n\"%s\" on map %s", modestr(gamemode, 0), getclientmap());
         addstr(buf, text);
     }
     if(multiplayer(false))

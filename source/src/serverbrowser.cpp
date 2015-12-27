@@ -804,7 +804,7 @@ void addfavcategory(const char *refdes)
 
 void listfavcats()
 {
-    const char *str = conc(&favcats[0], favcats.length(), true);
+    const char *str = conc((const char **)&favcats[0], favcats.length(), true);
     result(str);
     delete [] str;
 }
@@ -879,6 +879,7 @@ const char *favcatcheck(serverinfo &si, const char *ckeys, char *autokeys = NULL
 
 void serverbrowseralternativeviews(int shiftdirection)
 {
+    if(searchlan == 2) return;
     const char *ckeys = getalias("serverbrowseraltviews");
     if(!ckeys) return;
     const char *sep = " \t\n\r";
@@ -1048,6 +1049,7 @@ void refreshservers(void *menu, bool init)
         formatstring(title)(titles[serversort], showfavtag ? "fav\t" : "", issearch ? "      search results for \f3" : "     (F1: Help/Settings)", issearch ? cursearch : "");
         menutitle(menu, title);
         menureset(menu);
+        menuheader(menu, NULL, NULL);
         string text;
         int curnl = 0;
         bool sbconnectexists = identexists("sbconnect");
@@ -1074,9 +1076,10 @@ void refreshservers(void *menu, bool init)
                 else
                 {
                     if(!hidefavicons && !showweights && showfavtag && si.favcat > -1) favimage = getalias(favcatargname(favcats[si.favcat], FC_IMAGE));
-                    filterrichtext(text, si.favcat > -1 && !favimage ? favcattags[si.favcat] : "");
+                    copystring(text, si.favcat > -1 && !favimage ? favcattags[si.favcat] : "");
                     if(showweights) concatformatstring(text, "(%d)", si.weight);
-                    formatstring(si.full)(showfavtag ? (favimage ? "\t" : "\fs%s\fr\t") : "", text);
+                    if(showfavtag && !favimage) formatstring(si.full)("\fs%s\fr\t", text);
+                    else copystring(si.full, showfavtag ? "\t" : "");
                     concatformatstring(si.full, "\fs\f%c%s\t\fs\f%c%d/%d\fr\t\a%c  ", basecolor, colorping(si.ping), plnumcolor, si.numplayers, si.maxclients, '0' + si.uplinkqual);
                     if(si.map[0])
                     {
@@ -1084,7 +1087,8 @@ void refreshservers(void *menu, bool init)
                         if(showmr) concatformatstring(si.full, ", (%d)", si.minremain);
                     }
                     else concatformatstring(si.full, "empty");
-                    concatformatstring(si.full, serverbrowserhideip < 2 ? ": \fs%s%s:%d\fr" : ": ", serverbrowserhideip == 1 ? "\f4" : "", si.name, si.port);
+                    concatstring(si.full, ": ");
+                    if(serverbrowserhideip < 2) concatformatstring(si.full, "\fs%s%s:%d\fr", serverbrowserhideip == 1 ? "\f4" : "", si.name, si.port);
                     concatformatstring(si.full, "\fr %s", si.sdesc);
                 }
             }
@@ -1143,21 +1147,20 @@ void refreshservers(void *menu, bool init)
             }
             si.menuline_to = ((gmenu *)menu)->items.length();
         }
-        static string notfoundmsg;
+        static string notfoundmsg, headermsg;
+        notfoundmsg[0] = '\0';
         if(issearch)
         {
-            if(curnl == 0)
-            {
-                formatstring(notfoundmsg)("\t\tpattern \fs\f3%s\fr not found.", cursearch);
-                menumanual(menu, notfoundmsg, NULL, NULL, NULL);
-            }
+            if(curnl == 0) formatstring(notfoundmsg)("\t\tpattern \fs\f3%s\fr not found.", cursearch);
         }
-        else if(!((gmenu *)menu)->items.length() && showonlyfavourites && favcats.inrange(showonlyfavourites - 1))
+        if(showonlyfavourites && favcats.inrange(showonlyfavourites - 1))
         {
             const char *desc = getalias(favcatargname(favcats[showonlyfavourites - 1], FC_DESC));
-            formatstring(notfoundmsg)("no servers in category \f2%s", desc ? desc : favcattags[showonlyfavourites - 1]);
-            menumanual(menu, notfoundmsg, NULL, NULL, NULL);
+            formatstring(headermsg)("Servers in category \f2%s", desc ? desc : favcattags[showonlyfavourites - 1]);
+            menuheader(menu, headermsg, NULL);
+            if(!((gmenu *)menu)->items.length() && !issearch) formatstring(notfoundmsg)("\t(no servers in this category)");
         }
+        if(*notfoundmsg) menumanual(menu, notfoundmsg, NULL, NULL, NULL);
     }
 }
 
@@ -1175,11 +1178,11 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
             if(!desc) desc = "";
             if(*ak)
             { // server was automatically added to this favourite group, don't remove
-                conoutf(_("server \"%cs%s%cr\" is in category '%cs%s%cr' because of key '%s', please remove manually"), CC, servers[j]->sdesc, CC, CC, desc, CC, ak);
+                conoutf("server \"\fs%s\fr\" is in category '\fs%s\fr' because of key '%s', please remove manually", servers[j]->sdesc, desc, ak);
             }
             else if(rest)
             { // remove from favourite group
-                conoutf(_("removing server \"%cs%s%cr\" from favourites category '%cs%s%cr' (rest '%s')"), CC, servers[j]->sdesc, CC, CC, desc, CC, rest);
+                conoutf("removing server \"\fs%s\fr\" from favourites category '\fs%s\fr' (rest '%s')", servers[j]->sdesc, desc, rest);
                 alias(keyalias, rest);
             }
             else
@@ -1194,7 +1197,7 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
                     delete[] newkey;
                 }
                 else alias(keyalias, text);
-                conoutf(_("adding server \"%cs%s%cr\" to favourites category '%cs%s%cr' (new '%s')"), CC, servers[j]->sdesc, CC, CC, desc, CC, getalias(keyalias));
+                conoutf("adding server \"\fs%s\fr\" to favourites category '\fs%s\fr' (new '%s')", servers[j]->sdesc, desc, getalias(keyalias));
             }
             return true;
         }
@@ -1301,86 +1304,43 @@ void clearservers()
 }
 
 #define RETRIEVELIMIT 5000
-extern size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream);
+
 extern char *global_name;
 bool cllock = false, clfail = false;
 
-struct resolver_data
+int progress_callback_retrieveservers(void *data, float progress)
 {
-    int timeout, starttime;
-    string text;
-};
-
-int progress_callback_retrieveservers(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
-{
-    resolver_data *rd = (resolver_data *)clientp;
-    rd->timeout = SDL_GetTicks() - rd->starttime;
-    show_out_of_renderloop_progress(min(float(rd->timeout)/RETRIEVELIMIT, 1.0f), rd->text);
-    if(interceptkey(SDLK_ESCAPE))
-    {
-        loadingscreen();
-        return 1;
-    }
-    return 0;
+    if(progress < 0) show_out_of_renderloop_progress(progress + 1.0f, "waiting for response (esc to abort)");
+    else show_out_of_renderloop_progress(min(progress, 1.0f), (const char *)data);
+    return interceptkey(SDLK_ESCAPE) ? 1 : 0;
 }
 
 void retrieveservers(vector<char> &data)
 {
     if(mastertype == AC_MASTER_HTTP)
     {
-        CURL *curl = curl_easy_init();
-
-        char *pname = curl_easy_escape(curl, global_name, 0);
-        string request;
-        sprintf(request, "http://%s/retrieve.do?action=list&name=%s&version=%d&build=%d", mastername, pname, AC_VERSION, getbuildtype()|(1<<16));
-        curl_free(pname);
-
-        const char *tmpname = findfile(path("config/servers.cfg", true), "wb");
-        FILE *outfile = fopen(tmpname, "w+");
-        if(!outfile)
+        httpget h;
+        defformatstring(progresstext)("resolving %s", mastername);
+        h.callbackfunc = progress_callback_retrieveservers;
+        h.callbackdata = progresstext;
+        show_out_of_renderloop_progress(0.01f, progresstext);
+        if(h.set_host(mastername))
         {
-            conoutf("\f3cannot write server list");
-            curl_easy_cleanup(curl);
-            return;
+            formatstring(progresstext)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
+            defformatstring(url)("/retrieve.do?action=list&name=%s&version=%d&build=%d", urlencode(global_name, true), AC_VERSION, getbuildtype()|(1<<16));
+            h.outvec = (vector<uchar> *) &data; // ouch...
+            show_out_of_renderloop_progress(0, progresstext);
+            int got = h.get(url, RETRIEVELIMIT, RETRIEVELIMIT);
+            if(got < 0 || h.response != 200) data.setsize(0);
+            h.outvec = NULL; // must not be cleaned up by httpget
+            if(data.length()) data.add('\0');
+            clfail = false;
         }
-
-        resolver_data *rd = new resolver_data();
-        formatstring(rd->text)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
-        show_out_of_renderloop_progress(0, rd->text);
-
-        rd->starttime = SDL_GetTicks();
-        rd->timeout = 0;
-        int result = 0, httpresult = 0;
-
-        curl_easy_setopt(curl, CURLOPT_URL, request);
-        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);	// Fixes crashbug for some buggy libcurl versions (Linux)
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, outfile);
-        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
-        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback_retrieveservers);
-        curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, rd);
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, RETRIEVELIMIT/1000);
-        result = curl_easy_perform(curl);
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpresult);
-        curl_easy_cleanup(curl);
-        curl = NULL;
-        if(outfile) fclose(outfile);
-
-        if(result == CURLE_OPERATION_TIMEDOUT || result == CURLE_COULDNT_RESOLVE_HOST)
+        else
         {
+            conoutf("failed to resolve host %s", mastername);
             clfail = true;
         }
-        else clfail = false;
-
-        if(!result && httpresult == 200)
-        {
-            int size = 0;
-            char *content = loadfile(path("config/servers.cfg", true), &size);
-            data.shrink(0);
-            data.insert(0, content, size);
-            if(data.length()) data.add('\0');
-        }
-        DELETEP(rd);
     }
     else
     {
@@ -1395,8 +1355,7 @@ void retrieveservers(vector<char> &data)
         defformatstring(text)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
         show_out_of_renderloop_progress(0, text);
         int starttime = SDL_GetTicks(), timeout = 0;
-        string request;
-        sprintf(request, "list %s %d %d\n",global_name,AC_VERSION,getbuildtype());
+        defformatstring(request)("list %s %d %d\n", global_name, AC_VERSION, getbuildtype());
         const char *req = request;
         int reqlen = strlen(req);
         ENetBuffer buf;

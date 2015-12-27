@@ -26,31 +26,23 @@
 					<Add option="-O3" />
 					<Add option="-Wall" />
 					<Add option="-fsigned-char" />
+					<Add option="-Wno-format-zero-length" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="../vcpp" />
 				</ResourceCompiler>
 				<Linker>
 					<Add option="-mwindows" />
-					<Add library="..\lib\curl_mingw\libcurl.a" />
 					<Add library="SDL" />
 					<Add library="SDL_image" />
-					<Add library="SDL_ttf" />
 					<Add library="zdll" />
 					<Add library="opengl32" />
 					<Add library="enet" />
 					<Add library="OpenAL32" />
-					<Add library="..\lib\libvorbisfile.lib" />
+					<Add library="vorbisfile" />
 					<Add library="jpeg" />
-					<Add library="..\lib\libintl.lib" />
-					<Add library="wldap32" />
 					<Add library="ws2_32" />
 					<Add library="winmm" />
-					<Add library="..\lib\curl_mingw\libidn.a" />
-					<Add library="..\lib\curl_mingw\librtmp.a" />
-					<Add library="..\lib\curl_mingw\libssl.a" />
-					<Add library="..\lib\curl_mingw\libssh2.a" />
-					<Add library="..\lib\curl_mingw\libcrypto.a" />
 					<Add directory="../lib" />
 				</Linker>
 			</Target>
@@ -65,32 +57,25 @@
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
+					<Add option="-O0" />
 					<Add option="-fsigned-char" />
+					<Add option="-Wno-format-zero-length" />
 					<Add option="-D_DEBUG" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="../vcpp" />
 				</ResourceCompiler>
 				<Linker>
-					<Add library="..\lib\curl_mingw\libcurl.a" />
 					<Add library="SDL" />
 					<Add library="SDL_image" />
-					<Add library="SDL_ttf" />
 					<Add library="zdll" />
 					<Add library="opengl32" />
 					<Add library="enet" />
 					<Add library="OpenAL32" />
-					<Add library="..\lib\libvorbisfile.lib" />
+					<Add library="vorbisfile" />
 					<Add library="jpeg" />
-					<Add library="..\lib\libintl.lib" />
-					<Add library="wldap32" />
 					<Add library="ws2_32" />
 					<Add library="winmm" />
-					<Add library="..\lib\curl_mingw\libidn.a" />
-					<Add library="..\lib\curl_mingw\librtmp.a" />
-					<Add library="..\lib\curl_mingw\libssl.a" />
-					<Add library="..\lib\curl_mingw\libssh2.a" />
-					<Add library="..\lib\curl_mingw\libcrypto.a" />
 					<Add library="gdi32" />
 					<Add directory="../lib" />
 				</Linker>
@@ -107,12 +92,14 @@
 					<Add option="-O3" />
 					<Add option="-Wall" />
 					<Add option="-fsigned-char" />
+					<Add option="-Wno-format-zero-length" />
 					<Add option="-DSTANDALONE" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="../vcpp" />
 				</ResourceCompiler>
 				<Linker>
+					<Add library="SDL" />
 					<Add library="zdll" />
 					<Add library="enet" />
 					<Add library="ws2_32" />
@@ -133,6 +120,7 @@
 					<Add option="-g" />
 					<Add option="-O0" />
 					<Add option="-fsigned-char" />
+					<Add option="-Wno-format-zero-length" />
 					<Add option="-D_DEBUG" />
 					<Add option="-DSTANDALONE" />
 				</Compiler>
@@ -140,6 +128,7 @@
 					<Add directory="../vcpp" />
 				</ResourceCompiler>
 				<Linker>
+					<Add library="SDL" />
 					<Add library="zdll" />
 					<Add library="enet" />
 					<Add library="ws2_32" />
@@ -159,6 +148,7 @@
 					<Add option="-O3" />
 					<Add option="-Wall" />
 					<Add option="-fsigned-char" />
+					<Add option="-Wno-format-zero-length" />
 					<Add option="-DSTANDALONE" />
 				</Compiler>
 				<ResourceCompiler>
@@ -287,14 +277,6 @@
 			<Option target="debug" />
 		</Unit>
 		<Unit filename="../src/hudgun.h">
-			<Option target="default" />
-			<Option target="debug" />
-		</Unit>
-		<Unit filename="../src/i18n.cpp">
-			<Option target="default" />
-			<Option target="debug" />
-		</Unit>
-		<Unit filename="../src/i18n.h">
 			<Option target="default" />
 			<Option target="debug" />
 		</Unit>
@@ -431,6 +413,14 @@
 			<Option target="default" />
 			<Option target="debug" />
 		</Unit>
+		<Unit filename="../src/http.cpp">
+			<Option target="default" />
+			<Option target="debug" />
+		</Unit>
+		<Unit filename="../src/autodownload.cpp">
+			<Option target="default" />
+			<Option target="debug" />
+		</Unit>
 		<Unit filename="../src/serverchecks.h">
 			<Option target="default" />
 			<Option target="debug" />
@@ -462,10 +452,6 @@
 			<Option target="server-debug" />
 		</Unit>
 		<Unit filename="../src/shadow.cpp">
-			<Option target="default" />
-			<Option target="debug" />
-		</Unit>
-		<Unit filename="../src/sound.cpp">
 			<Option target="default" />
 			<Option target="debug" />
 		</Unit>

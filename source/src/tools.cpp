@@ -20,8 +20,10 @@ const char *asctime()
 const char *numtime()
 {
     static string numt;
-    formatstring(numt)("%ld", (long long) time(NULL));
-    return numt;
+    time_t t = time(NULL);
+    int t1 = t / 1000000, t2 = t % 1000000;
+    formatstring(numt)("%d%06d", t1, t2);
+    return numt + strspn(numt, "0");
 }
 
 static const uchar transformenttab[] = {
@@ -45,7 +47,7 @@ static const uchar transformenttab[] = {
             /* 16 */   /* CARROT         */ NOTUSED,                        16,
             /* 17 */   /* JUMPPAD        */ NOTUSED,                        17      };
 
-void transformoldentities(int mapversion, uchar &enttype)
+void transformoldentitytypes(int mapversion, uchar &enttype)
 {
     const uchar *usetab = transformenttab + (mapversion > 5 ? 1 : 0);
     if(mapversion < 8 && enttype < 18) enttype = usetab[enttype * 2];
@@ -85,7 +87,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     lilswap(&s.hdr.version, 4);
     s.hdr.headersize = fixmapheadersize(s.hdr.version, s.hdr.headersize);
     int restofhead = min(s.hdr.headersize, sizeof_header) - sizeof_baseheader;
-    if(s.hdr.version > MAXMAPVERSION || s.hdr.numents > MAXENTITIES ||
+    if(s.hdr.version > MAPVERSION || s.hdr.numents > MAXENTITIES ||
        f->read(&s.hdr.waterlevel, restofhead) != restofhead ||
        !f->seek(clamp(s.hdr.headersize - sizeof_header, 0, MAXHEADEREXTRA), SEEK_CUR)) { delete f; return NULL; }
     if(s.hdr.version>=4)
@@ -99,9 +101,9 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     entposs = new short[s.hdr.numents * 3];
     loopi(s.hdr.numents)
     {
-        f->read(&e, sizeof(persistent_entity));
+        f->read(&e, s.hdr.version < 10 ? 12 : sizeof(persistent_entity));
         lilswap((short *)&e, 4);
-        transformoldentities(s.hdr.version, e.type);
+        transformoldentitytypes(s.hdr.version, e.type);
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100)) s.spawns[e.attr2 == 100 ? 2 : e.attr2]++;
         if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) { s.flags[e.attr2]++; s.flagents[e.attr2] = i; }
         s.entcnt[e.type]++;
@@ -422,6 +424,24 @@ const char *hiddenpwd(const char *pwd, int showchars)
     for(int i = (int)strlen(text) - 1; i >= sc; i--) text[i] = '*';
     return text;
 }
+
+int getlistindex(const char *key, const char *list[], bool acceptnumeric, int deflt)
+{
+    int max = 0;
+    while(list[max][0]) if(!strcasecmp(key, list[max])) return max; else max++;
+    if(acceptnumeric && isdigit(key[0]))
+    {
+        int i = (int)strtol(key, NULL, 0);
+        if(i >= 0 && i < max) return i;
+    }
+#if !defined(STANDALONE) && defined(_DEBUG)
+    char *opts = conc(list, -1, true);
+    if(*key) clientlogf("warning: unknown token \"%s\" (not in list [%s])", key, opts);
+    delstring(opts);
+#endif
+    return deflt;
+}
+
 //////////////// geometry utils ////////////////
 
 static inline float det2x2(float a, float b, float c, float d) { return a*d - b*c; }
@@ -486,3 +506,255 @@ bool glmatrixf::invert(const glmatrixf &m, float mindet)
     return true;
 }
 
+// multithreading and ipc tools wrapper for the server
+// all embedded servers and all standalone servers except on linux use SDL
+// the standalone linux version uses native linux libraries - and also makes use of shared memory
+
+#ifdef AC_USE_SDL_THREADS
+    #include "SDL_timer.h"
+    #include "SDL_thread.h"      // also fetches SDL_mutex.h
+#else
+    #include <pthread.h>
+    #include <semaphore.h>
+    #include <sys/shm.h>
+#endif
+
+static int sl_sem_errorcountdummy = 0;
+
+#ifdef AC_USE_SDL_THREADS
+sl_semaphore::sl_semaphore(int init, int *ecnt)
+{
+    data = (void *)SDL_CreateSemaphore(init);
+    errorcount = ecnt ? ecnt : &sl_sem_errorcountdummy;
+    if(data == NULL) (*errorcount)++;
+}
+
+sl_semaphore::~sl_semaphore()
+{
+    if(data) SDL_DestroySemaphore((SDL_sem *) data);
+}
+
+void sl_semaphore::wait()
+{
+    if(SDL_SemWait((SDL_sem *) data) != 0) (*errorcount)++;
+}
+
+int sl_semaphore::trywait()
+{
+    return SDL_SemTryWait((SDL_sem *) data);
+}
+
+int sl_semaphore::timedwait(int howlongmillis)
+{
+    return SDL_SemWaitTimeout((SDL_sem *) data, howlongmillis);
+}
+
+int sl_semaphore::getvalue()
+{
+    return SDL_SemValue((SDL_sem *) data);
+}
+
+void sl_semaphore::post()
+{
+    if(SDL_SemPost((SDL_sem *) data) != 0) (*errorcount)++;
+}
+#else
+sl_semaphore::sl_semaphore(int init, int *ecnt)
+{
+    errorcount = ecnt ? ecnt : &sl_sem_errorcountdummy;
+    data = (void *) new sem_t;
+    if(data == NULL || sem_init((sem_t *) data, 0, init) != 0) (*errorcount)++;
+}
+
+sl_semaphore::~sl_semaphore()
+{
+    if(data)
+    {
+        if(sem_destroy((sem_t *) data) != 0) (*errorcount)++;
+        delete (sem_t *)data;
+    }
+}
+
+void sl_semaphore::wait()
+{
+    if(sem_wait((sem_t *) data) != 0) (*errorcount)++;
+}
+
+int sl_semaphore::trywait()
+{
+    return sem_trywait((sem_t *) data);
+}
+
+int sl_semaphore::timedwait(int howlongmillis)
+{
+    struct timespec t;
+    if(clock_gettime(CLOCK_REALTIME, &t))
+    {
+        (*errorcount)++;
+        return sem_trywait((sem_t *) data);
+    }
+    howlongmillis += t.tv_nsec / 1000000;
+    t.tv_nsec = (howlongmillis % 1000) * 1000000;
+    t.tv_sec += howlongmillis / 1000;
+    return sem_timedwait((sem_t *) data, &t);
+}
+
+int sl_semaphore::getvalue()
+{
+    int ret;
+    if(sem_getvalue((sem_t *) data, &ret) != 0) (*errorcount)++;
+    return ret;
+}
+
+void sl_semaphore::post()
+{
+    if(sem_post((sem_t *) data) != 0) (*errorcount)++;
+}
+#endif
+
+// (wrapping threads is slightly ugly, since SDL threads use a different return value (int) than pthreads (void *) - and that can't be solved with a typecast)
+#ifdef AC_USE_SDL_THREADS
+struct sl_threadinfo { int (*fn)(void *); void *data; SDL_Thread *handle; volatile char done; };
+
+static int sl_thread_indir(void *info)
+{
+    int res = (*((sl_threadinfo*)info)->fn)(((sl_threadinfo*)info)->data);
+    ((sl_threadinfo*)info)->done = 1;
+    return res;
+}
+
+void *sl_createthread(int (*fn)(void *), void *data)
+{
+    sl_threadinfo *ti = new sl_threadinfo;
+    ti->data = data;
+    ti->fn = fn;
+    ti->done = 0;
+    ti->handle = SDL_CreateThread(sl_thread_indir, ti);
+    return (void *) ti;
+}
+
+int sl_waitthread(void *ti)
+{
+    int res;
+    SDL_WaitThread(((sl_threadinfo *)ti)->handle, &res);
+    delete (sl_threadinfo *) ti;
+    return res;
+}
+
+static vector<sl_threadinfo *> oldthreads;
+static sl_semaphore sem_oldthreads(1, NULL);
+
+void sl_detachthread(void *ti) // SDL can't actually detach threads, so this is manual cleanup
+{
+    if(ti && sl_pollthread(ti))
+    {
+        SDL_WaitThread(((sl_threadinfo *)ti)->handle, NULL);
+        delete (sl_threadinfo *) ti;
+        ti = NULL;
+    }
+    if(ti || sem_oldthreads.getvalue() > 0)
+    {
+        sem_oldthreads.wait();
+        if(ti) oldthreads.add((sl_threadinfo *)ti);
+        loopvrev(oldthreads)
+        {
+            if(oldthreads[i]->done)
+            {
+                SDL_WaitThread(oldthreads[i]->handle, NULL);
+                delete oldthreads.remove(i);
+            }
+        }
+        sem_oldthreads.post();
+    }
+}
+#else
+struct sl_threadinfo { int (*fn)(void *); void *data; pthread_t handle; int res; volatile char done; };
+
+static void *sl_thread_indir(void *info)
+{
+    sl_threadinfo *ti = (sl_threadinfo*) info;
+    ti->res = (ti->fn)(ti->data);
+    ti->done = 1;
+    return &ti->res;
+}
+
+void *sl_createthread(int (*fn)(void *), void *data)
+{
+    sl_threadinfo *ti = new sl_threadinfo;
+    ti->data = data;
+    ti->fn = fn;
+    ti->done = 0;
+    pthread_create(&(ti->handle), NULL, sl_thread_indir, ti);
+    return (void *) ti;
+}
+
+int sl_waitthread(void *ti)
+{
+    void *res;
+    pthread_join(((sl_threadinfo *)ti)->handle, &res);
+    int ires = *((int *)res);
+    delete (sl_threadinfo *) ti;
+    return ires;
+}
+
+static vector<sl_threadinfo *> oldthreads;
+static sl_semaphore sem_oldthreads(1, NULL);
+
+void sl_detachthread(void *ti)
+{
+    if(ti) pthread_detach(((sl_threadinfo *)ti)->handle);
+    if(ti || sem_oldthreads.getvalue() > 0)
+    {
+        sem_oldthreads.wait();
+        if(ti) oldthreads.add((sl_threadinfo *)ti);
+        loopvrev(oldthreads) if(oldthreads[i]->done) delete oldthreads.remove(i);
+        sem_oldthreads.post();
+    }
+}
+#endif
+
+bool sl_pollthread(void *ti)
+{
+    return ((sl_threadinfo*)ti)->done != 0;
+}
+
+// platform dependent stuff not covered by enet (use POSIX or, if possible, SDL)
+#ifdef AC_USE_SDL_THREADS
+void sl_sleep(int duration)
+{
+    SDL_Delay(duration);
+}
+#else
+void sl_sleep(int duration)
+{
+    struct timespec t = { duration / 1000, (duration % 1000) * 1000000 };
+    nanosleep(&t, NULL);
+}
+#endif
+
+void parseupdatelist(hashtable<const char *, int> &ht, char *buf, const char *prefix, const char *suffix)
+{
+    for(char *d = buf; *d; d++) if(!isalnum(*d) && !strchr("._-() /\n", *d)) *d = ' '; // allowed chars in media path strings (except ' ')
+    char *p, *l = buf, *m;
+    int rev, *revp, plen = prefix ? (int)strlen(prefix) : 0, slen = suffix ? (int)strlen(suffix) : 0;
+    do
+    {
+        if((p = strchr(l, '\n'))) *p = '\0'; // break into single lines
+        l += strspn(l, " "); // skip leading spaces
+        if((m = strchr(l, ' ')) && (rev = atoi(m + 1))) // string has a space and a number != 0 after it
+        {
+            *m = '\0';
+            if((!plen || !strncmp(l, prefix, plen)) && // prefix is either not required or present
+               (!slen || (m - l > slen && !strcmp(m - slen, suffix)))) // suffix is either not required or present
+            {
+                l += plen; // skip prefix
+                m[-slen] = '\0'; // cut suffix
+                revp = ht.access(l);
+                if(revp) *revp = rev;
+                else ht.access(newstring(l), rev);
+            }
+        }
+        l = p + 1;
+    }
+    while(p);
+}

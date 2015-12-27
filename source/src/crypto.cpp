@@ -849,11 +849,12 @@ bool checkchallenge(const char *answerstr, void *correct)
 #define M (397)
 #define K (0x9908B0DFU)
 
-static uint state[N];
+static uint state[2 * N];
 static int next = N;
 
 void seedMT(uint seed)
 {
+    loopi(N) state[i + N] = state[i];
     state[0] = seed;
     for(uint i = 1; i < N; i++)
         state[i] = seed = 1812433253U * (seed ^ (seed >> 30)) + i;
@@ -869,11 +870,19 @@ uint randomMT()
         else next = 0;
     }
     uint y = (state[cur] & 0x80000000U) | (state[next] & 0x7FFFFFFFU);
-    state[cur] = y = state[cur < N-M ? cur + M : cur + M-N] ^ (y >> 1) ^ (-(y & 1U) & K);
+    state[cur] = y = state[cur < N-M ? cur + M : cur + M-N] ^ (y >> 1) ^ (-int(y & 1U) & K);
     y ^= (y >> 11);
     y ^= (y <<  7) & 0x9D2C5680U;
     y ^= (y << 15) & 0xEFC60000U;
     y ^= (y >> 18);
     return y;
 }
+
+void popMT()  // undo last seedMT()
+{
+    loopi(N) state[i] = state[i + N];
+}
+#undef N
+#undef M
+#undef K
 
