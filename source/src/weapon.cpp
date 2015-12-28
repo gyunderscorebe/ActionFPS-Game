@@ -847,10 +847,14 @@ void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
     // spread
     if(spread>1)
     {
-        #define RNDD (rnd(spread)-spread/2)*f
-        vec r(RNDD, RNDD, RNDD);
-        to.add(r);
-        #undef RNDD
+        vec dir = to; dir.sub(from); dir.div(dist);
+        vec delta;
+        delta.orthogonal(dir);
+        delta.normalize();
+        float rnddir = rndscale(2*M_PI);
+        delta.rotate(rnddir, dir);
+        delta.mul(rnd(spread) * f/sqrt(M_PI)); // non uniform distribution
+        to.add(delta);
     }
     // kickback & recoil
     if(recoiltest)

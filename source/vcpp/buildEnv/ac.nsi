@@ -606,7 +606,7 @@ Section "Register URL protocol" REGISTERURL
     WriteRegStr HKCR "${AC_URLPROTOCOL}" "" "${AC_SHORTNAME}"
     WriteRegStr HKCR "${AC_URLPROTOCOL}" "URL Protocol" ""
     WriteRegStr HKCR "${AC_URLPROTOCOL}\DefaultIcon" "" '"$INSTDIR\bin_win32\af_client.exe"'
-    WriteRegStr HKCR "${AC_URLPROTOCOL}\shell\open\command" "" '"cmd.exe" /C cd "$INSTDIR" & "actionfps.bat" "%1"'
+    WriteRegStr HKCR "${AC_URLPROTOCOL}\shell\open\command" "" '"cmd.exe" /C cd /d "$INSTDIR\bin_win32" & "launcher.exe" "%1"'
 
 SectionEnd
 

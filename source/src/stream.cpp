@@ -471,11 +471,6 @@ struct filestream : stream
     }
 };
 
-#ifndef STANDALONE
-//VAR(dbggz, 0, 0, 1);
-const int dbggz = 0;
-#endif
-
 struct gzstream : stream
 {
     enum
@@ -605,18 +600,6 @@ struct gzstream : stream
     void finishreading()
     {
         if(!reading) return;
-#ifndef STANDALONE
-        if(dbggz)
-        {
-            uint checkcrc = 0, checksize = 0;
-            loopi(4) checkcrc |= uint(readbyte()) << (i*8);
-            loopi(4) checksize |= uint(readbyte()) << (i*8);
-            if(checkcrc != crc)
-                conoutf("gzip crc check failed: read %X, calculated %X", checkcrc, crc);
-            if(checksize != zfile.total_out)
-                conoutf("gzip size check failed: read %u, calculated %u", checksize, (uint) zfile.total_out);
-        }
-#endif
     }
 
     void stopreading()

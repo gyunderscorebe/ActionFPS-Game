@@ -49,6 +49,10 @@
     #include <SDL.h>
     #include <SDL_image.h>
 
+    #ifdef WIN32
+        #include <SDL_syswm.h>
+    #endif
+
     #define GL_GLEXT_LEGACY
     #define __glext_h__
     #define NO_SDL_GLEXT

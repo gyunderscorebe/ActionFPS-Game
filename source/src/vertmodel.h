@@ -7,11 +7,6 @@ VARP(dynshadowquad, 0, 0, 1);
 VARF(shadowyaw, 0, DEFAULT_SHADOWYAW, 360, flagmapconfigchange());
 vec shadowdir(0, 0, -1), shadowpos(0, 0, 0);
 
-const int dbgstenc = 0;
-const int dbgvlight = 0;
-//VAR(dbgstenc, 0, 0, 2);
-//VAR(dbgvlight, 0, 0, 1);
-
 VARP(mdldlist, 0, 1, 1);
 
 vec modelpos;
@@ -350,8 +345,6 @@ __attribute__((optimize(2)))
                 }
             }
 
-            if(dbgstenc >= (owner->numframes > 1 || as.anim&ANIM_DYNALLOC ? 2 : 1)) conoutf("%s: %d tris", owner->filename, int((idx - d->idxs()) / 3));
-
             d->size = (uchar *)idx - (uchar *)d;
             return d;
         }
@@ -361,8 +354,6 @@ __attribute__((optimize(2)))
 #endif
         lightcacheentry *lightvertexes(animstate &as, anpos &cur, anpos *prev, float ai_t, vec *buf)
         {
-            if(dbgvlight) return NULL;
-
             lightcacheentry *d = lightcache.start();
             int cachelen = 0;
             for(; d != lightcache.end(); d = d->next, cachelen++)

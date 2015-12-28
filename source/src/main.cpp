@@ -971,7 +971,7 @@ void createconfigtemplates(const char *templatezip)  // create customisable conf
 
 extern void connectserv(char *, int *, char *);
 
-void connectprotocol(char *protocolstring, string &servername, int &serverport, string &password, bool &direct_connect)
+void gameprotocol(char *protocolstring, string &servername, int &serverport, string &password, char *auth_id, char *auth_key, bool &direct_connect)
 {
     const char *c = &protocolstring[14], *p = c;
     int len = 0;
@@ -980,9 +980,9 @@ void connectprotocol(char *protocolstring, string &servername, int &serverport, 
     servername[0] = password[0] = '\0';
     serverport = 0;
     while(*c && *c!='/' && *c!='?' && *c!=':') { len++; c++; }
-    if(!len) { conoutf("\f3bad commandline syntax (\"%s\")", protocolstring); return; }
+    if(!len) { conoutf("\f3bad commandline syntax", protocolstring); return; }
     copystring(servername, p, min(len+1, MAXSTRLEN));
-    direct_connect = true;
+    direct_connect = strcmp(servername, "authenticate") != 0;
     if(*c && *c==':')
     {
         c++; p = c; len = 0;
@@ -1013,6 +1013,20 @@ void connectprotocol(char *protocolstring, string &servername, int &serverport, 
             c += 9; p = c; len = 0;
             while(*c && *c!='&' && *c!='/') { len++, c++; }
             if(len) copystring(password, p, min(len+1, MAXSTRLEN));
+        }
+        else if(!strncmp(c, "id=", 3))
+        {
+            extern char *authid;
+            c += 3; p = c; len = 0;
+            while(*c && *c!='&' && *c!='/') { len++, c++; }
+            if(len) copystring(auth_id, p, min(len+1, MAXSTRLEN));
+        }
+        else if(!strncmp(c, "key=", 4))
+        {
+            extern char *authkey;
+            c += 4; p = c; len = 0;
+            while(*c && *c!='&' && *c!='/') { len++, c++; }
+            if(len) copystring(auth_key, p, min(len+1, MAXSTRLEN));
         }
         else break;
     } while(*c && *c=='&' && *c!='/');
@@ -1064,6 +1078,41 @@ void initclientlog()  // rotate old logfiles and create new one
     DELETEP(bootclientlog);
 }
 
+#if defined(WIN32) && !defined(STANDALONE)
+int sdl_syswmevent_filter(const SDL_Event *e)
+{
+    if(e->type != SDL_SYSWMEVENT) return 1;
+
+    SDL_SysWMmsg *message = e->syswm.msg;
+    UINT msg = message->msg; /**< The type of message */
+    if(msg != WM_COPYDATA) return 0;
+    LPARAM lParam = message->lParam;/**< LONG message parameter */
+
+    COPYDATASTRUCT pcds = *((COPYDATASTRUCT*)lParam);
+    char* str = ((char*)(pcds.lpData));
+
+    if(!str || !strlen(str)) return 0;
+    
+    string servername = "", password = "", auth_id = "", auth_key = "";
+    int serverport;
+    bool direct_connect;
+
+    gameprotocol(str, servername, serverport, password, auth_id, auth_key, direct_connect);
+
+    if(auth_id[0]) { setsvar("authid", auth_id); }
+    if(auth_key[0]) { setsvar("authkey", auth_key); }
+
+    if (direct_connect)
+    {
+        direct_connect = false;
+        connectserv(servername, &serverport, password);
+    }
+
+
+    return 0;
+}
+#endif
+
 VARP(compatibilitymode, 0, 1, 1); // FIXME : find a better place to put this ?
 
 int main(int argc, char **argv)
@@ -1084,6 +1133,7 @@ int main(int argc, char **argv)
     char *initdemo = NULL;
     bool direct_connect = false;               // to connect via actionfps:// browser switch
     string servername, password;
+    string auth_id = "", auth_key = "";
     int serverport;
 
     if(bootclientlog) cvecprintf(*bootclientlog, "######## start logging: %s\n", timestring(true));
@@ -1164,7 +1214,7 @@ int main(int argc, char **argv)
             }
             else if(!strncmp(argv[i], "actionfps://", 12)) // browser direct connection
             {
-                connectprotocol(argv[i], servername, serverport, password, direct_connect);
+                gameprotocol(argv[i], servername, serverport, password, auth_id, auth_key, direct_connect);
             }
             else conoutf("\f3unknown commandline argument: %c", argv[i][0]);
         }
@@ -1205,6 +1255,11 @@ int main(int argc, char **argv)
 
     initlog("video: sdl");
     if(SDL_InitSubSystem(SDL_INIT_VIDEO)<0) fatal("Unable to initialize SDL Video");
+
+    #ifdef WIN32
+    SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
+    SDL_SetEventFilter(sdl_syswmevent_filter);
+    #endif
 
     initlog("video: mode");
     int usedcolorbits = 0, useddepthbits = 0, usedfsaa = 0;
@@ -1323,6 +1378,16 @@ int main(int argc, char **argv)
     per_idents = true;
 
     initlog("localconnect");
+
+    if(auth_id[0]) { setsvar("authid", auth_id); }
+    if(auth_key[0]) { setsvar("authkey", auth_key); }
+
+    if (direct_connect)
+    {
+        direct_connect = false;
+        connectserv(servername, &serverport, password);
+    }
+
     extern string clientmap;
 
     if(initdemo)
@@ -1413,11 +1478,6 @@ int main(int argc, char **argv)
 #ifdef _DEBUG
         if(millis>lastflush+60000) { fflush(stdout); lastflush = millis; }
 #endif
-        if (direct_connect)
-        {
-            direct_connect = false;
-            connectserv(servername, &serverport, password);
-        }
         pollautodownloadresponse();
     }
 
