@@ -120,7 +120,7 @@ SetCompressor /SOLID lzma
 !define AC_SHORTNAME "ActionFPS"
 !define AC_FULLNAME "ActionFPS v1.2.0.2"
 !define AC_FULLNAMESAVE "ActionFPS_v1.2.0.2"
-!define AC_URLPROTOCOL "assaultcube"
+!define AC_URLPROTOCOL "actionfps"
 !define AC_MAJORVERSIONINT 1
 !define AC_MINORVERSIONINT 2
 

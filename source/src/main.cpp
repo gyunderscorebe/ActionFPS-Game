@@ -1082,7 +1082,7 @@ int main(int argc, char **argv)
     bool quitdirectly = false;
     char *initscript = NULL;
     char *initdemo = NULL;
-    bool direct_connect = false;               // to connect via assaultcube:// browser switch
+    bool direct_connect = false;               // to connect via actionfps:// browser switch
     string servername, password;
     int serverport;
 
@@ -1162,7 +1162,7 @@ int main(int argc, char **argv)
                 case 'e': initscript = &argv[i][2]; break;
                 default:  conoutf("\f3unknown commandline option: -%c", argv[i][1]);
             }
-            else if(!strncmp(argv[i], "assaultcube://", 14)) // browser direct connection
+            else if(!strncmp(argv[i], "actionfps://", 12)) // browser direct connection
             {
                 connectprotocol(argv[i], servername, serverport, password, direct_connect);
             }

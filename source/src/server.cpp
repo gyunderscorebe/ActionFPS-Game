@@ -4199,7 +4199,7 @@ void initserver(bool dedicated, int argc, char **argv)
                 case 'S': service = a; break;
                 default: break; /*printf("WARNING: unknown commandline option\n");*/ // less warnings - 2011feb05:ft: who disabled this - I think this should be on - more warnings == more clarity
             }
-            else if (strncmp(argv[i], "assaultcube://", 13)) printf("WARNING: unknown commandline argument\n");
+            else if (strncmp(argv[i], "actionfps://", 11)) printf("WARNING: unknown commandline argument\n");
         }
     }
 
