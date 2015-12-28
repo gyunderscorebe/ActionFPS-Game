@@ -1048,7 +1048,7 @@ struct servercommandline
 
     bool checkarg(const char *arg)
     {
-        if(!strncmp(arg, "assaultcube://", 13)) return false;
+        if(!strncmp(arg, "actionfps://", 11)) return false;
         else if(arg[0] != '-' || arg[1] == '\0') return false;
         const char *a = arg + 2 + strspn(arg + 2, " ");
         int ai = atoi(a);

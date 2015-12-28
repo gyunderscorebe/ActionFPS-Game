@@ -31,7 +31,7 @@ sl_semaphore sem_pckservers(1, NULL); // control access to the pckservers vector
 void resetpckservers()
 {
     delfile(findfile("config" PATHDIVS "pcksources.cfg", "w"));
-    conoutf("\f3Restart AssaultCube to take effect after resetting the list of packages source servers");
+    conoutf("\f3Restart ActionFPS to take effect after resetting the list of packages source servers");
 }
 COMMAND(resetpckservers, "");
 

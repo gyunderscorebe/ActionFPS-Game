@@ -117,16 +117,16 @@ SetCompressor /SOLID lzma
 !define CURPATH ".\" ; must include the installer graphics and the \ac\ directory
 !define AC_FULLVERSION "v1.2.0.2"
 !define AC_FULLVERSIONINT "1.2.0.2"
-!define AC_SHORTNAME "AssaultCube"
-!define AC_FULLNAME "AssaultCube v1.2.0.2"
-!define AC_FULLNAMESAVE "AssaultCube_v1.2.0.2"
-!define AC_URLPROTOCOL "assaultcube"
+!define AC_SHORTNAME "ActionFPS"
+!define AC_FULLNAME "ActionFPS v1.2.0.2"
+!define AC_FULLNAMESAVE "ActionFPS_v1.2.0.2"
+!define AC_URLPROTOCOL "actionfps"
 !define AC_MAJORVERSIONINT 1
 !define AC_MINORVERSIONINT 2
 
-Name "AssaultCube"
+Name "ActionFPS"
 VAR StartMenuFolder
-OutFile "AssaultCube_${AC_FULLVERSION}.exe"
+OutFile "ActionFPS_${AC_FULLVERSION}.exe"
 InstallDir "$PROGRAMFILES\${AC_SHORTNAME}"
 InstallDirRegKey HKLM "Software\${AC_SHORTNAME}" ""
 RequestExecutionLevel admin ; require admin in Vista/7
@@ -284,7 +284,7 @@ VIProductVersion "${AC_FULLVERSIONINT}"
 VIAddVersionKey "ProductName" "${AC_SHORTNAME}"
 VIAddVersionKey "CompanyName" "Rabid Viper Productions"
 VIAddVersionKey "LegalCopyright" "Copyright © Rabid Viper Productions"
-VIAddVersionKey "FileDescription" "AssaultCube is a FREE, multiplayer, first-person shooter game, based on the CUBE engine."
+VIAddVersionKey "FileDescription" "ActionFPS is a FREE, multiplayer, first-person shooter game, based on the CUBE engine."
 VIAddVersionKey "FileVersion" "${AC_FULLVERSIONINT}"
 VIAddVersionKey "ProductVersion" "${AC_FULLVERSIONINT}"
 
@@ -400,12 +400,12 @@ Function WelcomePage
 
     SendMessage $IMAGECTL ${STM_SETIMAGE} ${IMAGE_BITMAP} $IMAGE
 
-    nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 10u -130u 20u "Welcome to the AssaultCube Setup Wizard"
+    nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 10u -130u 20u "Welcome to the ActionFPS Setup Wizard"
     Pop $HEADLINE
 
     SendMessage $HEADLINE ${WM_SETFONT} $HEADLINE_FONT 0
 
-    nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 32u -130u -32u "This wizard will guide you through the installation of AssaultCube.$\r$\n$\r$\nIt is recommended that you close all other applications before starting Setup. This will make it possible to update relevant system files without having to reboot your computer.$\r$\n$\r$\nClick next to continue."
+    nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 32u -130u -32u "This wizard will guide you through the installation of ActionFPS.$\r$\n$\r$\nIt is recommended that you close all other applications before starting Setup. This will make it possible to update relevant system files without having to reboot your computer.$\r$\n$\r$\nClick next to continue."
     Pop $TEXT
 
     SetCtlColors $DIALOG "" 0xffffff
@@ -438,12 +438,12 @@ Function FinishPage
 
     SendMessage $IMAGECTL ${STM_SETIMAGE} ${IMAGE_BITMAP} $IMAGE
 
-    nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 10u -130u 20u "Completing the AssaultCube Setup Wizard"
+    nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 10u -130u 20u "Completing the ActionFPS Setup Wizard"
     Pop $HEADLINE
 
     SendMessage $HEADLINE ${WM_SETFONT} $HEADLINE_FONT 0
 
-    nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 32u -130u -32u "AssaultCube has been installed on your computer.$\r$\n$\r$\nClick Finish to close this wizard."
+    nsDialogs::CreateControl /NOUNLOAD STATIC ${WS_VISIBLE}|${WS_CHILD}|${WS_CLIPSIBLINGS} 0 120u 32u -130u -32u "ActionFPS has been installed on your computer.$\r$\n$\r$\nClick Finish to close this wizard."
     Pop $TEXT
 
     SetCtlColors $DIALOG "" 0xffffff
@@ -526,15 +526,15 @@ Function ConfigureWithoutAppdata
     
     ; configure ac without home dir
     
-    FileOpen $9 "$INSTDIR\AssaultCube.bat" w
-    FileWrite $9 "start bin_win32\ac_client.exe --init %1 %2 %3 %4 %5$\r$\n"
+    FileOpen $9 "$INSTDIR\ActionFPS.bat" w
+    FileWrite $9 "start bin_win32\af_client.exe --init %1 %2 %3 %4 %5$\r$\n"
     FileClose $9
 
 FunctionEnd
 
 ; Installer Sections
 
-Section "AssaultCube ${AC_FULLVERSION}" AC
+Section "ActionFPS ${AC_FULLVERSION}" AC
 
     SectionIn RO
 
@@ -568,7 +568,7 @@ Section "AssaultCube ${AC_FULLVERSION}" AC
         SetShellVarContext all
 
         CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-        CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${AC_SHORTNAME}.lnk" "$INSTDIR\AssaultCube.bat" "" "$INSTDIR\docs\images\favicon.ico" 0 SW_SHOWMINIMIZED
+        CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${AC_SHORTNAME}.lnk" "$INSTDIR\ActionFPS.bat" "" "$INSTDIR\docs\images\favicon.ico" 0 SW_SHOWMINIMIZED
         CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\docs\images\favicon.ico" 0
         CreateShortCut "$SMPROGRAMS\$StartMenuFolder\README.lnk" "$INSTDIR\README.html" "" "" 0
 
@@ -597,7 +597,7 @@ Section "Desktop Shortcuts" DESKSHORTCUTS
 
     SetShellVarContext all
 
-    CreateShortCut "$DESKTOP\${AC_SHORTNAME}.lnk" "$INSTDIR\AssaultCube.bat" "" "$INSTDIR\docs\images\favicon.ico" 0 SW_SHOWMINIMIZED
+    CreateShortCut "$DESKTOP\${AC_SHORTNAME}.lnk" "$INSTDIR\ActionFPS.bat" "" "$INSTDIR\docs\images\favicon.ico" 0 SW_SHOWMINIMIZED
 
 SectionEnd
 
@@ -605,7 +605,7 @@ Section "Register URL protocol" REGISTERURL
 
     WriteRegStr HKCR "${AC_URLPROTOCOL}" "" "${AC_SHORTNAME}"
     WriteRegStr HKCR "${AC_URLPROTOCOL}" "URL Protocol" ""
-    WriteRegStr HKCR "${AC_URLPROTOCOL}\DefaultIcon" "" '"$INSTDIR\bin_win32\ac_client.exe"'
+    WriteRegStr HKCR "${AC_URLPROTOCOL}\DefaultIcon" "" '"$INSTDIR\bin_win32\af_client.exe"'
     WriteRegStr HKCR "${AC_URLPROTOCOL}\shell\open\command" "" '"cmd.exe" /C cd /d "$INSTDIR\bin_win32" & "launcher.exe" "%1"'
 
 SectionEnd
@@ -620,7 +620,7 @@ Section "Uninstall"
 
     ; delete shortcuts
 
-    Delete "$DESKTOP\AssaultCube.lnk"
+    Delete "$DESKTOP\ActionFPS.lnk"
     
     !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder 
     
@@ -642,7 +642,7 @@ SectionEnd
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
 
-    !insertmacro MUI_DESCRIPTION_TEXT ${AC} "Installs the required AssaultCube core files"
+    !insertmacro MUI_DESCRIPTION_TEXT ${AC} "Installs the required ActionFPS core files"
     !insertmacro MUI_DESCRIPTION_TEXT ${OAL} "Installs a sound library for 3D audio"
     !insertmacro MUI_DESCRIPTION_TEXT ${DESKSHORTCUTS} "Creates shortcuts on your Desktop"
     !insertmacro MUI_DESCRIPTION_TEXT ${REGISTERURL} "Registers the ${AC_URLPROTOCOL}:// protocol"

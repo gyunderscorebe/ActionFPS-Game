@@ -1,7 +1,7 @@
 //
 // C++ Implementation: bot
 //
-// Description: Main bot code for AssaultCube
+// Description: Main bot code for ActionFPS
 //
 // Main bot file
 //

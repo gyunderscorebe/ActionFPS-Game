@@ -1,4 +1,4 @@
-// wizard to start an AssaultCube server and storing the configuration
+// wizard to start an ActionFPS server and storing the configuration
 
 #include "cube.h"
 
@@ -56,11 +56,11 @@ int wizardmain(int argc, char **argv)
     if(!outfile || !relpath)
     {
         printf("invalid arguments specified!\n");
-        printf("usage: ac_server <outfile> <relbinarypath>\n");
+        printf("usage: af_server <outfile> <relbinarypath>\n");
         return EXIT_FAILURE;
     }
 
-    printf("The AssaultCube Server Wizard\n\n");
+    printf("The ActionFPS Server Wizard\n\n");
     printf("Before setting up a new server, please ensure you've read the rules at:\n"
            "\thttp://masterserver.cubers.net/rules.html\n\n");
     printf("You will also need to ensure that the UDP port you choose is open.\n"

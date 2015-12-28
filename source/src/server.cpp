@@ -775,8 +775,8 @@ void setupdemoplayback()
     {
         lilswap(&hdr.version, 1);
         lilswap(&hdr.protocol, 1);
-        if(hdr.version!=DEMO_VERSION) formatstring(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.version<DEMO_VERSION ? "older" : "newer");
-        else if(hdr.protocol != PROTOCOL_VERSION && !(hdr.protocol < 0 && hdr.protocol == -PROTOCOL_VERSION) && hdr.protocol != 1132) formatstring(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
+        if(hdr.version!=DEMO_VERSION) formatstring(msg)("demo \"%s\" requires an %s version of ActionFPS", file, hdr.version<DEMO_VERSION ? "older" : "newer");
+        else if(hdr.protocol != PROTOCOL_VERSION && !(hdr.protocol < 0 && hdr.protocol == -PROTOCOL_VERSION) && hdr.protocol != 1132) formatstring(msg)("demo \"%s\" requires an %s version of ActionFPS", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
         else if(hdr.protocol == 1132) sendservmsg("WARNING: using experimental compatibility mode for older demo protocol, expect breakage");
         demoprotocol = hdr.protocol;
     }
@@ -4199,7 +4199,7 @@ void initserver(bool dedicated, int argc, char **argv)
                 case 'S': service = a; break;
                 default: break; /*printf("WARNING: unknown commandline option\n");*/ // less warnings - 2011feb05:ft: who disabled this - I think this should be on - more warnings == more clarity
             }
-            else if (strncmp(argv[i], "assaultcube://", 13)) printf("WARNING: unknown commandline argument\n");
+            else if (strncmp(argv[i], "actionfps://", 11)) printf("WARNING: unknown commandline argument\n");
         }
     }
 
@@ -4226,7 +4226,7 @@ void initserver(bool dedicated, int argc, char **argv)
     int conthres = scl.verbose > 1 ? ACLOG_DEBUG : (scl.verbose ? ACLOG_VERBOSE : ACLOG_INFO);
     if(dedicated && !initlogging(identity, scl.syslogfacility, conthres, scl.filethres, scl.syslogthres, scl.logtimestamp))
         printf("WARNING: logging not started!\n");
-    logline(ACLOG_INFO, "logging local AssaultCube server (version %d, protocol %d/%d) now..", AC_VERSION, SERVER_PROTOCOL_VERSION, EXT_VERSION);
+    logline(ACLOG_INFO, "logging local ActionFPS server (version %d, protocol %d/%d) now..", AC_VERSION, SERVER_PROTOCOL_VERSION, EXT_VERSION);
 
     copystring(servdesc_current, scl.servdesc_full);
     servermsinit(scl.master ? scl.master : AC_MASTER_URI, scl.ip, CUBE_SERVINFO_PORT(scl.serverport), dedicated);
@@ -4296,7 +4296,7 @@ void localservertoclient(int chan, uchar *buf, int len, bool demo) {}
 void fatal(const char *s, ...)
 {
     defvformatstring(msg,s,s);
-    defformatstring(out)("AssaultCube fatal error: %s", msg);
+    defformatstring(out)("ActionFPS fatal error: %s", msg);
     if (logline(ACLOG_ERROR, "%s", out));
     else puts(out);
     cleanupserver();

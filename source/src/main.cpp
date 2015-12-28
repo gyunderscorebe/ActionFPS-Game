@@ -18,7 +18,7 @@ void cleanup(char *msg)         // single program exit point;
     if(msg)
     {
         #ifdef WIN32
-        MessageBox(NULL, msg, "AssaultCube fatal error", MB_OK|MB_SYSTEMMODAL|MB_ICONERROR);
+        MessageBox(NULL, msg, "ActionFPS fatal error", MB_OK|MB_SYSTEMMODAL|MB_ICONERROR);
         #else
         printf("%s", msg);
         #endif
@@ -1131,7 +1131,7 @@ int main(int argc, char **argv)
     bool quitdirectly = false;
     char *initscript = NULL;
     char *initdemo = NULL;
-    bool direct_connect = false;               // to connect via assaultcube:// browser switch
+    bool direct_connect = false;               // to connect via actionfps:// browser switch
     string servername, password;
     string auth_id = "", auth_key = "";
     int serverport;
@@ -1212,7 +1212,7 @@ int main(int argc, char **argv)
                 case 'e': initscript = &argv[i][2]; break;
                 default:  conoutf("\f3unknown commandline option: -%c", argv[i][1]);
             }
-            else if(!strncmp(argv[i], "assaultcube://", 14)) // browser direct connection
+            else if(!strncmp(argv[i], "actionfps://", 12)) // browser direct connection
             {
                 gameprotocol(argv[i], servername, serverport, password, auth_id, auth_key, direct_connect);
             }
@@ -1270,7 +1270,7 @@ int main(int argc, char **argv)
     //initfont();
 
     initlog("video: misc");
-    SDL_WM_SetCaption("AssaultCube", NULL);
+    SDL_WM_SetCaption("ActionFPS", NULL);
     SDL_Surface *icon = IMG_Load("packages/misc/icon.bmp");
     SDL_WM_SetIcon(icon, NULL);
     keyrepeat(false);
@@ -1281,7 +1281,7 @@ int main(int argc, char **argv)
     gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
 
     notexture = noworldtexture = textureload("packages/misc/notexture.jpg");
-    if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
+    if(!notexture) fatal("could not find core textures (hint: run ActionFPS from the parent of the bin directory)");
 
     initlog("console");
     per_idents = false;

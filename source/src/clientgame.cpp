@@ -758,7 +758,7 @@ inline const char * spawn_message()
     else if (m_coop) return "3Type /getmap or send a map and vote for it to start co-op edit.";
     else if (multiplayer(false)) return "4Awaiting permission to spawn. \f2DON'T PANIC!";
     else return ""; // theres no waiting for permission in sp
-    // Despite its many glaring (and occasionally fatal) inaccuracies, AssaultCube itself has outsold the
+    // Despite its many glaring (and occasionally fatal) inaccuracies, ActionFPS itself has outsold the
     // Encyclopedia Galactica because it is slightly cheaper, and because it has the words "Don't Panic"
     // in large, friendly letters.
 }
