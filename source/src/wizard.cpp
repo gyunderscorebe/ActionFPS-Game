@@ -56,7 +56,7 @@ int wizardmain(int argc, char **argv)
     if(!outfile || !relpath)
     {
         printf("invalid arguments specified!\n");
-        printf("usage: ac_server <outfile> <relbinarypath>\n");
+        printf("usage: af_server <outfile> <relbinarypath>\n");
         return EXIT_FAILURE;
     }
 
