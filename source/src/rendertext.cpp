@@ -59,7 +59,7 @@ COMMANDN(font, newfont, "ssiiiiii");
 COMMAND(fontchar, "iiii");
 COMMAND(fontskip, "i");
 
-string myfont = "default";
+string myfont = "serif";
 void newsetfont(const char *name)
 {
     if ( setfont(name) ) copystring(myfont,name);
@@ -70,7 +70,7 @@ bool setfont(const char *name)
     font *f = fonts.access(name);
     if(!f) return false;
     int v = -1;
-    if(strcmp(name, "default")==0)
+    if(strcmp(name, "rounded")==0)
         v = 0;
     else if(strcmp(name, "serif")==0)
         v = 1;
