@@ -1,23 +1,18 @@
 #!/bin/bash
 
-# Before running this script, complete this checklist:
-# * Download a copy of current GIT.
-# * Download a copy of current GIT documentation files.
-# * Patch the source code/package with any relevant materials.
-# * Set the makefile to strip symbols.
-# * Compile new 32/64 bit binaries and put them in their appropriate ./bin_unix locations.
-#   (this isn't done automatically, as I compile the 32-bit binary on a virtual machine).
-# * Delete all non-repository files/folders except any shadows.dat and the new binaries.
+# usage : package_assaultcube.sh API_KEY GITHUB_USER
+
+# dependencies : https://github.com/aktau/github-release
 
 # ** CHANGE THE BELOW 4 VARIABLES BEFORE EXECUTING THE SCRIPT ** #
 
 # Please ensure this path is NOT inside your "PATHTOACDIR" folder, as
 # this will be the place the tarball package gets saved.
-SAVETARBALLPATH=~/AssaultCube
+SAVETARBALLPATH=.
 # This will be the directory that gets packaged:
-PATHTOACDIR=~/AssaultCube/GIT_AC
-ABSOLUTEPATHTODOCS=~/AssaultCube/GIT_Website/htdocs/docs
-NEWACVERSION=1.2.0.2
+PATHTOACDIR=./game
+
+cd "$(dirname "$0")"
 
 # KSH won't work, as this script uses echo throughout it, echo's options are shell-specific:
 if [ -z "$(echo "$BASH")" ]; then
@@ -28,46 +23,12 @@ fi
 # Set auto-aliases:
 ACDIRFOLDERNAME=`basename $PATHTOACDIR`
 
-# Start of the script, so remind the user of things we can't check:
-echo -e "\n\033[1mThe following files have changed, since your last update from GIT:\033[0m"
-cd "$PATHTOACDIR" && git fetch && git diff --name-status master origin/master
-cd "$ABSOLUTEPATHTODOCS" && git fetch && git diff --name-status master origin/master
-echo -e "\n\033[1mThe following files are not in GIT, but exist locally:\033[0m"
-cd "$PATHTOACDIR" && git ls-files --other --exclude-standard
-cd "$ABSOLUTEPATHTODOCS" && git ls-files --other --exclude-standard
-echo " * If you're happy with this, press ENTER to continue, otherwise press ctrl+c to exit."
-read DUMMY
-echo -e "\033[1mIf required, did you patch the source with any relevant materials?\033[0m"
-echo " * Press ENTER to continue, otherwise press ctrl+c to exit."
-read DUMMY
-echo -e "\033[1mDid you strip symbols when compiling?\033[0m"
-echo " * If so, press ENTER to continue, otherwise press ctrl+c to exit."
-read DUMMY
-echo -e "\033[1mIs the save-path in assaultcube.sh correct?\033[0m"
-echo " * If so, press ENTER to continue, otherwise press ctrl+c to exit."
-read DUMMY
-echo -e "\033[1mHave you checked all 4 variables in this script are set correctly?\033[0m"
-echo -e " * The packages created by this script will be saved to this folder:\n    $SAVETARBALLPATH"
-echo -e " * The absolute-path to your AssaultCube directory is set as:\n    $PATHTOACDIR"
-echo -e " * The absolute-path to your AssaultCube \"docs\" directory is set as:\n    $ABSOLUTEPATHTODOCS"
-echo -e " * Your new AssaultCube version will become:\n    $NEWACVERSION\n"
-echo -e "\033[1mIf these are correct, press ENTER to continue, otherwise press ctrl+c to exit.\033[0m"
-read DUMMY
-
-# Still at the start of the script, so find user-errors that we can check:
-# Checking "$ABSOLUTEPATHTODOCS" is set correctly...
-if [ -e $ABSOLUTEPATHTODOCS/reference.xml ]; then
-  echo "Stated path to AssaultCube's documentation contains \"reference.xml\""
-  echo "Hopefully this means the path is correct and contained files are good."
-  echo -e "Proceeding to the next step...\n"
-else
-  echo -e "\033[1;31mERROR:\033[0m \"reference.xml\" did NOT exist at the ABSOLUTEPATHTODOCS alias."
-  echo "Open this shell file and modify that alias to fix it."
-  exit
-fi
+cd "$PATHTOACDIR"
+git fetch
+git pull
 
 # Checking "$PATHTOACDIR" is set correctly...
-if [ -e $PATHTOACDIR/source/src/main.cpp ]; then
+if [ -e source/src/main.cpp ]; then
   echo "Stated path to AssaultCube contains \"source/src/main.cpp\""
   echo "Hopefully this means the path is correct and contained files are good."
   echo -e "Proceeding to the next step...\n"
@@ -77,85 +38,26 @@ else
   exit
 fi
 
-# Checking for "xsltproc"...
-if [ -n "$(command -v xsltproc)" ]; then
-  echo "The 'xsltproc' program exists. This means we can generate docs.cfg"
-  echo -e "Proceeding to the next step...\n"
+cd source/src
+make clean
+make install
+
+if [ -e ../../bin_unix ]; then
+  cd ../../bin_unix
+  rm -rf linux_*
+  mv native_client linux_64_client
+  mv native_server linux_64_server
+  strip linux_64_client
+  strip linux_64_server
 else
-  echo -e "\033[1;31mERROR:\033[0m 'xsltproc' doesn't exist."
-  echo "Please install xsltproc so docs.cfg can be generated."
   exit
 fi
 
-# Check that linux binaries have been created today:
-BINARYFILES=`cd $PATHTOACDIR/bin_unix && find ./linux_* -mtime 0 | sort | xargs`
-if [ "$BINARYFILES" = "./linux_64_client ./linux_64_server ./linux_client ./linux_server" ]; then
-    echo "All binaries have been compiled in the last 24 hours. Hopefully this means they're up to date!"
-    echo -e "Proceeding to the next step...\n"
-else
-    echo -e "\033[1;31mERROR:\033[0m Timestamps on binary files are older than 24 hours."
-    echo "Please go compile new 32/64 bit binaries."
-    exit
-fi
-
-# Check that map previews are all available:
-MAPSPATH="$PATHTOACDIR/packages/maps/official"
-MAPSCGZ=`cd $MAPSPATH && find ./*.cgz | xargs -i basename {} .cgz | sort -u | xargs`
-MAPSJPG=`cd $MAPSPATH/preview && find ./*.jpg | xargs -i basename {} .jpg | sort -u | xargs`
-if [ "$MAPSCGZ" = "$MAPSJPG" ]; then
-    echo "All map \"previews\" are available!"
-    echo -e "Proceeding to the next step...\n"
-else
-    echo -e "\033[1;31mERROR:\033[0m Some map previews are missing."
-    echo "Please go to $MAPSPATH/preview and create the ones that are missing!"
-    exit
-fi
-
-# Check that bot waypoints are all available:
-MAPSCGZ2=`cd $MAPSPATH && find ./*.cgz | xargs -i basename {} .cgz | sort -u | xargs`
-MAPSBOTS=`cd $PATHTOACDIR/bot/waypoints && find ./*.wpt | xargs -i basename {} .wpt | sort -u | xargs`
-if [ "$MAPSBOTS" = "$MAPSCGZ2" ]; then
-    echo "All bot waypoints are available!"
-    echo -e "Proceeding to the next step...\n"
-else
-    echo -e "\033[1;31mERROR:\033[0m Some bot waypoints are missing."
-    echo "Please go generate the ones that are missing!"
-    exit
-fi
-
-# Check that shadows.dat files exist. To grab a list of shadows.dat files:
-#    cd ./packages/models && find . -name "shadows.dat" | sort
-cd $PATHTOACDIR/packages/models/
-if [ -e ./misc/gib02/shadows.dat ] \
-  && [ -e ./misc/gib03/shadows.dat ] \
-  && [ -e ./pickups/akimbo/shadows.dat ] \
-  && [ -e ./pickups/ammobox/shadows.dat ] \
-  && [ -e ./pickups/health/shadows.dat ] \
-  && [ -e ./pickups/helmet/shadows.dat ] \
-  && [ -e ./pickups/kevlar/shadows.dat ] \
-  && [ -e ./pickups/nade/shadows.dat ] \
-  && [ -e ./pickups/pistolclips/shadows.dat ] \
-  && [ -e ./playermodels/shadows.dat ] \
-  && [ -e ./weapons/assault/world/shadows.dat ] \
-  && [ -e ./weapons/carbine/world/shadows.dat ] \
-  && [ -e ./weapons/grenade/static/shadows.dat ] \
-  && [ -e ./weapons/grenade/world/shadows.dat ] \
-  && [ -e ./weapons/knife/world/shadows.dat ] \
-  && [ -e ./weapons/pistol/world/shadows.dat ] \
-  && [ -e ./weapons/shotgun/world/shadows.dat ] \
-  && [ -e ./weapons/sniper/world/shadows.dat ] \
-  && [ -e ./weapons/subgun/world/shadows.dat ]; then
-    echo "All known shadows.dat files exist."
-    echo -e "Proceeding to the next step...\n"
-else
-    echo -e "\033[1;31mERROR:\033[0m Some shadows.dat files are missing."
-    echo "Please run AssaultCube to generate these files."
-    exit
-fi
+cd ../
 
 # Clean out crufty files:
 echo "Please wait: Cleaning out some crufty files..."
-cd $PATHTOACDIR/source/enet && make distclean
+cd source/enet && make distclean
 cd ../src && make clean	
 cd ../../config && rm -f init.cfg killmessages.cfg saved.cfg servers.cfg
 echo -e "// This file gets executed every time you start AssaultCube. \n\n// This is where you should put any scripts you may have created for AC." > autoexec.cfg
@@ -167,14 +69,6 @@ rm -f ./screenshots/*
 # Delete gedit backups:
 find . -type f -name "*~" -delete
 
-# Copy docs over:
-echo "Copied documentation into the main folder..."
-cd $PATHTOACDIR && cp $ABSOLUTEPATHTODOCS/* $PATHTOACDIR/docs/ -R
-
-# Set up ./config/docs.cfg - just in-case:
-echo "... Generating ./config/docs.cfg"
-xsltproc -o ./config/docs.cfg ./docs/xml/cuberef2cubescript.xslt ./docs/reference.xml
-
 # Set up ./config/securemaps.cfg - just in-case:
 echo "... Generating ./config/securemaps.cfg"
 echo "resetsecuremaps" > ./config/securemaps.cfg
@@ -183,21 +77,74 @@ find ./packages/maps/official/*.cgz | \
   xargs -i echo -e "securemap" {} | \
   sort -u >> ./config/securemaps.cfg
 
+cd ..
+
+if [ -e AssaultCube ]; then
+  cd AssaultCube
+  rm -rf *
+  cd ..
+else
+  mkdir AssaultCube
+fi
+
 # update checksum file
 $PATHTOACDIR/source/dev_tools/generate_md5_checksums.sh
 
-# Create the linux tarball:
-echo -e "\n... Creating the Linux tarball..."
-cd .. && mv $ACDIRFOLDERNAME AssaultCube_v$NEWACVERSION
-tar cjvf $SAVETARBALLPATH/AssaultCube_v$NEWACVERSION.tar.bz2 \
+# copy files from temporary repository
+cp -R $PATHTOACDIR/* AssaultCube
+
+# client archive
+tar cjvf $SAVETARBALLPATH/linux_client.tar.bz2 \
   --exclude=".*" \
+  --exclude=*linux_64_server \
   --exclude=*.bat --exclude=*bin_win32* \
-  --exclude=*xcode* \
-  --exclude=*vcpp* \
+  --exclude=*source* \
   --exclude=*new_content.cfg \
   --exclude=*new_content.cgz \
   --exclude-vcs \
-  AssaultCube_v$NEWACVERSION/
+  AssaultCube/
+
+# server archive
+tar cjvf $SAVETARBALLPATH/linux_server.tar.bz2 \
+  --exclude=".*" \
+  --exclude=*.bat --exclude=*bin_win32* \
+  --exclude=*source* \
+  --exclude=*textures* \
+  --exclude=*mods* \
+  --exclude=*models* \
+  --exclude=*misc* \
+  --exclude=*local* \
+  --exclude=*crosshairs* \
+  --exclude=*audio* \
+  --exclude=*demos* \
+  --exclude=*scripts* \
+  --exclude=*screenshots* \
+  --exclude=*new_content.cfg \
+  --exclude=*new_content.cgz \
+  --exclude-vcs \
+  AssaultCube/
+
+# remove temporary repository
+rm -rf AssaultCube
 
 # Clean up:
-cd $PATHTOACDIR && git clean -fdx && git reset --hard
+cd $PATHTOACDIR
+git clean -fdx && git reset --hard
+
+
+cd source/src
+AC_VERSION=`grep -oP '#define AC_VERSION \K\d+' cube.h`
+# MC_VERSION=`grep -oP '#define MC_VERSION \K\d+' cube.h`
+BUILD_VERSION="$AC_VERSION"
+
+echo $BUILD_VERSION
+
+cd ../../..
+
+github-release release --security-token $1 --user $2 --repo woop --tag $BUILD_VERSION
+github-release upload --security-token $1 --user $2 --repo woop \
+    --tag $BUILD_VERSION --name "linux_client_$BUILD_VERSION.tar.bz2" --file $SAVETARBALLPATH/linux_client.tar.bz2
+github-release upload --security-token $1 --user $2 --repo woop \
+    --tag $BUILD_VERSION --name "linux_server_$BUILD_VERSION.tar.bz2" --file $SAVETARBALLPATH/linux_server.tar.bz2
+github-release upload --security-token $1 --user $2 --repo woop \
+    --tag $BUILD_VERSION --name "windows_client_$BUILD_VERSION.exe" --file $SAVETARBALLPATH/windows_client.exe
