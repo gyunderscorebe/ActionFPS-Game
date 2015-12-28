@@ -40,7 +40,7 @@ bool initlogging(const char *identity, int facility_, int consolethres, int file
     if(filethres >= 0) filethreshold = min(filethres, (int)ACLOG_NUM);
     if(syslogthres >= 0) syslogthreshold = min(syslogthres, (int)ACLOG_NUM);
     facility &= 7;
-    formatstring(ident)("AssaultCube[%s]", identity);
+    formatstring(ident)("ActionFPS[%s]", identity);
     if(syslogthreshold < ACLOG_NUM)
     {
 #ifdef AC_USE_SYSLOG

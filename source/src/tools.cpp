@@ -267,7 +267,7 @@ struct signalbinder
         }
         free(symbols);
 
-        fatal("AssaultCube error (%d)", sig);
+        fatal("ActionFPS error (%d)", sig);
 
     }
 
