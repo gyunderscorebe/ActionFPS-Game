@@ -1290,7 +1290,7 @@ int main(int argc, char **argv)
     if(!execfile("config/font.cfg")) fatal("cannot find default font definitions");
     // Check these 2 standard fonts have been executed.
     if(!setfont("mono")) fatal("no mono font specified");
-    if(!setfont("default")) fatal("no default font specified");
+    if(!setfont("serif")) fatal("no default font specified");
 
     loadingscreen();
 
