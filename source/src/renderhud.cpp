@@ -600,14 +600,14 @@ void drawradar_vicinity(playerent *p, int w, int h)
             vec pos = vec(e->x, e->y, 0).sub(d->o);
             vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(d->o);
             //if(showradarvalues) { conoutf("dist2F[%d]: %.2f|%.2f || %.2f|%.2f", i, pos.x, pos.y, cpos.x, cpos.y); }
-            if(pos.magnitude() < d2s)
+            if(pos.magnitudexy() < d2s)
             {
                 pos.mul(scaled);
                 drawradarent(pos.x, pos.y, 0, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases [circle doesn't need rotating]
             }
             if(f.state!=CTFF_STOLEN && !(m_ktf && f.state == CTFF_IDLE))
             {
-                if(cpos.magnitude() < d2s)
+                if(cpos.magnitudexy() < d2s)
                 {
                     cpos.mul(scaled);
                     float flgoff=radarentsize/0.68f;
@@ -741,9 +741,7 @@ void CSgetEngineState() { result(enginestateinfo); }
 COMMANDN(getEngineState, CSgetEngineState, "");
 
 VARP(gametimedisplay,0,1,2);
-VARP(dbgpos,0,0,1);
 VARP(showtargetname,0,1,1);
-VARP(showspeed, 0, 0, 1);
 VAR(blankouthud, 0, 0, 10000); //for "clean" screenshot
 string gtime;
 
@@ -847,7 +845,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if(showstats)
     {
-        if(showstats==2 && !dbgpos)
+        if(showstats==2)
         {
             const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;
             const int ttll = VIRTW*2 - 3*FONTH/2;
@@ -901,21 +899,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         }
         else
         {
-            if(dbgpos)
-            {
-                pushfont("mono");
-                defformatstring(o_yw)("%05.2f YAW", player1->yaw);
-                draw_text(o_yw, VIRTW*2 - ( text_width(o_yw) + FONTH ), VIRTH*2 - 17*FONTH/2);
-                defformatstring(o_p)("%05.2f PIT", player1->pitch);
-                draw_text(o_p, VIRTW*2 - ( text_width(o_p) + FONTH ), VIRTH*2 - 15*FONTH/2);
-                defformatstring(o_x)("%05.2f X  ", player1->o.x);
-                draw_text(o_x, VIRTW*2 - ( text_width(o_x) + FONTH ), VIRTH*2 - 13*FONTH/2);
-                defformatstring(o_y)("%05.2f Y  ", player1->o.y);
-                draw_text(o_y, VIRTW*2 - ( text_width(o_y) + FONTH ), VIRTH*2 - 11*FONTH/2);
-                defformatstring(o_z)("%05.2f Z  ", player1->o.z);
-                draw_text(o_z, VIRTW*2 - ( text_width(o_z) + FONTH ), VIRTH*2 - 9*FONTH/2);
-                popfont();
-            }
             defformatstring(c_val)("fps %d", curfps);
             draw_text(c_val, VIRTW*2 - ( text_width(c_val) + FONTH ), VIRTH*2 - 3*FONTH/2);
 
@@ -997,16 +980,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     const int tbMSGtop = (VIRTH*3/2)*7/8;
     draw_textf("!TEST BUILD!", tbMSGleft, tbMSGtop);
     / * */
-
-    if(showspeed && !menu)
-    {
-        glLoadIdentity();
-        glPushMatrix();
-        glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
-        glScalef(0.8, 0.8, 1);
-        draw_textf("Speed: %.2f", VIRTW/2, VIRTH, p->vel.magnitudexy());
-        glPopMatrix();
-    }
 
     drawscores();
     if(!hidespecthud && spectating && player1->spectatemode!=SM_DEATHCAM)

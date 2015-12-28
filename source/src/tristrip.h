@@ -1,5 +1,3 @@
-//VAR(dbgts, 0, 0, 1);
-const int dbgts = 0;
 VAR(tsswap, 0, 1, 1);
 
 struct tristrip
@@ -32,7 +30,6 @@ struct tristrip
                 if(n[i]==neighbor) return true;
                 else if(n[i]==old) { n[i] = neighbor; return true; }
             }
-            if(dbgts && old==UNUSED) conoutf("excessive links");
             return false;
         }
 
@@ -56,7 +53,6 @@ struct tristrip
     template<class T>
     void addtriangles(const T *tris, int numtris)
     {
-        if(dbgts) conoutf("addtriangles: tris = %d, inds = %d", numtris, numtris*3);
         loopi(numtris)
         {
             triangle &tri = triangles.add();
@@ -67,7 +63,6 @@ struct tristrip
             }
             if(tri.v[0]==tri.v[1] || tri.v[1]==tri.v[2] || tri.v[2]==tri.v[0])
             {
-                if(dbgts) conoutf("degenerate triangle");
                 triangles.drop();
             }
         }
@@ -101,18 +96,16 @@ struct tristrip
                 if(!owner) continue;
                 else if(!tri.link(*owner))
                 {
-                    if(dbgts) conoutf("failed linkage 1: %d -> %d", *owner, i);
+                    continue;
                 }
                 else if(!triangles[*owner].link(i))
                 {
-                    if(dbgts) conoutf("failed linkage 2: %d -> %d", *owner, i);
                     tri.unlink(*owner);
                 }
             }
         }
         loopi(4) connectivity[i].setsize(0);
         loopv(triangles) connectivity[triangles[i].numlinks()].add(i);
-        if(dbgts) conoutf("no connections: %d", connectivity[0].length());
     }
 
     void removeconnectivity(ushort i)
@@ -273,7 +266,6 @@ struct tristrip
             }
             d.count = strips.length() - d.start;
         }
-        if(dbgts) conoutf("strips = %d, tris = %d, inds = %d, merges = %d", numstrips, numtris, numtris + numstrips*2, (degen ? 2 : 1)*(numstrips-1));
     }
 
 };

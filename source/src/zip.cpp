@@ -107,10 +107,6 @@ static bool findzipdirectory(stream *f, zipdirectoryheader &hdr)
     return true;
 }
 
-#ifndef STANDALONE
-VAR(dbgzip, 0, 0, 1);
-#endif
-
 static bool readzipdirectory(stream *f, int entries, int offset, int size, vector<zipfile> &files)
 {
     uchar *buf = new uchar[size], *src = buf;
@@ -157,9 +153,6 @@ static bool readzipdirectory(stream *f, int entries, int offset, int size, vecto
         zf.header = hdr.offset;
         zf.size = hdr.uncompressedsize;
         zf.compressedsize = hdr.compression ? hdr.compressedsize : 0;
-#ifndef STANDALONE
-        if(dbgzip) conoutf("file %s, size %d, compress %d, flags %x", name, hdr.uncompressedsize, hdr.compression, hdr.flags);
-#endif
 
         src += hdr.namelength + hdr.extralength + hdr.commentlength;
     }
@@ -261,9 +254,6 @@ struct zipstream : stream
     void stopreading()
     {
         if(reading < 0) return;
-#ifndef STANDALONE
-        if(dbgzip) conoutf(info->compressedsize ? "%s: zfile.total_out %d, info->size %u" : "%s: reading %d, info->size %u", info->name, int(info->compressedsize ? zfile.total_out : reading - info->offset), info->size);
-#endif
         if(info->compressedsize) inflateEnd(&zfile);
         reading = -1;
     }
@@ -379,9 +369,6 @@ struct zipstream : stream
                 if(err == Z_STREAM_END) ended = true;
                 else
                 {
-#ifndef STANDALONE
-                    if(dbgzip) conoutf("inflate error: %s", zError(err));
-#endif
                     stopreading();
                 }
                 break;
