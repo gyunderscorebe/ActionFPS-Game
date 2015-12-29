@@ -1083,12 +1083,10 @@ void loadingscreen(const char *fmt, ...)
     {
         glClear(GL_COLOR_BUFFER_BIT);
         
-        extern int scr_w, scr_h;
-        const int width = max(1024, scr_w);
-        const int height = max(768, scr_h);
-        const float xs = float(scr_w)/float(startscreen->xs), ys = float(scr_h)/float(startscreen->ys);
+        float xs = 1.0f, ys = float(startscreen->xs) * (VIRTH/float(VIRTW)) /float(startscreen->ys);
+        if(ys > 1) { xs /= ys; ys = 1; }
 
-        quad(startscreen->id, 0, 0, VIRTW, (1-xs)/2.0, (1-ys)/2.0, xs, ys);
+        rect(startscreen->id, 0, 0, VIRTW, VIRTH, (1-xs)/2.0, (1-ys)/2.0, xs, ys);
         if(fmt)
         {
             glEnable(GL_BLEND);

@@ -246,6 +246,18 @@ void box2d(int x1, int y1, int x2, int y2, int gray)
     glEnd();
 }
 
+void rect(GLuint tex, float x, float y, float sx, float sy, float tx, float ty, float tsx, float tsy)
+{
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glBegin(GL_TRIANGLE_STRIP);
+    glTexCoord2f(tx,     ty);     glVertex2f(x,   y);
+    glTexCoord2f(tx+tsx, ty);     glVertex2f(x+sx, y);
+    glTexCoord2f(tx,     ty+tsy); glVertex2f(x,   y+sy);
+    glTexCoord2f(tx+tsx, ty+tsy); glVertex2f(x+sx, y+sy);
+    glEnd();
+    xtraverts += 4;
+}
+
 void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, float tsy)
 {
     if(!tsy) tsy = tsx;
