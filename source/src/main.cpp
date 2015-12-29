@@ -1256,6 +1256,10 @@ int main(int argc, char **argv)
     initlog("video: sdl");
     if(SDL_InitSubSystem(SDL_INIT_VIDEO)<0) fatal("Unable to initialize SDL Video");
 
+    SDL_Surface *icon = SDL_LoadBMP("packages/misc/icon.bmp");
+    SDL_SetColorKey(icon, SDL_SRCCOLORKEY, SDL_MapRGB(icon->format, 255, 255, 255));
+    SDL_WM_SetIcon(icon, NULL);
+
     #ifdef WIN32
     SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
     SDL_SetEventFilter(sdl_syswmevent_filter);
@@ -1271,8 +1275,6 @@ int main(int argc, char **argv)
 
     initlog("video: misc");
     SDL_WM_SetCaption("ActionFPS", NULL);
-    SDL_Surface *icon = IMG_Load("packages/misc/icon.bmp");
-    SDL_WM_SetIcon(icon, NULL);
     keyrepeat(false);
     SDL_ShowCursor(0);
 
