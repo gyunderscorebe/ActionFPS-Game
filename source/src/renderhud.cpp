@@ -1082,7 +1082,11 @@ void loadingscreen(const char *fmt, ...)
     loopi(fmt ? 1 : 2)
     {
         glClear(GL_COLOR_BUFFER_BIT);
-        quad(startscreen->id, (VIRTW-VIRTH)/2, 0, VIRTH, 0, 0, 1);
+        
+        float xs = 1.0f, ys = float(startscreen->xs) * (VIRTH/float(VIRTW)) /float(startscreen->ys);
+        if(ys > 1) { xs /= ys; ys = 1; }
+
+        rect(startscreen->id, 0, 0, VIRTW, VIRTH, (1-xs)/2.0, (1-ys)/2.0, xs, ys);
         if(fmt)
         {
             glEnable(GL_BLEND);

@@ -314,6 +314,7 @@ extern void box2d(int x1, int y1, int x2, int y2, int gray);
 extern void dot(int x, int y, float z);
 extern void linestyle(float width, int r, int g, int b);
 extern void blendbox(int x1, int y1, int x2, int y2, bool border, int tex = -1, color *c = NULL);
+extern void rect(GLuint tex, float x, float y, float sx, float sy, float tx, float ty, float tsx, float tsy);
 extern void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, float tsy = 0);
 extern void quad(GLuint tex, vec &c1, vec &c2, float tx, float ty, float tsx, float tsy);
 extern void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 32);
