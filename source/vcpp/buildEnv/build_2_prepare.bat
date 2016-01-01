@@ -20,10 +20,10 @@ rmdir /S /Q %acdir%\bin_unix
 rem remove source files (those are available in the source pkg)
 rmdir /S /Q %acdir%\source
 
-rem use assaultcube_release as launcher
-IF EXIST %acdir%\assaultcube_release.bat (
-del %acdir%\assaultcube.bat
-ren %acdir%\assaultcube_release.bat assaultcube.bat
+rem use actionfps_release as launcher
+IF EXIST %acdir%\actionfps_release.bat (
+del %acdir%\actionfps.bat
+ren %acdir%\actionfps_release.bat actionfps.bat
 )
 
 rem copy shadow files

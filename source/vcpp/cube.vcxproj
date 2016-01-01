@@ -449,7 +449,7 @@
     <None Include="..\..\config\securemaps.cfg" />
     <None Include="..\..\config\servers.cfg" />
     <None Include="..\..\config\sounds.cfg" />
-    <None Include="buildEnv\ac.nsi" />
+    <None Include="buildEnv\af.nsi" />
     <None Include="buildEnv\InstallTypes.ini" />
     <None Include="buildEnv\License.txt" />
   </ItemGroup>

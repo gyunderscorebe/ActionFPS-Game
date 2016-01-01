@@ -126,7 +126,7 @@ SetCompressor /SOLID lzma
 
 Name "ActionFPS"
 VAR StartMenuFolder
-OutFile "ActionFPS_${AC_FULLVERSION}.exe"
+OutFile "windows_client.exe"
 InstallDir "$PROGRAMFILES\${AC_SHORTNAME}"
 InstallDirRegKey HKLM "Software\${AC_SHORTNAME}" ""
 RequestExecutionLevel admin ; require admin in Vista/7
