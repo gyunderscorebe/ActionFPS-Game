@@ -548,7 +548,7 @@ Section "ActionFPS ${AC_FULLVERSION}" AC
     ; Create uninstaller
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "DisplayName" "${AC_FULLNAME}"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "DisplayIcon" '"$INSTDIR\docs\images\favicon.ico"'
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "DisplayIcon" '"$INSTDIR\icon.ico"'
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "HelpLink" "$INSTDIR\README.html"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "URLInfoAbout" "http://assault.cubers.net"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "URLUpdateInfo" "http://assault.cubers.net/download.html"
@@ -568,8 +568,8 @@ Section "ActionFPS ${AC_FULLVERSION}" AC
         SetShellVarContext all
 
         CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-        CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${AC_SHORTNAME}.lnk" "$INSTDIR\ActionFPS.bat" "" "$INSTDIR\docs\images\favicon.ico" 0 SW_SHOWMINIMIZED
-        CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\docs\images\favicon.ico" 0
+        CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${AC_SHORTNAME}.lnk" "$INSTDIR\ActionFPS.bat" "" "$INSTDIR\icon.ico" 0 SW_SHOWMINIMIZED
+        CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\icon.ico" 0
         CreateShortCut "$SMPROGRAMS\$StartMenuFolder\README.lnk" "$INSTDIR\README.html" "" "" 0
 
     !insertmacro MUI_STARTMENU_WRITE_END
@@ -597,7 +597,7 @@ Section "Desktop Shortcuts" DESKSHORTCUTS
 
     SetShellVarContext all
 
-    CreateShortCut "$DESKTOP\${AC_SHORTNAME}.lnk" "$INSTDIR\ActionFPS.bat" "" "$INSTDIR\docs\images\favicon.ico" 0 SW_SHOWMINIMIZED
+    CreateShortCut "$DESKTOP\${AC_SHORTNAME}.lnk" "$INSTDIR\ActionFPS.bat" "" "$INSTDIR\icon.ico" 0 SW_SHOWMINIMIZED
 
 SectionEnd
 

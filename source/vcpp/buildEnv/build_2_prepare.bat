@@ -47,4 +47,5 @@ copy /Y %workingacdir%\packages\models\weapons\shotgun\world\shadows.dat %acdir%
 copy /Y %workingacdir%\packages\models\weapons\sniper\world\shadows.dat %acdir%\packages\models\weapons\sniper\world\shadows.dat
 copy /Y %workingacdir%\packages\models\weapons\subgun\world\shadows.dat %acdir%\packages\models\weapons\subgun\world\shadows.dat
 
+copy /Y  %workingacdir%\source\vcpp\buildEnv\icon.ico %acdir%\icon.ico
 pause
