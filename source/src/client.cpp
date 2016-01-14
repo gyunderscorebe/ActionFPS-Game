@@ -578,11 +578,12 @@ void readauthkey()
 {
     stream *f = openfile(path("config/authkey", true), "r");
     if(!f) return;
-    authkey.reset();
     char buf[5000] = "";
-    int bytes = f->read(buf, 5000);
+    int bytes = f->read(buf, sizeof(buf));
+    
+    authkey.reset();
     authkey.buf = new uchar[bytes];
-    authkey.len = authkey.maxlen = bytes;
+    authkey.maxlen = bytes;
     authkey.put((uchar *)buf, bytes);
     
     delete f;
@@ -618,11 +619,10 @@ void sendintro()
     sendstring(authid, p);
 
     DSA *priv_dsa = DSA_new();
-    ucharbuf privkey = authkey;
 
     BIO *bio;
     bio = BIO_new(BIO_s_mem());
-    BIO_write(bio, (const void *)privkey.buf, privkey.len);
+    BIO_write(bio, (const void *) authkey.buf,  authkey.len);
     DSA *ret = PEM_read_bio_DSAPrivateKey(bio, &priv_dsa, NULL, NULL);
     if(!ret)
     {
@@ -635,7 +635,7 @@ void sendintro()
 
     uchar *signature = new uchar[DSA_size(priv_dsa)];
     uint siglen;
-    int res = DSA_sign(0, &auth_challenge.get(), auth_challenge.len, signature, &siglen, priv_dsa);
+    int res = DSA_sign(0, auth_challenge.buf, auth_challenge.len, signature, &siglen, priv_dsa);
     putint(p, siglen);
     p.put(signature, siglen);
 

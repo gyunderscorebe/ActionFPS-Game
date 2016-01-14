@@ -429,16 +429,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(getint(p) > 0) conoutf("INFO: this server is password protected");
 
                 // get authentication challenge
-                int size = getint(p);
+                int challsize = getint(p);
+
                 extern ucharbuf auth_challenge;
                 auth_challenge.reset();
 
-                if(size)
+                if(challsize)
                 {
-                    auth_challenge.maxlen = size;
-                    auth_challenge.len = size;
-                    auth_challenge.buf = new uchar[size+1];
-                    p.get(auth_challenge.buf, size);
+                    auth_challenge.maxlen = challsize;
+                    auth_challenge.len = challsize;
+                    auth_challenge.buf = new uchar[challsize];
+                    p.get(auth_challenge.buf, auth_challenge.len);
                 }
 
                 sendintro();

@@ -974,12 +974,12 @@ struct usersdatabasefile : serverconfigfile
             return;
         }
         char buf[4096] = "";
+        usermanager.users.deletecontents();
+        usermanager.users.shrink(0);
         while(f->getline(buf, sizeof(buf)))
         {
             user *u = new user();
             usersdatabasefile::parsedata(u, buf);
-            usermanager.users.deletecontents();
-            usermanager.users.shrink(0);
             usermanager.users.add(u);
             logline(ACLOG_VERBOSE, "read user '%s'", u->id);
         }
@@ -1023,7 +1023,7 @@ struct usersdatabasefile : serverconfigfile
                 std::string decoded = base64_decode(encoded);
                 len = decoded.length();
                 u->pubkey.buf = new uchar[len];
-                u->pubkey.len = u->pubkey.maxlen = len;
+                u->pubkey.maxlen = len;
                 u->pubkey.put((uchar *)decoded.c_str(), len);
             }
             DELETEA(key);

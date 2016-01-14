@@ -564,6 +564,11 @@ struct user
 
     ucharbuf pubkey;
 
+    user() : admin(false), banned(false)
+    {
+
+    }
+
     ~user()
     {
         DELETEP(name);
@@ -600,27 +605,29 @@ struct serverusermanager
     // and use ucharbuf for client::challenge
     void generate_challenge(client *cl, const char *sid)
     {
-        cl->challenge.reset();
         int extra_bytes = strlen(sid);
-        cl->challenge.buf = new uchar[AUTH_CHALLENGE_SIZE+extra_bytes];
-        cl->challenge.maxlen = AUTH_CHALLENGE_SIZE+extra_bytes;
-
-        cl->challenge.len = AUTH_CHALLENGE_SIZE;
-        RAND_bytes(cl->challenge.buf, AUTH_CHALLENGE_SIZE);
-        cl->challenge.put((const uchar *)sid, extra_bytes);
-
         ucharbuf hash_challenge;
-        hash_challenge.maxlen = 20;
-        hash_challenge.buf = new uchar[20];
-        SHA1(cl->challenge.buf, cl->challenge.len, hash_challenge.buf);
+        hash_challenge.buf = new uchar[AUTH_CHALLENGE_SIZE+extra_bytes];
+        hash_challenge.len = AUTH_CHALLENGE_SIZE;
+        hash_challenge.maxlen = AUTH_CHALLENGE_SIZE+extra_bytes;
+
+        RAND_bytes(hash_challenge.buf, AUTH_CHALLENGE_SIZE);
+        hash_challenge.put((const uchar *)sid, extra_bytes);
+
         cl->challenge.reset();
-        cl->challenge = hash_challenge;
+        cl->challenge.len = cl->challenge.maxlen = 20;
+        cl->challenge.buf = new uchar[20];
+        SHA1(hash_challenge.buf, hash_challenge.len, cl->challenge.buf);
     }
 
     bool check_authentication(client *cl, const char *id, ucharbuf &signature)
     {
         user *u = find(id);
-        if(!u) return false;
+        if(!u)
+        {
+            logline(ACLOG_VERBOSE, "wrong user id %s", id);
+            return false;
+        }
 
         bool ok = verify_signature(u, signature.buf, signature.len, cl->challenge.buf, cl->challenge.len);
         if(ok)
@@ -640,12 +647,8 @@ struct serverusermanager
         BIO *bio;
         bio = BIO_new(BIO_s_mem());
         BIO_write(bio, (const void *)u->pubkey.buf, u->pubkey.len);
-        DSA *ret = PEM_read_bio_DSA_PUBKEY(bio, &pub_dsa, NULL, NULL);
-        if(!ret)
-        {
-            logline(ACLOG_ERROR, "invalid DSA key");
-            return false;
-        }
+        DSA *ret = PEM_read_bio_DSA_PUBKEY(bio, &pub_dsa, NULL, NULL);;
+        if(!ret) return false;
 
         int res = DSA_verify(0, challenge, challength, signature, siglen, pub_dsa);
         DELETEP(pub_dsa);

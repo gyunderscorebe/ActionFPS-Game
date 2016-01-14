@@ -1111,7 +1111,7 @@ int sdl_syswmevent_filter(const SDL_Event *e)
         len = decoded.length();
         authkey.reset();
         authkey.buf = new uchar[len];
-        authkey.len = authkey.maxlen = len;
+        authkey.maxlen = len;
         authkey.put((uchar *)decoded.c_str(), len);
     }
 
@@ -1404,7 +1404,7 @@ int main(int argc, char **argv)
         len = decoded.length();
         authkey.reset();
         authkey.buf = new uchar[len];
-        authkey.len = authkey.maxlen = len;
+        authkey.maxlen = len;
         authkey.put((uchar *)decoded.c_str(), len);
     }
 
@@ -1444,7 +1444,7 @@ int main(int argc, char **argv)
     }
     for(;;)
     {
-        static int frames = 0;
+        static int frames = 0; 
         static float fps = 10.0f;
         int millis = SDL_GetTicks() - clockrealbase;
         if(clockfix) millis = int(millis*(double(clockerror)/1000000));
