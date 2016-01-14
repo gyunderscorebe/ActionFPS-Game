@@ -25,6 +25,10 @@ serverforbiddenlist forbiddenlist;
 serverpasswords passwords;
 serverinfofile infofiles;
 killmessagesfile killmsgs;
+usersdatabasefile userdb;
+
+// Users
+serverusermanager usermanager;
 
 // server state
 bool isdedicated = false;
@@ -297,7 +301,7 @@ savedscore *findscore(client &c, bool insert)
             if(o.clientnum!=c.clientnum && o.peer->address.host==c.peer->address.host && !strcmp(o.name, c.name))
             {
                 static savedscore curscore;
-                curscore.save(o.state, o.team);
+                curscore.save(o);
                 return &curscore;
             }
         }
@@ -2385,7 +2389,7 @@ void disconnect_client(int n, int reason)
         savedscore *sc = findscore(c, true);
         if(sc)
         {
-            sc->save(c.state, c.team);
+            sc->save(c);
             scoresaved = ", score saved";
         }
     }
@@ -2400,71 +2404,6 @@ void disconnect_client(int n, int reason)
     if(curvote) curvote->evaluate();
     if(*scoresaved && mastermode == MM_MATCH) senddisconnectedscores(-1);
 }
-
-// for AUTH: WIP
-
-client *findauth(uint id)
-{
-    loopv(clients) if(clients[i]->authreq == id) return clients[i];
-    return NULL;
-}
-
-void authfailed(uint id)
-{
-    client *cl = findauth(id);
-    if(!cl) return;
-    cl->authreq = 0;
-}
-
-void authsucceeded(uint id)
-{
-    client *cl = findauth(id);
-    if(!cl) return;
-    cl->authreq = 0;
-    logline(ACLOG_INFO, "player authenticated: %s", cl->name);
-    defformatstring(auth4u)("player authenticated: %s", cl->name);
-    sendf(-1, 1, "ris", SV_SERVMSG, auth4u);
-    //setmaster(cl, true, "", ci->authname);//TODO? compare to sauerbraten
-}
-
-void authchallenged(uint id, const char *val)
-{
-    client *cl = findauth(id);
-    if(!cl) return;
-    sendf(cl->clientnum, 1, "risis", SV_AUTHCHAL, "", id, val);
-}
-
-uint nextauthreq = 0;
-
-void tryauth(client *cl, const char *user)
-{
-    extern bool requestmasterf(const char *fmt, ...);
-    if(!nextauthreq) nextauthreq = 1;
-    cl->authreq = nextauthreq++;
-    filtertext(cl->authname, user, FTXT__AUTH, 100);
-    if(!requestmasterf("reqauth %u %s\n", cl->authreq, cl->authname))
-    {
-        cl->authreq = 0;
-        sendf(cl->clientnum, 1, "ris", SV_SERVMSG, "not connected to authentication server");
-    }
-}
-
-void answerchallenge(client *cl, uint id, char *val)
-{
-    if(cl->authreq != id) return;
-    extern bool requestmasterf(const char *fmt, ...);
-    for(char *s = val; *s; s++)
-    {
-        if(!isxdigit(*s)) { *s = '\0'; break; }
-    }
-    if(!requestmasterf("confauth %u %s\n", id, val))
-    {
-        cl->authreq = 0;
-        sendf(cl->clientnum, 1, "ris", SV_SERVMSG, "not connected to authentication server");
-    }
-}
-
-// :for AUTH
 
 void sendiplist(int receiver, int cn)
 {
@@ -2518,7 +2457,22 @@ bool restorescore(client &c)
 
 void sendservinfo(client &c)
 {
-    sendf(c.clientnum, 1, "ri5", SV_SERVINFO, c.clientnum, isdedicated ? SERVER_PROTOCOL_VERSION : PROTOCOL_VERSION, c.salt, scl.serverpassword[0] ? 1 : 0);
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    putint(p, SV_SERVINFO);
+    putint(p, c.clientnum);
+    putint(p, isdedicated ? SERVER_PROTOCOL_VERSION : PROTOCOL_VERSION);
+    putint(p, c.salt);
+    putint(p, scl.serverpassword[0] ? 1 : 0);
+
+#ifdef STANDALONE
+    usermanager.generate_challenge(&c, scl.id);
+    putint(p, c.challenge.len);
+    p.put(c.challenge.buf, c.challenge.len);
+#else
+    putint(p, 0);
+#endif
+
+    sendpacket(c.clientnum, 1, p.finalize());
 }
 
 void putinitclient(client &c, packetbuf &p)
@@ -2526,6 +2480,7 @@ void putinitclient(client &c, packetbuf &p)
     putint(p, SV_INITCLIENT);
     putint(p, c.clientnum);
     sendstring(c.name, p);
+    sendstring(c.userid, p);
     putint(p, c.skin[TEAM_CLA]);
     putint(p, c.skin[TEAM_RVSF]);
     putint(p, c.team);
@@ -2646,7 +2601,7 @@ int checktype(int type, client *cl)
     if(type < 0 || type >= SV_NUM) return -1;
     // server only messages
     static int servtypes[] = { SV_SERVINFO, SV_WELCOME, SV_INITCLIENT, SV_POSN, SV_CDIS, SV_GIBDIED, SV_DIED,
-                        SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX, SV_AUTHREQ, SV_AUTHCHAL,
+                        SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX,
                         SV_SPAWNSTATE, SV_SPAWNDENY, SV_FORCEDEATH, SV_RESUME,
                         SV_DISCSCORES, SV_TIMEUP, SV_ITEMACC, SV_MAPCHANGE, SV_ITEMSPAWN, SV_PONG,
                         SV_SERVMSG, SV_ITEMLIST, SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
@@ -2699,8 +2654,29 @@ void process(ENetPacket *packet, int sender, int chan)
             int wantrole = getint(p), np = getint(p);
             cl->state.nextprimary = np > 0 && np < NUMGUNS ? np : GUN_ASSAULT;
             loopi(2) cl->skin[i] = getint(p);
+
+            string uid = "";
+            getstring(uid, p);
+            ucharbuf signature;
+            signature.len = signature.maxlen = getint(p);
+
+            bool is_authentified = false;
+#ifdef STANDALONE
+            if(signature.len)
+            {
+                p.get(signature.buf, signature.len);
+                is_authentified = usermanager.check_authentication(cl, uid, signature);
+            }
+#endif
+
+            if(!is_authentified)
+            {
+                logline(ACLOG_INFO, "[%s] %s failed to authenticate as '%s'", cl->hostname, cl->name, uid);
+                disconnect_client(sender, DISC_WRONGPW);
+            }
+
             int bantype = getbantype(sender);
-            bool banned = bantype > BAN_NONE;
+            bool banned = bantype > BAN_NONE || (usermanager.find(cl->userid) && usermanager.find(cl->userid)->banned);
             bool srvfull = numnonlocalclients() > scl.maxclients;
             bool srvprivate = mastermode == MM_PRIVATE || mastermode == MM_MATCH;
             bool matchreconnect = mastermode == MM_MATCH && findscore(*cl, false);
@@ -2710,16 +2686,16 @@ void process(ENetPacket *packet, int sender, int chan)
             if(matchreconnect && !banned)
             { // former player reconnecting to a server in match mode
                 cl->isauthed = true;
-                logline(ACLOG_INFO, "[%s] %s logged in (reconnect to match)%s", cl->hostname, cl->name, tags);
+                logline(ACLOG_INFO, "[%s] %s logged in (reconnect to match)%s", cl->identity, cl->name, tags);
             }
             else if(wl == NWL_IPFAIL || wl == NWL_PWDFAIL)
             { // nickname matches whitelist, but IP is not in the required range or PWD doesn't match
-                logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s%s", cl->hostname, cl->name, wl == NWL_IPFAIL ? "IP" : "PWD", tags);
+                logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s%s", cl->identity, cl->name, wl == NWL_IPFAIL ? "IP" : "PWD", tags);
                 disconnect_client(sender, DISC_BADNICK);
             }
             else if(bl > 0)
             { // nickname matches blacklist
-                logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d%s", cl->hostname, cl->name, bl, tags);
+                logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d%s", cl->identity, cl->name, bl, tags);
                 disconnect_client(sender, DISC_BADNICK);
             }
             else if(passwords.check(cl->name, cl->pwd, cl->salt, &pd, (cl->type==ST_TCPIP ? cl->peer->address.host : 0)) && (!pd.denyadmin || (banned && !srvfull && !srvprivate)) && bantype != BAN_MASTER) // pass admins always through
@@ -2738,14 +2714,14 @@ void process(ENetPacket *packet, int sender, int chan)
                         break;
                     }
                 }
-                logline(ACLOG_INFO, "[%s] %s logged in using the admin password in line %d%s", cl->hostname, cl->name, pd.line, tags);
+                logline(ACLOG_INFO, "[%s] %s logged in using the admin password in line %d%s", cl->identity, cl->name, pd.line, tags);
             }
             else if(scl.serverpassword[0] && !(srvprivate || srvfull || banned))
             { // server password required
                 if(!strcmp(genpwdhash(cl->name, scl.serverpassword, cl->salt), cl->pwd))
                 {
                     cl->isauthed = true;
-                    logline(ACLOG_INFO, "[%s] %s client logged in (using serverpassword)%s", cl->hostname, cl->name, tags);
+                    logline(ACLOG_INFO, "[%s] %s client logged in (using serverpassword)%s", cl->identity, cl->name, tags);
                 }
                 else disconnect_client(sender, DISC_WRONGPW);
             }
@@ -2755,7 +2731,7 @@ void process(ENetPacket *packet, int sender, int chan)
             else
             {
                 cl->isauthed = true;
-                logline(ACLOG_INFO, "[%s] %s logged in (default)%s", cl->hostname, cl->name, tags);
+                logline(ACLOG_INFO, "[%s] %s logged in (default)%s", cl->identity, cl->name, tags);
             }
         }
         if(!cl->isauthed) return;
@@ -2838,12 +2814,12 @@ void process(ENetPacket *packet, int sender, int chan)
                     bool canspeech = forbiddenlist.canspeech(text);
                     if(!spamdetect(cl, text) && canspeech) // team chat
                     {
-                        logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s'", cl->hostname, type == SV_TEAMTEXTME ? "(me) " : "", cl->name, team_string(cl->team), text);
+                        logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s'", cl->identity, type == SV_TEAMTEXTME ? "(me) " : "", cl->name, team_string(cl->team), text);
                         sendteamtext(text, sender, type);
                     }
                     else
                     {
-                        logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s', %s", cl->hostname, type == SV_TEAMTEXTME ? "(me) " : "",
+                        logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s', %s", cl->identity, type == SV_TEAMTEXTME ? "(me) " : "",
                                 cl->name, team_string(cl->team), text, canspeech ? "SPAM detected" : "Forbidden speech");
                         if (canspeech)
                         {
@@ -2873,19 +2849,19 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         if(mastermode != MM_MATCH || !matchteamsize || team_isactive(cl->team) || (cl->team == TEAM_SPECT && cl->role == CR_ADMIN)) // common chat
                         {
-                            logline(ACLOG_INFO, "[%s] %s%s says: '%s'", cl->hostname, type == SV_TEXTME ? "(me) " : "", cl->name, text);
+                            logline(ACLOG_INFO, "[%s] %s%s says: '%s'", cl->identity, type == SV_TEXTME ? "(me) " : "", cl->name, text);
                             if(cl->type==ST_TCPIP) while(mid1<mid2) cl->messages.add(p.buf[mid1++]);
                             QUEUE_STR(text);
                         }
                         else // spect chat
                         {
-                            logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s'", cl->hostname, type == SV_TEAMTEXTME ? "(me) " : "", cl->name, team_string(cl->team), text);
+                            logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s'", cl->identity, type == SV_TEAMTEXTME ? "(me) " : "", cl->name, team_string(cl->team), text);
                             sendteamtext(text, sender, type == SV_TEXTME ? SV_TEAMTEXTME : SV_TEAMTEXT);
                         }
                     }
                     else
                     {
-                        logline(ACLOG_INFO, "[%s] %s%s says: '%s', %s", cl->hostname, type == SV_TEXTME ? "(me) " : "",
+                        logline(ACLOG_INFO, "[%s] %s%s says: '%s', %s", cl->identity, type == SV_TEXTME ? "(me) " : "",
                                 cl->name, text, canspeech ? "SPAM detected" : "Forbidden speech");
                         if (canspeech)
                         {
@@ -2918,12 +2894,12 @@ void process(ENetPacket *packet, int sender, int chan)
                     if(!spamdetect(cl, text) && canspeech)
                     {
                         bool allowed = !(mastermode == MM_MATCH && cl->team != target->team) && cl->role >= roleconf('t');
-                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s' (%s)", cl->hostname, cl->name, target->name, text, allowed ? "allowed":"disallowed");
+                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s' (%s)", cl->identity, cl->name, target->name, text, allowed ? "allowed":"disallowed");
                         if(allowed) sendf(target->clientnum, 1, "riis", SV_TEXTPRIVATE, cl->clientnum, text);
                     }
                     else
                     {
-                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', %s", cl->hostname, cl->name, target->name, text, canspeech ? "SPAM detected" : "Forbidden speech");
+                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', %s", cl->identity, cl->name, target->name, text, canspeech ? "SPAM detected" : "Forbidden speech");
                         if (canspeech)
                         {
                             sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
@@ -2969,7 +2945,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     int sp = canspawn(cl);
                     sendf(sender, 1, "rii", SV_SPAWNDENY, sp);
                     cl->spawnperm = sp;
-                    if(cl->loggedwrongmap) logline(ACLOG_INFO, "[%s] %s is now on the right map: revision %d/%d", cl->hostname, cl->name, rev, gzs);
+                    if(cl->loggedwrongmap) logline(ACLOG_INFO, "[%s] %s is now on the right map: revision %d/%d", cl->identity, cl->name, rev, gzs);
                     bool spawn = false;
                     if(team_isspect(cl->team))
                     {
@@ -2989,7 +2965,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 else
                 {
                     forcedeath(cl);
-                    logline(ACLOG_INFO, "[%s] %s is on the wrong map: revision %d/%d", cl->hostname, cl->name, rev, gzs);
+                    logline(ACLOG_INFO, "[%s] %s is on the wrong map: revision %d/%d", cl->identity, cl->name, rev, gzs);
                     cl->loggedwrongmap = true;
                     sendf(sender, 1, "rii", SV_SPAWNDENY, SP_WRONGMAP);
                 }
@@ -3035,7 +3011,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(!text[0]) copystring(text, "unarmed");
                 QUEUE_STR(text);
                 bool namechanged = strcmp(cl->name, text) != 0;
-                if(namechanged) logline(ACLOG_INFO,"[%s] %s changed name to %s", cl->hostname, cl->name, text);
+                if(namechanged) logline(ACLOG_INFO,"[%s] %s changed name to %s", cl->identity, cl->name, text);
                 copystring(cl->name, text, MAXNAMELEN+1);
                 if(namechanged)
                 {
@@ -3053,7 +3029,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         case NWL_PWDFAIL:
                         case NWL_IPFAIL:
-                            logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong IP/PWD", cl->hostname, cl->name);
+                            logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong IP/PWD", cl->identity, cl->name);
                             disconnect_client(sender, DISC_BADNICK);
                             break;
 
@@ -3062,7 +3038,7 @@ void process(ENetPacket *packet, int sender, int chan)
                             int l = nickblacklist.checkblacklist(cl->name);
                             if(l >= 0)
                             {
-                                logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", cl->hostname, cl->name, l);
+                                logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", cl->identity, cl->name, l);
                                 disconnect_client(sender, DISC_BADNICK);
                             }
                             break;
@@ -3209,37 +3185,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            // for AUTH:
-
-            case SV_AUTHTRY:
-            {
-                string desc, name;
-                getstring(desc, p, sizeof(desc)); // unused for now
-                getstring(name, p, sizeof(name));
-                if(!desc[0]) tryauth(cl, name);
-                break;
-            }
-
-            case SV_AUTHANS:
-            {
-                string desc, ans;
-                getstring(desc, p, sizeof(desc)); // unused for now
-                uint id = (uint)getint(p);
-                getstring(ans, p, sizeof(ans));
-                if(!desc[0]) answerchallenge(cl, id, ans);
-                break;
-            }
-
-
-            case SV_AUTHT:
-            {
-/*                int n = getint(p);
-                loopi(n) getint(p);*/
-//                 if (cl) disconnect_client(cl->clientnum, DISC_TAGT); // remove this in the future, when auth is complete
-                break;
-            }
-            // :for AUTH
-
             case SV_PING:
                 sendf(sender, 1, "ii", SV_PONG, getint(p));
                 break;
@@ -3371,7 +3316,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         incoming_size += mapsize + cfgsizegz;
                         logline(ACLOG_INFO,"[%s] %s sent map %s, rev %d, %d + %d(%d) bytes written",
-                                    clients[sender]->hostname, clients[sender]->name, sentmap, revision, mapsize, cfgsize, cfgsizegz);
+                            clients[sender]->identity, clients[sender]->name, sentmap, revision, mapsize, cfgsize, cfgsizegz);
                         defformatstring(msg)("%s (%d) up%sed map %s, rev %d%s", clients[sender]->name, sender, mp == MAP_NOTFOUND ? "load": "dat", sentmap, revision,
                             /*strcmp(sentmap, behindpath(smapname)) || smode == GMODE_COOPEDIT ? "" :*/ "\f3 (restart game to use new map version)");
                         sendservmsg(msg);
@@ -3385,7 +3330,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if (reject)
                 {
                     logline(ACLOG_INFO,"[%s] %s sent map %s rev %d, rejected: %s",
-                                clients[sender]->hostname, clients[sender]->name, sentmap, revision, reject);
+                                clients[sender]->identity, clients[sender]->name, sentmap, revision, reject);
                 }
                 p.len += mapsize + cfgsizegz;
                 break;
@@ -3397,7 +3342,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 {
                     resetflag(cl->clientnum); // drop ctf flag
                     savedscore *sc = findscore(*cl, true); // save score
-                    if(sc) sc->save(cl->state, cl->team);
+                    if(sc) sc->save(*cl);
                     mapbuffer.sendmap(cl, 2);
                     cl->mapchange(true);
                     sendwelcome(cl, 2); // resend state properly
@@ -3425,11 +3370,11 @@ void process(ENetPacket *packet, int sender, int chan)
                     remove(filename);
                     defformatstring(msg)("map '%s' deleted", rmmap);
                     sendservmsg(msg, sender);
-                    logline(ACLOG_INFO,"[%s] deleted map %s", clients[sender]->hostname, rmmap);
+                    logline(ACLOG_INFO,"[%s] deleted map %s", clients[sender]->identity, rmmap);
                 }
                 if (reject)
                 {
-                    logline(ACLOG_INFO,"[%s] deleting map %s failed: %s", clients[sender]->hostname, rmmap, reject);
+                    logline(ACLOG_INFO,"[%s] deleting map %s failed: %s", clients[sender]->identity, rmmap, reject);
                     defformatstring(msg)("\f3can't delete map '%s', %s", rmmap, reject);
                     sendservmsg(msg, sender);
                 }
@@ -3613,7 +3558,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     getstring(text, p, n);
                     if(valid_client(sender) && clients[sender]->role==CR_ADMIN)
                     {
-                        logline(ACLOG_INFO, "[%s] %s writes to log: %s", cl->hostname, cl->name, text);
+                        logline(ACLOG_INFO, "[%s] %s writes to log: %s", cl->identity, cl->name, text);
                         sendservmsg("your message has been logged", sender);
                     }
                 }
@@ -3724,6 +3669,7 @@ void rereadcfgs(void)
     forbiddenlist.read();
     passwords.read();
     killmsgs.read();
+    userdb.read(usermanager);
 }
 
 void loggamestatus(const char *reason)
@@ -3765,7 +3711,7 @@ void loggamestatus(const char *reason)
                 if(m_teammode) formatstring(text)("%-4s ", team_string(sc.team, true));
                 else text[0] = '\0';
                 if(m_flags) concatformatstring(text, "%4d ", sc.flagscore);
-                logline(ACLOG_INFO, "   %-16s %s%4d %5d%s    - disconnected", sc.name, text, sc.frags, sc.deaths, m_teammode ? "  -" : "");
+                logline(ACLOG_INFO, "   %-16s %s%6d %4d %5d%s    - disconnected", sc.name, text, sc.points, sc.frags, sc.deaths, m_teammode ? "  -" : "");
                 if(sc.team != TEAM_SPECT)
                 {
                     int t = team_base(sc.team);
@@ -4166,13 +4112,8 @@ void localconnect()
 
 void processmasterinput(const char *cmd, int cmdlen, const char *args)
 {
-// AUTH WiP
-    uint id;
     string val;
-    if(sscanf(cmd, "failauth %u", &id) == 1) authfailed(id);
-    else if(sscanf(cmd, "succauth %u", &id) == 1) authsucceeded(id);
-    else if(sscanf(cmd, "chalauth %u %s", &id, val) == 2) authchallenged(id, val);
-    else if(!strncmp(cmd, "cleargbans", cmdlen)) cleargbans();
+    if(!strncmp(cmd, "cleargbans", cmdlen)) cleargbans();
     else if(sscanf(cmd, "addgban %s", val) == 1) addgban(val);
 }
 
@@ -4246,6 +4187,8 @@ void initserver(bool dedicated, int argc, char **argv)
         nickblacklist.init(scl.nbfile);
         forbiddenlist.init(scl.forbidden);
         killmsgs.init(scl.killmessages);
+        userdb.init("config/users.gz");
+        userdb.read(usermanager);
         infofiles.init(scl.infopath, scl.motdpath);
         infofiles.getinfo("en"); // cache 'en' serverinfo
         logline(ACLOG_VERBOSE, "holding up to %d recorded demos in memory", scl.maxdemos);

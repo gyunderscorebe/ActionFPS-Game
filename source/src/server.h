@@ -156,53 +156,6 @@ struct clientstate : playerstate
     }
 };
 
-struct savedscore
-{
-    string name;
-    uint ip;
-    int frags, flagscore, deaths, teamkills, shotdamage, damage, team, points, events, lastdisc, reconnections;
-    bool valid, forced;
-
-    void reset()
-    {
-        // to avoid 2 connections with the same score... this can disrupt some laggers that eventually produces 2 connections (but it is rare)
-        frags = flagscore = deaths = teamkills = shotdamage = damage = points = events = lastdisc = reconnections = 0;
-    }
-
-    void save(clientstate &cs, int t)
-    {
-        frags = cs.frags;
-        flagscore = cs.flagscore;
-        deaths = cs.deaths;
-        teamkills = cs.teamkills;
-        shotdamage = cs.shotdamage;
-        damage = cs.damage;
-        points = cs.points;
-        forced = cs.forced;
-        events = cs.events;
-        lastdisc = cs.lastdisc;
-        reconnections = cs.reconnections;
-        team = t;
-        valid = true;
-    }
-
-    void restore(clientstate &cs)
-    {
-        cs.frags = frags;
-        cs.flagscore = flagscore;
-        cs.deaths = deaths;
-        cs.teamkills = teamkills;
-        cs.shotdamage = shotdamage;
-        cs.damage = damage;
-        cs.points = points;
-        cs.forced = forced;
-        cs.events = events;
-        cs.lastdisc = lastdisc;
-        cs.reconnections = reconnections;
-        reset();
-    }
-};
-
 struct medals
 {
     int dpt, lasthit, lastgun, ncovers, nhs;
@@ -223,6 +176,7 @@ struct medals
     }
 };
 
+struct user;
 struct client                   // server side version of "dynent" type
 {
     int type;
@@ -230,6 +184,7 @@ struct client                   // server side version of "dynent" type
     ENetPeer *peer;
     string hostname;
     string name;
+    string identity, userid;
     int team;
     char lang[3];
     int ping;
@@ -239,7 +194,9 @@ struct client                   // server side version of "dynent" type
     int connectmillis, lmillis, ldt, spj;
     int mute, spam, lastvc; // server side voice comm spam control
     int acversion, acbuildtype;
-    bool isauthed; // for passworded servers
+    bool isauthed;
+    user *u;
+    ucharbuf challenge;
     bool haswelcome;
     bool isonrightmap, loggedwrongmap, freshgame;
     bool timesync;
@@ -259,8 +216,6 @@ struct client                   // server side version of "dynent" type
     bool autospawn;
     int salt;
     string pwd;
-    uint authreq; // for AUTH
-    string authname; // for AUTH
     int mapcollisions, farpickups;
     enet_uint32 bottomRTT;
     medals md;
@@ -324,7 +279,7 @@ struct client                   // server side version of "dynent" type
 
     void reset()
     {
-        name[0] = pwd[0] = demoflags = 0;
+        name[0] = pwd[0] = userid[0] = demoflags = 0;
         bottomRTT = ping = 9999;
         team = TEAM_SPECT;
         state.state = CS_SPECTATE;
@@ -332,6 +287,8 @@ struct client                   // server side version of "dynent" type
         position.setsize(0);
         messages.setsize(0);
         isauthed = haswelcome = false;
+        u = NULL;
+        challenge.reset();
         role = CR_DEFAULT;
         lastvotecall = 0;
         lastprofileupdate = fastprofileupdates = 0;
@@ -339,7 +296,6 @@ struct client                   // server side version of "dynent" type
         lastsaytext[0] = '\0';
         saychars = 0;
         spawnindex = -1;
-        authreq = 0; // for AUTH
         mapchange();
         freshgame = false;         // don't spawn into running games
         mute = spam = lastvc = badspeech = badmillis = nvotes = 0;
@@ -353,6 +309,57 @@ struct client                   // server side version of "dynent" type
         type = ST_EMPTY;
         role = CR_DEFAULT;
         isauthed = haswelcome = false;
+        challenge.reset();
+    }
+};
+
+struct savedscore
+{
+    string name;
+    string userid;
+    uint ip;
+    int frags, flagscore, deaths, teamkills, shotdamage, damage, team, points, events, lastdisc, reconnections;
+    bool valid, forced;
+
+    void reset()
+    {
+        // to avoid 2 connections with the same score... this can disrupt some laggers that eventually produces 2 connections (but it is rare)
+        frags = flagscore = deaths = teamkills = shotdamage = damage = points = events = lastdisc = reconnections = 0;
+        // name[0] = userid[0];
+    }
+
+    void save(client &c)
+    {
+        frags = c.state.frags;
+        flagscore = c.state.flagscore;
+        deaths = c.state.deaths;
+        teamkills = c.state.teamkills;
+        shotdamage = c.state.shotdamage;
+        damage = c.state.damage;
+        points = c.state.points;
+        forced = c.state.forced;
+        events = c.state.events;
+        lastdisc = c.state.lastdisc;
+        reconnections = c.state.reconnections;
+        team = c.t;
+        copystring(userid, c.userid);
+        valid = true;
+    }
+
+    void restore(clientstate &cs)
+    {
+        cs.frags = frags;
+        cs.flagscore = flagscore;
+        cs.deaths = deaths;
+        cs.teamkills = teamkills;
+        cs.shotdamage = shotdamage;
+        cs.damage = damage;
+        cs.points = points;
+        cs.forced = forced;
+        cs.events = events;
+        cs.lastdisc = lastdisc;
+        cs.reconnections = reconnections;
+        reset();
     }
 };
 
@@ -420,7 +427,7 @@ const char *messagenames[SV_NUM] =
 {
     "SV_SERVINFO", "SV_WELCOME", "SV_INITCLIENT", "SV_POS", "SV_POSC", "SV_POSN", "SV_TEXT", "SV_TEAMTEXT", "SV_TEXTME", "SV_TEAMTEXTME", "SV_TEXTPRIVATE",
     "SV_SOUND", "SV_VOICECOM", "SV_VOICECOMTEAM", "SV_CDIS",
-    "SV_SHOOT", "SV_EXPLODE", "SV_SUICIDE", "SV_AKIMBO", "SV_RELOAD", "SV_AUTHT", "SV_AUTHREQ", "SV_AUTHTRY", "SV_AUTHANS", "SV_AUTHCHAL",
+    "SV_SHOOT", "SV_EXPLODE", "SV_SUICIDE", "SV_AKIMBO", "SV_RELOAD",
     "SV_GIBDIED", "SV_DIED", "SV_GIBDAMAGE", "SV_DAMAGE", "SV_HITPUSH", "SV_SHOTFX", "SV_THROWNADE",
     "SV_TRYSPAWN", "SV_SPAWNSTATE", "SV_SPAWN", "SV_SPAWNDENY", "SV_FORCEDEATH", "SV_RESUME",
     "SV_DISCSCORES", "SV_TIMEUP", "SV_EDITENT", "SV_ITEMACC",
@@ -545,3 +552,115 @@ const char *teamnames_s[] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "", "void"};
 // for both client and server
 // default messages are hardcoded !
 char killmessages[2][NUMGUNS][MAXKILLMSGLEN] = {{ "", "busted", "picked off", "peppered", "sprayed", "punctured", "shredded", "busted", "", "busted" }, { "slashed", "", "", "splattered", "", "headshot", "", "", "gibbed", "" }};
+
+// users
+
+struct user
+{
+    char id[32];
+    const char *name;
+    vector<const char *> groups;
+    bool admin, banned;
+
+    ucharbuf pubkey;
+
+    ~user()
+    {
+        DELETEP(name);
+        pubkey.reset();
+    }
+};
+
+#define AUTH_CHALLENGE_SIZE 512
+struct serverusermanager
+{
+    //std::map<const char *, user *> users;
+    //std::map<const char *, user *> tmp_users;
+    vector<user *> users;
+    //vector<group *> groups;
+
+
+    bool load()
+    {
+        // load gz
+        // extract users
+    }
+
+    user *find(const char *id)
+    {
+        //return users[id];
+        loopv(users) if(!strcmp(id, users[i]->id))
+        {
+            return users[i];
+        }
+        return NULL;
+    }
+
+    // FIXME: concat scl.id
+    // and use ucharbuf for client::challenge
+    void generate_challenge(client *cl, const char *sid)
+    {
+        cl->challenge.reset();
+        int extra_bytes = strlen(sid);
+        cl->challenge.buf = new uchar[AUTH_CHALLENGE_SIZE+extra_bytes];
+        cl->challenge.maxlen = AUTH_CHALLENGE_SIZE+extra_bytes;
+
+        cl->challenge.len = AUTH_CHALLENGE_SIZE;
+        RAND_bytes(cl->challenge.buf, AUTH_CHALLENGE_SIZE);
+        cl->challenge.put((const uchar *)sid, extra_bytes);
+
+        ucharbuf hash_challenge;
+        hash_challenge.maxlen = 20;
+        hash_challenge.buf = new uchar[20];
+        SHA1(cl->challenge.buf, cl->challenge.len, hash_challenge.buf);
+        cl->challenge.reset();
+        cl->challenge = hash_challenge;
+    }
+
+    bool check_authentication(client *cl, const char *id, ucharbuf &signature)
+    {
+        user *u = find(id);
+        if(!u) return false;
+
+        bool ok = verify_signature(u, signature.buf, signature.len, cl->challenge.buf, cl->challenge.len);
+        if(ok)
+        {
+            //cl->u = u;
+            copystring(cl->userid, id);
+            formatstring(cl->identity)("%s:%s", cl->userid, cl->hostname);
+            return true;
+        }
+        return false;
+    }
+
+    bool verify_signature(user *u, const uchar *signature, int siglen, const uchar *challenge, int challength)
+    {
+        DSA *pub_dsa = DSA_new();
+
+        BIO *bio;
+        bio = BIO_new(BIO_s_mem());
+        BIO_write(bio, (const void *)u->pubkey.buf, u->pubkey.len);
+        DSA *ret = PEM_read_bio_DSA_PUBKEY(bio, &pub_dsa, NULL, NULL);
+        if(!ret)
+        {
+            logline(ACLOG_ERROR, "invalid DSA key");
+            return false;
+        }
+
+        int res = DSA_verify(0, challenge, challength, signature, siglen, pub_dsa);
+        DELETEP(pub_dsa);
+        DELETEP(bio);
+        return res > 0;
+    }
+
+    bool request_group(user *u, const char *group)
+    {
+        bool found = false;
+        loopv(u->groups) if(!strcmp(group, u->groups[i]))
+        {
+            found = true;
+            break;
+        }
+        return found;
+    }
+};

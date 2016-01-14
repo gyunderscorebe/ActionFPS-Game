@@ -1026,7 +1026,7 @@ void gameprotocol(char *protocolstring, string &servername, int &serverport, str
             extern char *authkey;
             c += 4; p = c; len = 0;
             while(*c && *c!='&' && *c!='/') { len++, c++; }
-            if(len) copystring(auth_key, p, min(len+1, MAXSTRLEN));
+            if(len) copystring(auth_key, p, min(len+1, (int)sizeof(authkey)));
         }
         else break;
     } while(*c && *c=='&' && *c!='/');
@@ -1078,6 +1078,8 @@ void initclientlog()  // rotate old logfiles and create new one
     DELETEP(bootclientlog);
 }
 
+extern ucharbuf authkey;
+
 #if defined(WIN32) && !defined(STANDALONE)
 int sdl_syswmevent_filter(const SDL_Event *e)
 {
@@ -1093,14 +1095,25 @@ int sdl_syswmevent_filter(const SDL_Event *e)
 
     if(!str || !strlen(str)) return 0;
     
-    string servername = "", password = "", auth_id = "", auth_key = "";
+    string servername = "", password = "", auth_id = "";
+    char auth_key[4096] = "";
     int serverport;
     bool direct_connect;
 
     gameprotocol(str, servername, serverport, password, auth_id, auth_key, direct_connect);
 
     if(auth_id[0]) { setsvar("authid", auth_id); }
-    if(auth_key[0]) { setsvar("authkey", auth_key); }
+    if(auth_key[0])
+    {
+        size_t len;
+        std::string encoded = std::string(auth_key);
+        std::string decoded = base64_decode(encoded);
+        len = decoded.length();
+        authkey.reset();
+        authkey.buf = new uchar[len];
+        authkey.len = authkey.maxlen = len;
+        authkey.put((uchar *)decoded.c_str(), len);
+    }
 
     if (direct_connect)
     {
@@ -1133,7 +1146,8 @@ int main(int argc, char **argv)
     char *initdemo = NULL;
     bool direct_connect = false;               // to connect via actionfps:// browser switch
     string servername, password;
-    string auth_id = "", auth_key = "";
+    string auth_id = "";
+    char auth_key[4096] = "";
     int serverport;
 
     if(bootclientlog) cvecprintf(*bootclientlog, "######## start logging: %s\n", timestring(true));
@@ -1364,7 +1378,7 @@ int main(int argc, char **argv)
     }
     autostartscripts("");    // all remaining scripts
     execfile("config/autoexec.cfg");
-    execfile("config/auth.cfg");
+    readauthkey();
     execute("addallfavcatmenus");  // exec here, to add all categories (including those defined in autoexec.cfg)
     initing = NOT_INITING;
     uniformtexres = !hirestextures;
@@ -1382,7 +1396,17 @@ int main(int argc, char **argv)
     initlog("localconnect");
 
     if(auth_id[0]) { setsvar("authid", auth_id); }
-    if(auth_key[0]) { setsvar("authkey", auth_key); }
+    if(auth_key[0])
+    {
+        size_t len;
+        std::string encoded = std::string(auth_key);
+        std::string decoded = base64_decode(encoded);
+        len = decoded.length();
+        authkey.reset();
+        authkey.buf = new uchar[len];
+        authkey.len = authkey.maxlen = len;
+        authkey.put((uchar *)decoded.c_str(), len);
+    }
 
     if (direct_connect)
     {

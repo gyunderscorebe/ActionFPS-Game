@@ -205,6 +205,7 @@ public:
 };
 
 #define MAXNAMELEN 15
+#define MAXUSERIDLEN 32
 
 class bounceent;
 
@@ -419,6 +420,7 @@ public:
     int clientrole;
     bool attacking;
     string name;
+    string userid;
     int team;
     int weaponchanging;
     int nextweapon; // weapon we switch to
@@ -449,6 +451,7 @@ public:
     {
         type = ENT_PLAYER;
         name[0] = 0;
+        userid[0] = 0;
         maxeyeheight = 4.5f;
         aboveeye = 0.7f;
         radius = 1.1f;

@@ -290,6 +290,12 @@ struct databuf
         len = maxlen;
         flags |= OVERREAD;
     }
+
+    void reset()
+    {
+        len = maxlen = 0;
+        DELETEP(buf);
+    }
 };
 
 typedef databuf<char> charbuf;

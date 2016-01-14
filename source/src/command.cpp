@@ -1607,6 +1607,8 @@ void writecfg()
     }
     f->printf("\n");
     delete f;
+
+    writeauthkey();
 }
 
 COMMAND(writecfg, "");
