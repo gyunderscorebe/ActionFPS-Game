@@ -20,6 +20,8 @@
 #include <time.h>
 #include <limits.h>
 #include <map>
+#include <string>
+
 #ifdef __MINGW32__
     #include <stdint.h>
 #endif
