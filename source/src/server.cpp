@@ -26,6 +26,7 @@ serverpasswords passwords;
 serverinfofile infofiles;
 killmessagesfile killmsgs;
 usersdatabasefile userdb;
+groupsdatabasefile groupdb;
 
 // Users
 serverusermanager usermanager;
@@ -2482,6 +2483,8 @@ void putinitclient(client &c, packetbuf &p)
     putint(p, c.clientnum);
     sendstring(c.name, p);
     sendstring(c.userid, p);
+    sendstring(c.group.id, p);
+    sendstring(c.group.name, p);
     putint(p, c.skin[TEAM_CLA]);
     putint(p, c.skin[TEAM_RVSF]);
     putint(p, c.team);
@@ -2644,10 +2647,18 @@ void process(ENetPacket *packet, int sender, int chan)
             cl->acversion = getint(p);
             cl->acbuildtype = getint(p);
             defformatstring(tags)(", AC: %d|%x", cl->acversion, cl->acbuildtype);
+            
+            // name
             getstring(text, p);
             filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
             if(!text[0]) copystring(text, "unarmed");
             copystring(cl->name, text, MAXNAMELEN+1);
+
+            // group
+            char groupid[MAXGROUPIDLEN+1] = "";
+            getstring(text, p);
+            filtertext(groupid, text, FTXT__PLAYERNAME, MAXUSERIDLEN);
+
             getstring(text, p);
             copystring(cl->pwd, text);
             getstring(text, p);
@@ -2662,20 +2673,32 @@ void process(ENetPacket *packet, int sender, int chan)
             signature.len = signature.maxlen = getint(p);
             signature.buf = new uchar[signature.maxlen];
 
-            bool is_authentified = false;
+            
 #ifdef STANDALONE
+            bool is_authenticated = false;
             if(signature.len)
             {
                 p.get(signature.buf, signature.len);
-                is_authentified = usermanager.check_authentication(cl, uid, signature);
+                is_authenticated = usermanager.check_authentication(cl, uid, signature);
             }
+#else
+            bool is_authenticated = true;
 #endif
             signature.reset();
 
-            if(!is_authentified)
+            if(!is_authenticated)
             {
                 logline(ACLOG_INFO, "[%s] %s failed to authenticate as '%s'", cl->hostname, cl->name, uid);
                 disconnect_client(sender, DISC_AUTHFAIL);
+            }
+            else
+            {
+                // try group
+                if(groupid[0])
+                {
+                    bool can_switch = usermanager.request_group(cl, groupid);
+                    if(can_switch) usermanager.set_group(cl, groupid);
+                }
             }
 
             int bantype = getbantype(sender);
@@ -2688,7 +2711,7 @@ void process(ENetPacket *packet, int sender, int chan)
             if(wl == NWL_UNLISTED) bl = nickblacklist.checkblacklist(cl->name);
             if(matchreconnect && !banned)
             { // former player reconnecting to a server in match mode
-                cl->isauthed = true;
+                cl->isauthed = is_authenticated;
                 logline(ACLOG_INFO, "[%s] %s logged in (reconnect to match)%s", cl->identity, cl->name, tags);
             }
             else if(wl == NWL_IPFAIL || wl == NWL_PWDFAIL)
@@ -2703,7 +2726,7 @@ void process(ENetPacket *packet, int sender, int chan)
             }
             else if(passwords.check(cl->name, cl->pwd, cl->salt, &pd, (cl->type==ST_TCPIP ? cl->peer->address.host : 0)) && (!pd.denyadmin || (banned && !srvfull && !srvprivate)) && bantype != BAN_MASTER) // pass admins always through
             { // admin (or deban) password match
-                cl->isauthed = true;
+                cl->isauthed = is_authenticated;
                 if(!pd.denyadmin && wantrole == CR_ADMIN) clientrole = CR_ADMIN;
                 if(bantype == BAN_VOTE)
                 {
@@ -2723,7 +2746,7 @@ void process(ENetPacket *packet, int sender, int chan)
             { // server password required
                 if(!strcmp(genpwdhash(cl->name, scl.serverpassword, cl->salt), cl->pwd))
                 {
-                    cl->isauthed = true;
+                    cl->isauthed = is_authenticated;
                     logline(ACLOG_INFO, "[%s] %s client logged in (using serverpassword)%s", cl->identity, cl->name, tags);
                 }
                 else disconnect_client(sender, DISC_WRONGPW);
@@ -2733,7 +2756,7 @@ void process(ENetPacket *packet, int sender, int chan)
             else if(banned) disconnect_client(sender, DISC_BANREFUSE);
             else
             {
-                cl->isauthed = true;
+                cl->isauthed = is_authenticated;
                 logline(ACLOG_INFO, "[%s] %s logged in (default)%s", cl->identity, cl->name, tags);
             }
         }
@@ -2752,6 +2775,11 @@ void process(ENetPacket *packet, int sender, int chan)
         sendwelcome(cl);
         if(restorescore(*cl)) { sendresume(*cl, true); senddisconnectedscores(-1); }
         else if(cl->type==ST_TCPIP) senddisconnectedscores(sender);
+        if(cl->group.id[0])
+        {
+            sendf(cl->clientnum, 1, "riiss", SV_SWITCHGROUP, cl->clientnum, cl->group.id, cl->group.name);
+            logline(ACLOG_INFO, "[%s] %s changed his group to %s", cl->identity, cl->name, cl->group.id);
+        }
         sendinitclient(*cl);
         if(clientrole != CR_DEFAULT) changeclientrole(sender, clientrole, NULL, true);
         if( curvote && curvote->result == VOTE_NEUTRAL ) callvotepacket (cl->clientnum);
@@ -3048,6 +3076,26 @@ void process(ENetPacket *packet, int sender, int chan)
                         }
                     }
                 }
+                break;
+            }
+
+            case SV_SWITCHGROUP:
+            {
+                getstring(text, p);
+                filtertext(text, text, FTXT__PLAYERNAME, MAXGROUPIDLEN);
+                
+                bool can_switch = usermanager.request_group(cl, text);
+                if(can_switch)
+                {
+                    logline(ACLOG_INFO, "[%s] %s changed his group to %s", cl->identity, cl->name, text);
+                    usermanager.set_group(cl, text);
+                    sendf(-1, 1, "riiss", SV_SWITCHGROUP, cl->clientnum, cl->group.id, cl->group.name);
+                }
+                else
+                {
+                    logline(ACLOG_INFO, "[%s] %s was denied group %s", cl->identity, cl->name, text);
+                }
+                
                 break;
             }
 
@@ -3673,6 +3721,7 @@ void rereadcfgs(void)
     passwords.read();
     killmsgs.read();
     userdb.read(usermanager);
+    groupdb.read(usermanager);
 }
 
 void loggamestatus(const char *reason)
@@ -4192,6 +4241,8 @@ void initserver(bool dedicated, int argc, char **argv)
         killmsgs.init(scl.killmessages);
         userdb.init("config/users.gz");
         userdb.read(usermanager);
+        groupdb.init("config/groups.gz");
+        groupdb.read(usermanager);
         infofiles.init(scl.infopath, scl.motdpath);
         infofiles.getinfo("en"); // cache 'en' serverinfo
         logline(ACLOG_VERBOSE, "holding up to %d recorded demos in memory", scl.maxdemos);

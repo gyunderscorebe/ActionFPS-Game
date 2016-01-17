@@ -600,11 +600,15 @@ void writeauthkey()
 
 void sendintro()
 {
+    extern char *authid;
+    extern char *defaultgroup;
+
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_CONNECT);
     putint(p, AC_VERSION);
     putint(p, getbuildtype());
     sendstring(player1->name, p);
+    sendstring(defaultgroup, p);
     sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);
     sendstring(!lang || strlen(lang) != 2 ? "" : lang, p);
     putint(p, connectrole);
@@ -614,8 +618,6 @@ void sendintro()
     loopi(2) putint(p, player1->skin(i));
 
     // authentication
-    extern char *authid;
-
     sendstring(authid, p);
 
     DSA *priv_dsa = DSA_new();

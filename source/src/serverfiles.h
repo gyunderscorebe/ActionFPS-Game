@@ -955,10 +955,6 @@ struct usersdatabasefile : serverconfigfile
 {
     void init(const char *name) { serverconfigfile::init(name); }
 
-    void write(const vector<user *> &users)
-    {
-    }
-
     void read()
     {
 
@@ -966,6 +962,8 @@ struct usersdatabasefile : serverconfigfile
 
     void read(serverusermanager &usermanager)
     {
+        if(getfilesize(filename) == filelen) return;
+
         logline(ACLOG_VERBOSE, "opening users database");
         stream *f = opengzfile(filename, "rb");
         if(!f)
@@ -984,6 +982,8 @@ struct usersdatabasefile : serverconfigfile
             logline(ACLOG_VERBOSE, "read user '%s'", u->id);
         }
         DELETEP(f);
+
+        filelen = getfilesize(filename);
     }
 
     // reads from u->data
@@ -1025,6 +1025,65 @@ struct usersdatabasefile : serverconfigfile
                 u->pubkey.buf = new uchar[len];
                 u->pubkey.maxlen = len;
                 u->pubkey.put((uchar *)decoded.c_str(), len);
+            }
+            DELETEA(key);
+            current = strtok(NULL, " ");
+        }
+    }
+};
+
+struct groupsdatabasefile : serverconfigfile
+{
+    void init(const char *name) { serverconfigfile::init(name); }
+
+    void read()
+    {
+
+    }
+
+    void read(serverusermanager &usermanager)
+    {
+        if(getfilesize(filename) == filelen) return;
+
+        logline(ACLOG_VERBOSE, "opening groups database");
+        stream *f = opengzfile(filename, "rb");
+        if(!f)
+        {
+            logline(ACLOG_ERROR, "could not open '%s' for reading", filename);
+            return;
+        }
+        char buf[4096] = "";
+        usermanager.groups.deletecontents();
+        usermanager.groups.shrink(0);
+        while(f->getline(buf, sizeof(buf)))
+        {
+            groupent *g = new groupent();
+            groupsdatabasefile::parsedata(g, buf);
+            usermanager.groups.add(g);
+            logline(ACLOG_VERBOSE, "read group '%s'", g->id);
+        }
+        DELETEP(f);
+
+        filelen = getfilesize(filename);
+    }
+
+    // reads from u->data
+    // and sets all the parameters according to its content
+    static void parsedata(groupent *g, char *data)
+    {
+        const char *current = strtok(data, " ");
+        while (current != NULL)
+        {
+            const char *val = strchr(current, '=');
+            char *key = newstring(current, val ? val-current : strlen(current));
+            val++;
+            if(!strcmp(key, "id"))
+            {
+                copystring(g->id, val, sizeof(g->id));
+            }
+            else if(!strcmp(key, "name"))
+            {
+                if(val) copystring(g->name, val, sizeof(g->name));
             }
             DELETEA(key);
             current = strtok(NULL, " ");

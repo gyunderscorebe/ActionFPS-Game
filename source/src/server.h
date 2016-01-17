@@ -185,6 +185,7 @@ struct client                   // server side version of "dynent" type
     string hostname;
     string name;
     string identity, userid;
+    groupent group;
     int team;
     char lang[3];
     int ping;
@@ -280,6 +281,7 @@ struct client                   // server side version of "dynent" type
     void reset()
     {
         name[0] = pwd[0] = userid[0] = demoflags = 0;
+        group.reset();
         bottomRTT = ping = 9999;
         team = TEAM_SPECT;
         state.state = CS_SPECTATE;
@@ -444,7 +446,7 @@ const char *messagenames[SV_NUM] =
     "SV_IPLIST",
     "SV_LISTDEMOS", "SV_SENDDEMOLIST", "SV_GETDEMO", "SV_SENDDEMO", "SV_DEMOPLAYBACK",
     "SV_CONNECT",
-    "SV_SWITCHNAME", "SV_SWITCHSKIN", "SV_SWITCHTEAM",
+    "SV_SWITCHNAME", "SV_SWITCHSKIN", "SV_SWITCHTEAM", "SV_SWITCHGROUP",
     "SV_CLIENT",
     "SV_EXTENSION",
     "SV_MAPIDENT", "SV_HUDEXTRAS", "SV_POINTS"
@@ -582,7 +584,7 @@ struct serverusermanager
     //std::map<const char *, user *> users;
     //std::map<const char *, user *> tmp_users;
     vector<user *> users;
-    //vector<group *> groups;
+    vector<groupent *> groups;
 
 
     bool load()
@@ -597,6 +599,15 @@ struct serverusermanager
         loopv(users) if(!strcmp(id, users[i]->id))
         {
             return users[i];
+        }
+        return NULL;
+    }
+
+    groupent *find_group(const char *id)
+    {
+        loopv(groups) if(!strcmp(id, groups[i]->id))
+        {
+            return groups[i];
         }
         return NULL;
     }
@@ -656,8 +667,16 @@ struct serverusermanager
         return res > 0;
     }
 
-    bool request_group(user *u, const char *group)
+    void set_group(client *cl, const char *group)
     {
+        groupent *g = find_group(group);
+        if(g) cl->group = *g;
+    }
+
+    bool request_group(client *cl, const char *group)
+    {
+        user *u = find(cl->userid);
+        if(!u) return false;
         bool found = false;
         loopv(u->groups) if(!strcmp(group, u->groups[i]))
         {

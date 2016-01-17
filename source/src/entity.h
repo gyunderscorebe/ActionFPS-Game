@@ -206,6 +206,7 @@ public:
 
 #define MAXNAMELEN 15
 #define MAXUSERIDLEN 32
+#define MAXGROUPIDLEN 32
 
 class bounceent;
 
@@ -404,6 +405,21 @@ public:
     }
 };
 
+struct groupent
+{
+    string id, name;
+
+    groupent()
+    {
+        reset();
+    }
+
+    void reset()
+    {
+        id[0] = name[0] = 0;
+    }
+};
+
 #ifndef STANDALONE
 #define HEADSIZE 0.4f
 
@@ -421,6 +437,7 @@ public:
     bool attacking;
     string name;
     string userid;
+    groupent group;
     int team;
     int weaponchanging;
     int nextweapon; // weapon we switch to

@@ -621,6 +621,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
                 copystring(d->userid, text);
 
+                getstring(text, p);
+                filtertext(text, text, FTXT__PLAYERNAME, MAXGROUPIDLEN);
+                copystring(d->group.id, text);
+                getstring(text, p);
+                filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
+                copystring(d->group.name, text);
+
                 loopi(2) d->setskin(i, getint(p));
                 d->team = getint(p);
 
@@ -632,6 +639,22 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     if(!f.actor) f.actor = getclient(f.actor_cn);
                 }
                 updateclientname(d);
+                break;
+            }
+
+            case SV_SWITCHGROUP:
+            {
+                int cn = getint(p);
+                playerent *d = getclient(cn);
+                
+                getstring(text, p);
+                filtertext(text, text, FTXT__PLAYERNAME, MAXGROUPIDLEN);
+                copystring(d->group.id, text);
+                getstring(text, p);
+                filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
+                copystring(d->group.name, text);
+
+                conoutf("%s switched to group %s", colorname(d), d->group.name);
                 break;
             }
 
