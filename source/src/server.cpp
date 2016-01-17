@@ -3720,8 +3720,6 @@ void rereadcfgs(void)
     forbiddenlist.read();
     passwords.read();
     killmsgs.read();
-    userdb.read(usermanager);
-    groupdb.read(usermanager);
 }
 
 void loggamestatus(const char *reason)
