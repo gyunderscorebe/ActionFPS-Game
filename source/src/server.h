@@ -684,4 +684,17 @@ struct serverusermanager
         }
         return found;
     }
+
+    void set_nickname(client *cl)
+    {
+        user *u = find(cl->userid);
+        if(!u) return;
+        copystring(cl->name, u->name, MAXNAMELEN+1);
+    }
+
+    const char *get_user_nickname(client *cl)
+    {
+        user *u = find(cl->userid);
+        return u ? u->name : NULL;
+    }
 };

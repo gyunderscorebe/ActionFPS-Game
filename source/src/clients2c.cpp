@@ -566,6 +566,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             }
 
             case SV_SWITCHNAME:
+            {
+                int cn = getint(p);
+                playerent *d = getclient(cn);
                 getstring(text, p);
                 filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
                 if(!text[0]) copystring(text, "unarmed");
@@ -577,6 +580,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     updateclientname(d);
                 }
                 break;
+            }
 
             case SV_SWITCHTEAM:
                 getint(p);

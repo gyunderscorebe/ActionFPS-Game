@@ -2648,13 +2648,13 @@ void process(ENetPacket *packet, int sender, int chan)
             cl->acbuildtype = getint(p);
             defformatstring(tags)(", AC: %d|%x", cl->acversion, cl->acbuildtype);
             
-            // name
+            // requested name
             getstring(text, p);
             filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
             if(!text[0]) copystring(text, "unarmed");
             copystring(cl->name, text, MAXNAMELEN+1);
 
-            // group
+            // requested group
             char groupid[MAXGROUPIDLEN+1] = "";
             getstring(text, p);
             filtertext(groupid, text, FTXT__PLAYERNAME, MAXUSERIDLEN);
@@ -2780,6 +2780,17 @@ void process(ENetPacket *packet, int sender, int chan)
             sendf(cl->clientnum, 1, "riiss", SV_SWITCHGROUP, cl->clientnum, cl->group.id, cl->group.name);
             logline(ACLOG_INFO, "[%s] %s changed his group to %s", cl->identity, cl->name, cl->group.id);
         }
+        
+        // set nickname
+        string reqname;
+        copystring(reqname, cl->name);
+        usermanager.set_nickname(cl);
+        if(strcmp(reqname, cl->name))
+        {
+            sendf(-1, 1, "riis", SV_SWITCHNAME, cl->clientnum, cl->name);
+            logline(ACLOG_INFO, "[%s] %s changed his name to %s", cl->identity, reqname, cl->name);
+        }
+
         sendinitclient(*cl);
         if(clientrole != CR_DEFAULT) changeclientrole(sender, clientrole, NULL, true);
         if( curvote && curvote->result == VOTE_NEUTRAL ) callvotepacket (cl->clientnum);
@@ -3036,16 +3047,22 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_SWITCHNAME:
             {
-                QUEUE_MSG;
+                //QUEUE_MSG;
                 getstring(text, p);
+                // deprecated for now
                 filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
                 if(!text[0]) copystring(text, "unarmed");
-                QUEUE_STR(text);
+
+                const char *auth_nickname = usermanager.get_user_nickname(cl);
+                if(auth_nickname && strcmp(auth_nickname, text)) break;
+                
+                //QUEUE_STR(text);
                 bool namechanged = strcmp(cl->name, text) != 0;
                 if(namechanged) logline(ACLOG_INFO,"[%s] %s changed name to %s", cl->identity, cl->name, text);
                 copystring(cl->name, text, MAXNAMELEN+1);
                 if(namechanged)
                 {
+                    sendf(-1, 1, "rxiis", cl->clientnum, SV_SWITCHNAME, cl->clientnum, cl->name);
                     // very simple spam detection (possible FIXME: centralize spam detection)
                     if(cl->type==ST_TCPIP && (servmillis - cl->lastprofileupdate < 1000))
                     {
