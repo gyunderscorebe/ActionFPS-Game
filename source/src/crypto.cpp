@@ -727,24 +727,6 @@ const ecjacobian ecjacobian::base(
 #error Unsupported GF
 #endif
 
-void genprivkey(const char *seed, vector<char> &privstr, vector<char> &pubstr)
-{
-    tiger::hashval hash;
-    tiger::hash((const uchar *)seed, (int)strlen(seed), hash);
-    bigint<8*sizeof(hash.bytes)/BI_DIGIT_BITS> privkey;
-    memcpy(privkey.digits, hash.bytes, sizeof(privkey.digits));
-    privkey.len = 8*sizeof(hash.bytes)/BI_DIGIT_BITS;
-    privkey.shrink();
-    privkey.printdigits(privstr);
-    privstr.add('\0');
-
-    ecjacobian c(ecjacobian::base);
-    c.mul(privkey);
-    c.normalize();
-    c.print(pubstr);
-    pubstr.add('\0');
-}
-
 bool hashstring(const char *str, char *result, int maxlen)
 {
     tiger::hashval hv;
@@ -783,64 +765,6 @@ const char *genpwdhash(const char *name, const char *pwd, int salt)
     tiger::hash((uchar *)temp, (int)strlen(temp), hash);
     formatstring(temp)("%s %s %s", hashchunktoa(hash.chunks[0]), hashchunktoa(hash.chunks[1]), hashchunktoa(hash.chunks[2]));
     return temp;
-}
-
-void answerchallenge(const char *privstr, const char *challenge, vector<char> &answerstr)
-{
-    gfint privkey;
-    privkey.parse(privstr);
-    ecjacobian answer;
-    answer.parse(challenge);
-    answer.mul(privkey);
-    answer.normalize();
-    answer.x.printdigits(answerstr);
-    answerstr.add('\0');
-}
-
-void *parsepubkey(const char *pubstr)
-{
-    ecjacobian *pubkey = new ecjacobian;
-    pubkey->parse(pubstr);
-    return pubkey;
-}
-
-void freepubkey(void *pubkey)
-{
-    delete (ecjacobian *)pubkey;
-}
-
-void *genchallenge(void *pubkey, const void *seed, int seedlen, vector<char> &challengestr)
-{
-    tiger::hashval hash;
-    tiger::hash((const uchar *)seed, seedlen, hash);
-    gfint challenge;
-    memcpy(challenge.digits, hash.bytes, sizeof(challenge.digits));
-    challenge.len = 8*sizeof(hash.bytes)/BI_DIGIT_BITS;
-    challenge.shrink();
-
-    ecjacobian answer(*(ecjacobian *)pubkey);
-    answer.mul(challenge);
-    answer.normalize();
-
-    ecjacobian secret(ecjacobian::base);
-    secret.mul(challenge);
-    secret.normalize();
-
-    secret.print(challengestr);
-    challengestr.add('\0');
-
-    return new gfield(answer.x);
-}
-
-void freechallenge(void *answer)
-{
-    delete (gfint *)answer;
-}
-
-bool checkchallenge(const char *answerstr, void *correct)
-{
-    gfint answer(answerstr);
-    return answer == *(gfint *)correct;
 }
 
 ////////////////////////// crypto rand ////////////////////////////////////////

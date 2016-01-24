@@ -612,8 +612,6 @@ struct serverusermanager
         return NULL;
     }
 
-    // FIXME: concat scl.id
-    // and use ucharbuf for client::challenge
     void generate_challenge(client *cl, const char *sid)
     {
         int extra_bytes = strlen(sid);
@@ -629,6 +627,7 @@ struct serverusermanager
         cl->challenge.len = cl->challenge.maxlen = 20;
         cl->challenge.buf = new uchar[20];
         SHA1(hash_challenge.buf, hash_challenge.len, cl->challenge.buf);
+        hash_challenge.reset();
     }
 
     bool check_authentication(client *cl, const char *id, ucharbuf &signature)
