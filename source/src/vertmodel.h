@@ -254,7 +254,7 @@ __attribute__((optimize(2)))
                 loopj(3)
                 {
                     uint e1 = shareverts[t.vert[j]], e2 = shareverts[t.vert[(j+1)%3]], shift = 0;
-                    if(e1 > e2) { swap(e1, e2); shift = 16; }
+                    if(e1 > e2) { std::swap(e1, e2); shift = 16; }
                     uint &edge = edges.access(e1 | (e2<<16), ~0U);
                     if(((edge>>shift)&0xFFFF) != 0xFFFF) edge = 0;
                     else
@@ -270,7 +270,7 @@ __attribute__((optimize(2)))
                 loopj(3)
                 {
                     uint e1 = shareverts[t.vert[j]], e2 = shareverts[t.vert[(j+1)%3]], shift = 0;
-                    if(e1 > e2) { swap(e1, e2); shift = 16; }
+                    if(e1 > e2) { std::swap(e1, e2); shift = 16; }
                     uint edge = edges[e1 | (e2<<16)];
                     if(!edge || int((edge>>shift)&0xFFFF)!=i) t.neighbor[j] = 0xFFFF;
                     else t.neighbor[j] = (edge>>(16-shift))&0xFFFF;
@@ -718,7 +718,7 @@ __attribute__((optimize(2)))
             numtags++;
 
             linkedpart *nlinks = new linkedpart[numtags];
-            loopi(numtags-1) swap(links[i].emitter, nlinks[i].emitter);
+            loopi(numtags-1) std::swap(links[i].emitter, nlinks[i].emitter);
             DELETEA(links);
             links = nlinks;
             return true;

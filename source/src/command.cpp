@@ -613,7 +613,7 @@ char *executeret(const char *p)                            // all evaluation hap
                 {
                     case '=':
                         DELETEA(w[1]);
-                        swap(w[0], w[1]);
+                        _swap(w[0], w[1]);
                         c = "alias";
                         break;
                 }

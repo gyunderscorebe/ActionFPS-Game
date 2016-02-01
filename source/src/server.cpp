@@ -3715,6 +3715,10 @@ void resetserverifempty()
     autoteam = true;
     changemastermode(MM_OPEN);
     nextmapname[0] = '\0';
+
+    // read DB
+    userdb.read(usermanager);
+    groupdb.read(usermanager);
 }
 
 void sendworldstate()
@@ -3926,6 +3930,10 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         loggamestatus("game finished");
         if(demorecord) enddemorecord();
         interm = nextsendscore = 0;
+
+        // read DB
+        userdb.read(usermanager);
+        groupdb.read(usermanager);
 
         //start next game
         if(nextmapname[0]) startgame(nextmapname, nextgamemode);

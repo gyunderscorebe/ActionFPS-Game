@@ -19,7 +19,8 @@
 #include <ctype.h>
 #include <time.h>
 #include <limits.h>
-#include <map>
+#include <vector>
+#include <algorithm>
 #include <string>
 
 #ifdef __MINGW32__

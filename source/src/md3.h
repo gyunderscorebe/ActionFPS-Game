@@ -82,9 +82,9 @@ struct md3 : vertmodel
                     tags[i].pos = vec(tag.pos.y, tag.pos.x, tag.pos.z);
                     memcpy(tags[i].transform, tag.rotation, sizeof(tag.rotation));
                     // undo the x/y swap
-                    loopj(3) swap(tags[i].transform[0][j], tags[i].transform[1][j]);
+                    loopj(3) std::swap(tags[i].transform[0][j], tags[i].transform[1][j]);
                     // then restore it
-                    loopj(3) swap(tags[i].transform[j][0], tags[i].transform[j][1]);
+                    loopj(3) std::swap(tags[i].transform[j][0], tags[i].transform[j][1]);
                 }
                 links = new linkedpart[numtags];
             }

@@ -972,15 +972,16 @@ struct usersdatabasefile : serverconfigfile
             return;
         }
         char buf[4096] = "";
-        usermanager.users.deletecontents();
-        usermanager.users.shrink(0);
+        loopstdv(usermanager.users) DELETEP(usermanager.users[i]);
+        usermanager.users.clear();
         while(f->getline(buf, sizeof(buf)))
         {
             user *u = new user();
             usersdatabasefile::parsedata(u, buf);
-            usermanager.users.add(u);
+            usermanager.users.push_back(u);
             logline(ACLOG_VERBOSE, "read user '%s'", u->id);
         }
+        usermanager.sort_users();
         DELETEP(f);
 
         filelen = getfilesize(filename);
@@ -1053,15 +1054,16 @@ struct groupsdatabasefile : serverconfigfile
             return;
         }
         char buf[4096] = "";
-        usermanager.groups.deletecontents();
-        usermanager.groups.shrink(0);
+        loopstdv(usermanager.groups) DELETEP(usermanager.groups[i]);
+        usermanager.groups.clear();
         while(f->getline(buf, sizeof(buf)))
         {
             groupent *g = new groupent();
             groupsdatabasefile::parsedata(g, buf);
-            usermanager.groups.add(g);
+            usermanager.groups.push_back(g);
             logline(ACLOG_VERBOSE, "read group '%s'", g->id);
         }
+        usermanager.sort_groups();
         DELETEP(f);
 
         filelen = getfilesize(filename);

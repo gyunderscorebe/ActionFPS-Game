@@ -583,9 +583,11 @@ struct serverusermanager
 {
     //std::map<const char *, user *> users;
     //std::map<const char *, user *> tmp_users;
-    vector<user *> users;
-    vector<groupent *> groups;
+    std::vector<user *> users;
+    std::vector<groupent *> groups;
 
+    static bool usercmp(user *a, user *b) { return strcmp(a->id, b->id)<0; }
+    static bool groupcmp(groupent *a, groupent *b) { return strcmp(a->id, b->id)<0; }
 
     bool load()
     {
@@ -593,23 +595,42 @@ struct serverusermanager
         // extract users
     }
 
+    void sort_users()
+    {
+        std::sort(users.begin(), users.end(), serverusermanager::usercmp);
+    }
+
+    void sort_groups()
+    {
+        std::sort(groups.begin(), groups.end(), serverusermanager::groupcmp);
+    }
+
     user *find(const char *id)
     {
-        //return users[id];
-        loopv(users) if(!strcmp(id, users[i]->id))
-        {
-            return users[i];
-        }
+#ifndef STANDALONE
         return NULL;
+#else
+        if(!id || !id[0]) return NULL;
+        static user *tmp = NULL;
+        if(!tmp) tmp = new user();
+        copystring(tmp->id, id, MAXUSERIDLEN);
+        bool found = std::binary_search(users.begin(), users.end(), tmp, serverusermanager::usercmp);
+        return found ? *std::lower_bound(users.begin(), users.end(), tmp, serverusermanager::usercmp) : NULL;
+#endif
     }
 
     groupent *find_group(const char *id)
     {
-        loopv(groups) if(!strcmp(id, groups[i]->id))
-        {
-            return groups[i];
-        }
+#ifndef STANDALONE
         return NULL;
+#else
+        if(!id || !id[0]) return NULL;
+        static groupent *tmp = NULL;
+        if(!tmp) tmp = new groupent();
+        copystring(tmp->id, id, MAXGROUPIDLEN);
+        bool found = std::binary_search(groups.begin(), groups.end(), tmp, serverusermanager::groupcmp);
+        return found ? *std::lower_bound(groups.begin(), groups.end(), tmp, serverusermanager::groupcmp) : NULL;
+#endif!
     }
 
     void generate_challenge(client *cl, const char *sid)
