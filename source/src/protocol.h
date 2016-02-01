@@ -55,7 +55,7 @@ extern void protocoldebug(bool enable);
 extern const char *messagenames[SV_NUM];
 #endif
 
-enum { SA_KICK = 0, SA_BAN, SA_REMBANS, SA_MASTERMODE, SA_AUTOTEAM, SA_FORCETEAM, SA_GIVEADMIN, SA_MAP, SA_RECORDDEMO, SA_STOPDEMO, SA_CLEARDEMOS, SA_SERVERDESC, SA_SHUFFLETEAMS, SA_NUM};
+enum { SA_KICK = 0, SA_BAN, SA_REMBANS, SA_MASTERMODE, SA_AUTOTEAM, SA_FORCETEAM, SA_GIVEADMIN, SA_MAP, SA_RECORDDEMO, SA_STOPDEMO, SA_CLEARDEMOS, SA_SERVERDESC, SA_SHUFFLETEAMS, SA_SWITCHTEAMS, SA_GROUPTEAMS, SA_NUM};
 enum { VOTE_NEUTRAL = 0, VOTE_YES, VOTE_NO, VOTE_NUM };
 enum { VOTEE_DISABLED = 0, VOTEE_CUR, VOTEE_MUL, VOTEE_MAX, VOTEE_AREA, VOTEE_PERMISSION, VOTEE_INVALID, VOTEE_WEAK, VOTEE_NEXT, VOTEE_NUM };
 enum { MM_OPEN = 0, MM_PRIVATE, MM_MATCH, MM_NUM }; enum { MM_MASK = 0x03 };
@@ -139,6 +139,8 @@ enum
 #define m_coop        (gamemode==1)
 #define m_flags       (m_ctf || m_htf || m_ktf)
 #define m_isdemo(x)   ((x) == -1)
+
+#define m_match(m) ((m) == MM_MATCH || (m) == MM_PRIVATE)
 
 // single filter modes
 #define FTXT_NOWHITE     (1<<8)

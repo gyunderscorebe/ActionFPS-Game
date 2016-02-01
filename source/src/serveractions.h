@@ -290,6 +290,34 @@ struct shuffleteamaction : serveraction
     }
 };
 
+struct switchteamaction : serveraction
+{
+    void perform()
+    {
+        switchteams();
+    }
+    bool isvalid() { return serveraction::isvalid() && m_teammode; }
+    switchteamaction()
+    {
+        role = CR_DEFAULT;
+        if(isvalid()) copystring(desc, "switch teams");
+    }
+};
+
+struct groupteamaction : serveraction
+{
+    void perform()
+    {
+        groupteams();
+    }
+    bool isvalid() { return serveraction::isvalid() && m_teammode; }
+    groupteamaction()
+    {
+        role = CR_DEFAULT;
+        if(isvalid()) copystring(desc, "group teams");
+    }
+};
+
 struct recorddemoaction : enableaction            // TODO: remove completely
 {
     void perform() { }

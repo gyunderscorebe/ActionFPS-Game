@@ -410,7 +410,7 @@ void renderscores(void *menu, bool init)
         {
             if(servstate.mastermode > MM_OPEN)
             {
-                if(servstate.mastermode == MM_MATCH) concatformatstring(serverline, "M%d ", servstate.matchteamsize);
+                if(m_match(servstate.mastermode)) concatformatstring(serverline, "M%d ", servstate.matchteamsize);
                 else concatstring(serverline, "P ");
             }
             // ft: 2010jun12: this can write over the menu boundary

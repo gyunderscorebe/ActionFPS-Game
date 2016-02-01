@@ -1262,6 +1262,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         break;
                     case SA_REMBANS:
                     case SA_SHUFFLETEAMS:
+                    case SA_SWITCHTEAMS:
+                    case SA_GROUPTEAMS:
                         v = newvotedisplayinfo(d, type, NULL, NULL);
                         break;
                     case SA_FORCETEAM:

@@ -208,7 +208,7 @@ void newteam(char *name)
 
 void benchme()
 {
-    if(team_isactive(player1->team) && servstate.mastermode == MM_MATCH)
+    if(team_isactive(player1->team) && m_match(servstate.mastermode))
         addmsg(SV_SWITCHTEAM, "ri", team_tospec(player1->team));
 }
 
@@ -1304,7 +1304,7 @@ COMMAND(dropflag, "");
 
 char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
 {
-    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to team %s", "give admin to player %s", "load map %s in mode %s%s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
+    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to team %s", "give admin to player %s", "load map %s in mode %s%s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams", "switch teams", "group teams"};
     const char *msg = msgs[type];
     char *out = newstring(MAXSTRLEN);
     out[MAXSTRLEN] = '\0';
@@ -1415,6 +1415,8 @@ void callvote(int type, const char *arg1, const char *arg2, const char *arg3)
                 break;
             case SA_REMBANS:
             case SA_SHUFFLETEAMS:
+            case SA_SWITCHTEAMS:
+            case SA_GROUPTEAMS:
                 break;
             case SA_FORCETEAM:
                 putint(p, atoi(arg1));
@@ -1702,7 +1704,7 @@ void setfollowplayer(int cn)
 // set new spect mode
 void spectatemode(int mode)
 {
-    if((player1->state != CS_DEAD && player1->state != CS_SPECTATE && !team_isspect(player1->team)) || (!m_teammode && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH)) return;  // during ffa matches only SPECTATORS can spectate
+    if((player1->state != CS_DEAD && player1->state != CS_SPECTATE && !team_isspect(player1->team)) || (!m_teammode && !team_isspect(player1->team) && m_match(servstate.mastermode))) return;  // during ffa matches only SPECTATORS can spectate
     if(mode == player1->spectatemode || (m_botmode && mode != SM_FLY)) return;
     showscores(false);
     switch(mode)

@@ -248,7 +248,7 @@ void changematchteamsize(int newteamsize)
         matchteamsize = newteamsize;
         sendservermode();
     }
-    if(mastermode == MM_MATCH && matchteamsize && m_teammode)
+    if(m_match(mastermode) && matchteamsize && m_teammode)
     {
         int size[2] = { 0 };
         loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed && clients[i]->isonrightmap)
@@ -267,7 +267,7 @@ void changemastermode(int newmode)
     {
         mastermode = newmode;
         senddisconnectedscores(-1);
-        if(mastermode != MM_MATCH)
+        if(!m_match(mastermode))
         {
             loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed)
             {
@@ -292,7 +292,7 @@ int findcnbyaddress(ENetAddress *address)
 savedscore *findscore(client &c, bool insert)
 {
     if(c.type!=ST_TCPIP) return NULL;
-    enet_uint32 mask = ENET_HOST_TO_NET_32(mastermode == MM_MATCH ? 0xFFFF0000 : 0xFFFFFFFF); // in match mode, reconnecting from /16 subnet is allowed
+    enet_uint32 mask = ENET_HOST_TO_NET_32(m_match(mastermode) ? 0xFFFF0000 : 0xFFFFFFFF); // in match mode, reconnecting from /16 subnet is allowed
     if(!insert)
     {
         loopv(clients)
@@ -1279,7 +1279,7 @@ void arenacheck()
         }
     }
 
-    if(autoteam && m_teammode && mastermode != MM_MATCH)
+    if(autoteam && m_teammode && !m_match(mastermode))
     {
         int *ntc = numteamclients();
         if((!ntc[0] || !ntc[1]) && (ntc[0] > 1 || ntc[1] > 1)) refillteams(true, FTR_AUTOTEAM);
@@ -1584,7 +1584,7 @@ int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
         (c->type == ST_TCPIP && (servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000 &&
           gamemillis > 10000 && totalclients > 3 && !team_isspect(c->team)))) return SP_OK_NUM; // equivalent to SP_DENY
     if(!c->isonrightmap) return SP_WRONGMAP;
-    if(mastermode == MM_MATCH && matchteamsize)
+    if(m_match(mastermode) && matchteamsize)
     {
         if(c->team == TEAM_SPECT || (team_isspect(c->team) && !m_teammode)) return SP_SPECT;
         if(c->team == TEAM_CLA_SPECT || c->team == TEAM_RVSF_SPECT)
@@ -1598,7 +1598,7 @@ int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
 
 void autospawncheck()
 {
-    if(mastermode != MM_MATCH || !m_autospawn || interm) return;
+    if(!m_match(mastermode) || !m_autospawn || interm) return;
 
     loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed && team_isactive(clients[i]->team))
     {
@@ -1623,7 +1623,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
         newteam < TEAM_SPECT && team_base(cl.team) != team_base(newteam) ) return false; // no free will changes to forced people
     if(newteam == TEAM_ANYACTIVE) // when spawning from spect
     {
-        if(mastermode == MM_MATCH && cl.team < TEAM_SPECT)
+        if(m_match(mastermode) && cl.team < TEAM_SPECT)
         {
             newteam = team_base(cl.team);
         }
@@ -1643,14 +1643,14 @@ bool updateclientteam(int cln, int newteam, int ftr)
     }
     if(ftr == FTR_PLAYERWISH)
     {
-        if(mastermode == MM_MATCH && matchteamsize && m_teammode)
+        if(m_match(mastermode) && matchteamsize && m_teammode)
         {
             if(newteam != TEAM_SPECT && (team_base(newteam) != team_base(cl.team) || !m_teammode)) return false; // no switching sides in match mode when teamsize is set
         }
         if(team_isactive(newteam))
         {
             if(!m_teammode && cl.state.state == CS_ALIVE) return false;  // no comments
-            if(mastermode == MM_MATCH)
+            if(m_match(mastermode))
             {
                 if(m_teammode && matchteamsize && teamsizes[newteam] >= matchteamsize) return false;  // ensure maximum team size
             }
@@ -1659,7 +1659,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
                 if(m_teammode && autoteam && teamsizes[newteam] > teamsizes[team_opposite(newteam)]) return false; // don't switch to an already bigger team
             }
         }
-        else if(mastermode != MM_MATCH || !m_teammode) newteam = TEAM_SPECT; // only match mode (team) has more than one spect team
+        else if(!m_match(mastermode) || !m_teammode) newteam = TEAM_SPECT; // only match mode (team) has more than one spect team
     }
     if(cl.team == newteam && ftr != FTR_AUTOTEAM) return true; // no change
     if(cl.team != newteam) sdropflag(cl.clientnum);
@@ -1726,6 +1726,81 @@ void shuffleteams(int ftr = FTR_AUTOTEAM)
     {
         ctfreset();
         sendflaginfo();
+    }
+}
+
+struct groupplayers
+{
+    const char *id;
+    vector<client *> players;
+};
+
+void groupteams()
+{
+    if(interm) return;
+    logline(ACLOG_INFO, "Beginning team sort");
+
+    vector<groupplayers> gplayers;
+    
+    loopv(clients) if(clients[i] && (clients[i]->isauthed && (clients[i]->type == ST_TCPIP && (clients[i]->team != TEAM_SPECT))))
+    {
+        client *cl = clients[i];
+        bool found_group = false;
+        loopv(gplayers) if(!strcmp(gplayers[i].id, cl->group.id)) 
+        {
+            found_group = true;
+            gplayers[i].players.add(cl);
+            break;
+        }
+        if(!found_group)
+        {
+            groupplayers &gp = gplayers.add();
+            gp.id = cl->group.id;
+            gp.players.add(cl);
+        }
+    }
+
+    int current_team = rnd(2);
+    int pop[2] = { 0, 0 };
+
+    loopv(gplayers) if(gplayers[i].players.length())
+    {
+        if(gplayers[i].id[0])
+        {
+            if(pop[current_team] > pop[current_team^1])
+                current_team ^= 1;
+
+            pop[current_team] += gplayers[i].players.length();
+            logline(ACLOG_INFO, "Group %s moved to team %s", gplayers[i].id, team_string(current_team));
+            loopvj(gplayers[i].players)
+            {
+                updateclientteam(gplayers[i].players[j]->clientnum, current_team, FTR_SILENTFORCE);
+            }
+        }
+        else
+        {
+            loopvj(gplayers[i].players)
+            {
+                if(pop[current_team] > pop[current_team^1])
+                    current_team ^= 1;
+                pop[current_team]++;
+                updateclientteam(gplayers[i].players[j]->clientnum, current_team, FTR_INFO);
+                logline(ACLOG_INFO, "Player %s moved to team %s", gplayers[i].players[j]->name, team_string(current_team));
+            }
+        }
+    }
+}
+
+void switchteams()
+{
+    logline(ACLOG_INFO, "Switching teams");
+    loopv(clients)
+    {
+        client *cl = clients[i];
+        if(cl && cl->type == ST_TCPIP && cl->isauthed)
+        {
+            updateclientteam(cl->clientnum, team_opposite(cl->team), FTR_SILENTFORCE);
+        }
     }
 }
 
@@ -1828,7 +1903,7 @@ int lastbalance = 0, waitbalance = 2 * 60 * 1000;
 
 bool refillteams(bool now, int ftr)  // force only minimal amounts of players
 {
-    if(mastermode == MM_MATCH) return false;
+    if(m_match(mastermode)) return false;
     static int lasttime_eventeams = 0;
     int teamsize[2] = {0, 0}, teamscore[2] = {0, 0}, moveable[2] = {0, 0};
     bool switched = false;
@@ -2023,7 +2098,7 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
         send_item_list(q); // always send the item list when a game starts
         sendpacket(-1, 1, q.finalize());
         defformatstring(gsmsg)("Game start: %s on %s, %d players, %d minutes, mastermode %d, ", modestr(smode), smapname, numclients(), minremain, mastermode);
-        if(mastermode == MM_MATCH) concatformatstring(gsmsg, "teamsize %d, ", matchteamsize);
+        if(m_match(mastermode)) concatformatstring(gsmsg, "teamsize %d, ", matchteamsize);
         if(ms) concatformatstring(gsmsg, "(map rev %d/%d, %s, 'getmap' %sprepared)", smapstats.hdr.maprevision, smapstats.cgzsize, maplocstr[maploc], mapbuffer.available() ? "" : "not ");
         else concatformatstring(gsmsg, "error: failed to preload map (map: %s)", maplocstr[maploc]);
         logline(ACLOG_INFO, "\n%s", gsmsg);
@@ -2313,6 +2388,8 @@ void callvotepacket (int cn, voteinfo *v = curvote)
             break;
         case SA_REMBANS:
         case SA_SHUFFLETEAMS:
+        case SA_SWITCHTEAMS:
+        case SA_GROUPTEAMS:
             break;
         case SA_FORCETEAM:
             putint(q, v->num1);
@@ -2355,7 +2432,7 @@ void senddisconnectedscores(int cn)
 {
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_DISCSCORES);
-    if(mastermode == MM_MATCH)
+    if(m_match(mastermode))
     {
         loopv(savedscores)
         {
@@ -2406,7 +2483,7 @@ void disconnect_client(int n, int reason)
     clients[n]->zap();
     sendf(-1, 1, "rii", SV_CDIS, n);
     if(curvote) curvote->evaluate();
-    if(*scoresaved && mastermode == MM_MATCH) senddisconnectedscores(-1);
+    if(*scoresaved && m_match(mastermode)) senddisconnectedscores(-1);
 }
 
 void sendiplist(int receiver, int cn)
@@ -2541,7 +2618,7 @@ void welcomepacket(packetbuf &p, int n)
     if(c)
     {
         if(c->type == ST_TCPIP && serveroperator() != -1) sendserveropinfo(n);
-        c->team = mastermode == MM_MATCH && sc ? team_tospec(sc->team) : TEAM_SPECT;
+        c->team = m_match(mastermode) && sc ? team_tospec(sc->team) : TEAM_SPECT;
         putint(p, SV_SETTEAM);
         putint(p, n);
         putint(p, c->team | (FTR_INFO << 4));
@@ -2707,8 +2784,8 @@ void process(ENetPacket *packet, int sender, int chan)
             int bantype = getbantype(sender);
             bool banned = bantype > BAN_NONE || (u && u->banned);
             bool srvfull = numnonlocalclients() > scl.maxclients;
-            bool srvprivate = mastermode == MM_PRIVATE || mastermode == MM_MATCH;
-            bool matchreconnect = mastermode == MM_MATCH && findscore(*cl, false);
+            bool srvprivate = mastermode == MM_PRIVATE;
+            bool matchreconnect = mastermode == m_match(mastermode) && findscore(*cl, false);
             int bl = 0, wl = nickblacklist.checkwhitelist(*cl);
             if(wl == NWL_PASS) concatstring(tags, ", nickname whitelist match");
             if(wl == NWL_UNLISTED) bl = nickblacklist.checkblacklist(cl->name);
@@ -2892,7 +2969,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     bool canspeech = forbiddenlist.canspeech(text);
                     if(!spamdetect(cl, text) && canspeech)
                     {
-                        if(mastermode != MM_MATCH || !matchteamsize || team_isactive(cl->team) || (cl->team == TEAM_SPECT && cl->role == CR_ADMIN)) // common chat
+                        if(!m_match(mastermode) || !matchteamsize || team_isactive(cl->team) || (cl->team == TEAM_SPECT && cl->role == CR_ADMIN)) // common chat
                         {
                             logline(ACLOG_INFO, "[%s] %s%s says: '%s'", cl->identity, type == SV_TEXTME ? "(me) " : "", cl->name, text);
                             if(cl->type==ST_TCPIP) while(mid1<mid2) cl->messages.add(p.buf[mid1++]);
@@ -2938,7 +3015,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     bool canspeech = forbiddenlist.canspeech(text);
                     if(!spamdetect(cl, text) && canspeech)
                     {
-                        bool allowed = !(mastermode == MM_MATCH && cl->team != target->team) && cl->role >= roleconf('t');
+                        bool allowed = !(m_match(mastermode) && cl->team != target->team) && cl->role >= roleconf('t');
                         logline(ACLOG_INFO, "[%s] %s says to %s: '%s' (%s)", cl->identity, cl->name, target->name, text, allowed ? "allowed":"disallowed");
                         if(allowed) sendf(target->clientnum, 1, "riis", SV_TEXTPRIVATE, cl->clientnum, text);
                     }
@@ -2994,7 +3071,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     bool spawn = false;
                     if(team_isspect(cl->team))
                     {
-                        if(numclients() < 2 && !m_demo && mastermode != MM_MATCH) // spawn on empty servers
+                        if(numclients() < 2 && !m_demo && !m_match(mastermode)) // spawn on empty servers
                         {
                             spawn = updateclientteam(cl->clientnum, TEAM_ANYACTIVE, FTR_INFO);
                         }
@@ -3549,6 +3626,12 @@ void process(ENetPacket *packet, int sender, int chan)
                     case SA_SHUFFLETEAMS:
                         vi->action = new shuffleteamaction();
                         break;
+                    case SA_SWITCHTEAMS:
+                        vi->action = new switchteamaction();
+                        break;
+                    case SA_GROUPTEAMS:
+                        vi->action = new groupteamaction();
+                        break;
                     case SA_FORCETEAM:
                         vi->num1 = getint(p);
                         vi->num2 = getint(p);
@@ -3638,7 +3721,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     // intermediate solution to set the teamsize (will be voteable)
 
                     getstring(text, p, n);
-                    if(valid_client(sender) && clients[sender]->role==CR_ADMIN && mastermode == MM_MATCH)
+                    if(valid_client(sender) && clients[sender]->role==CR_ADMIN && m_match(mastermode))
                     {
                         changematchteamsize(atoi(text));
                         defformatstring(msg)("match team size set to %d", matchteamsize);
@@ -3775,7 +3858,7 @@ void loggamestatus(const char *reason)
             pnum[t] += 1;
         }
     }
-    if(mastermode == MM_MATCH)
+    if(m_match(mastermode))
     {
         loopv(savedscores)
         {
@@ -4115,7 +4198,7 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
         if(clients[i]->type != ST_TCPIP) continue;
         if(pid>-1 && clients[i]->clientnum!=pid) continue;
 
-        bool ismatch = mastermode == MM_MATCH;
+        bool ismatch = m_match(mastermode);
         putint(p,EXT_PLAYERSTATS_RESP_STATS);  // send player stats following
         putint(p,clients[i]->clientnum);  //add player id
         putint(p,clients[i]->ping);             //Ping
