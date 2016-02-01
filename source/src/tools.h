@@ -32,7 +32,7 @@ typedef unsigned int uint;
 #undef swap
 #endif
 template<class T>
-static inline void swap(T &a, T &b)
+static inline void _swap(T &a, T &b)
 {
     T t = a;
     a = b;
@@ -225,6 +225,8 @@ inline bool findpattern (char *s, char *d) // returns true if there is more than
 #define loopvrev(v) for(int i = (v).length()-1; i>=0; i--)
 #define loopvjrev(v) for(int j = (v).length()-1; j>=0; j--)
 
+#define loopstdv(v) for(unsigned int i = 0; i<(v).size(); i++)
+
 template <class T>
 struct databuf
 {
@@ -289,6 +291,12 @@ struct databuf
     {
         len = maxlen;
         flags |= OVERREAD;
+    }
+
+    void reset()
+    {
+        len = maxlen = 0;
+        DELETEP(buf);
     }
 };
 

@@ -161,13 +161,29 @@ void newname(const char *name)
     {
         string tmpname;
         filtertext(tmpname, name, FTXT__PLAYERNAME, MAXNAMELEN);
-        exechook(HOOK_SP, "onNameChange", "%d \"%s\"", player1->clientnum, tmpname);
-        copystring(player1->name, tmpname);//12345678901234//
-        if(!player1->name[0]) copystring(player1->name, "unarmed");
-        updateclientname(player1);
+        if(!multiplayer())
+        {
+            exechook(HOOK_SP, "onNameChange", "%d \"%s\"", player1->clientnum, tmpname);
+            copystring(player1->name, tmpname);//12345678901234//
+            if(!player1->name[0]) copystring(player1->name, "unarmed");
+            updateclientname(player1);
+        }
         addmsg(SV_SWITCHNAME, "rs", player1->name);
     }
     else conoutf("your name is: %s", player1->name);
+}
+
+SVARP(defaultgroup, "");
+void newgroup(char *group)
+{
+    if(*group)
+    {
+        char tmp[MAXGROUPIDLEN+1] = "";
+        filtertext(tmp, group, FTXT__PLAYERNAME, MAXGROUPIDLEN);
+        setsvar("defaultgroup", tmp);
+        addmsg(SV_SWITCHGROUP, "rs", tmp);
+    }
+    else conoutf("your group is: %s", player1->group.name);
 }
 
 SVARFF(curname, { curname = exchangestr(curname, player1->name); }, {} );
@@ -218,6 +234,7 @@ void curmodeattr(char *attr)
 
 COMMANDN(team, newteam, "s");
 COMMANDN(name, newname, "s");
+COMMANDN(group, newgroup, "s");
 COMMAND(benchme, "");
 COMMANDF(isclient, "i", (int *cn) { intret(getclient(*cn) != NULL ? 1 : 0); } );
 COMMANDF(curmastermode, "", (void) { intret(servstate.mastermode); });

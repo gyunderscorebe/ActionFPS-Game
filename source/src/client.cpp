@@ -570,13 +570,45 @@ int getbuildtype()
             0;
 }
 
+ucharbuf auth_challenge;
+SVARP(authid, "");
+ucharbuf authkey;
+
+void readauthkey()
+{
+    stream *f = openfile(path("config/authkey", true), "r");
+    if(!f) return;
+    char buf[5000] = "";
+    int bytes = f->read(buf, sizeof(buf));
+    
+    authkey.reset();
+    authkey.buf = new uchar[bytes];
+    authkey.maxlen = bytes;
+    authkey.put((uchar *)buf, bytes);
+    
+    delete f;
+}
+
+void writeauthkey()
+{
+    stream *f = openfile(path("config/authkey", true), "w");
+    if(!f) return;
+    f->write(authkey.buf, authkey.len);
+    f->close();
+    delete f;
+}
+
 void sendintro()
 {
+    extern char *authid;
+    extern char *defaultgroup;
+
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_CONNECT);
     putint(p, AC_VERSION);
     putint(p, getbuildtype());
     sendstring(player1->name, p);
+    sendstring(defaultgroup, p);
     sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);
     sendstring(!lang || strlen(lang) != 2 ? "" : lang, p);
     putint(p, connectrole);
@@ -584,7 +616,36 @@ void sendintro()
     connectrole = CR_DEFAULT;
     putint(p, player1->nextprimweap->type);
     loopi(2) putint(p, player1->skin(i));
+
+    // authentication
+    sendstring(authid, p);
+
+    DSA *priv_dsa = DSA_new();
+
+    BIO *bio;
+    bio = BIO_new(BIO_s_mem());
+    BIO_write(bio, (const void *) authkey.buf,  authkey.len);
+    DSA *ret = PEM_read_bio_DSAPrivateKey(bio, &priv_dsa, NULL, NULL);
+    if(!ret)
+    {
+        putint(p, 0);
+        DELETEP(priv_dsa);
+        DELETEP(bio);
+        sendpackettoserv(1, p.finalize());
+        return;
+    }
+
+    uchar *signature = new uchar[DSA_size(priv_dsa)];
+    uint siglen;
+    int res = DSA_sign(0, auth_challenge.buf, auth_challenge.len, signature, &siglen, priv_dsa);
+    putint(p, siglen);
+    p.put(signature, siglen);
+
     sendpackettoserv(1, p.finalize());
+
+    DELETEP(bio);
+    DELETEP(priv_dsa);
+    DELETEP(signature);
 }
 
 void gets2c()           // get updates from the server
@@ -650,75 +711,6 @@ void gets2c()           // get updates from the server
             break;
     }
 }
-
-// for AUTH:
-
-vector<authkey *> authkeys;
-
-VARP(autoauth, 0, 1, 1);
-
-authkey *findauthkey(const char *desc)
-{
-    loopv(authkeys) if(!strcmp(authkeys[i]->desc, desc) && !strcmp(authkeys[i]->name, player1->name)) return authkeys[i];
-    loopv(authkeys) if(!strcmp(authkeys[i]->desc, desc)) return authkeys[i];
-    return NULL;
-}
-
-void addauthkey(const char *name, const char *key, const char *desc)
-{
-    loopvrev(authkeys) if(!strcmp(authkeys[i]->desc, desc) && !strcmp(authkeys[i]->name, name)) delete authkeys.remove(i);
-    if(name[0] && key[0]) authkeys.add(new authkey(name, key, desc));
-}
-
-bool _hasauthkey(const char *name, const char *desc)
-{
-    if(!name[0] && !desc[0]) return authkeys.length() > 0;
-    loopvrev(authkeys) if(!strcmp(authkeys[i]->desc, desc) && !strcmp(authkeys[i]->name, name)) return true;
-    return false;
-}
-
-void genauthkey(const char *secret)
-{
-    if(!secret[0]) { conoutf("you must specify a secret password"); return; }
-    vector<char> privkey, pubkey;
-    genprivkey(secret, privkey, pubkey);
-    conoutf("private key: %s", privkey.getbuf());
-    conoutf("public key: %s", pubkey.getbuf());
-}
-
-void saveauthkeys()
-{
-    if(authkeys.length())
-    {
-        stream *f = openfile("config/auth.cfg", "w");
-        if(!f) { conoutf("failed to open config/auth.cfg for writing"); return; }
-        loopv(authkeys)
-        {
-            authkey *a = authkeys[i];
-            f->printf("authkey \"%s\" \"%s\" \"%s\"\n", a->name, a->key, a->desc);
-        }
-        conoutf("saved authkeys to config/auth.cfg");
-        delete f;
-    }
-    else conoutf("you need to use 'addauthkey USER KEY DESC' first; one DESC 'public', one DESC empty(=private)");
-}
-
-bool tryauth(const char *desc)
-{
-    authkey *a = findauthkey(desc);
-    if(!a) return false;
-    a->lastauth = lastmillis;
-    addmsg(SV_AUTHTRY, "rss", a->desc, a->name);
-    return true;
-}
-
-COMMANDN(authkey, addauthkey, "sss");
-COMMANDF(hasauthkey, "ss", (char *name, char *desc) { intret(_hasauthkey(name, desc) ? 1 : 0); });
-COMMAND(genauthkey, "s");
-COMMAND(saveauthkeys, "");
-COMMANDF(auth, "s", (char *desc) { intret(tryauth(desc)); });
-
-// :for AUTH
 
 // sendmap/getmap commands, should be replaced by more intuitive map downloading
 

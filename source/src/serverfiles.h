@@ -950,3 +950,145 @@ struct killmessagesfile : serverconfigfile
         }
     }
 };
+
+struct usersdatabasefile : serverconfigfile
+{
+    void init(const char *name) { serverconfigfile::init(name); }
+
+    void read()
+    {
+
+    }
+
+    void read(serverusermanager &usermanager)
+    {
+        if(getfilesize(filename) == filelen) return;
+
+        logline(ACLOG_VERBOSE, "opening users database");
+        stream *f = opengzfile(filename, "rb");
+        if(!f)
+        {
+            logline(ACLOG_ERROR, "could not open '%s' for reading", filename);
+            return;
+        }
+        char buf[4096] = "";
+        loopstdv(usermanager.users) DELETEP(usermanager.users[i]);
+        usermanager.users.clear();
+        while(f->getline(buf, sizeof(buf)))
+        {
+            user *u = new user();
+            usersdatabasefile::parsedata(u, buf);
+            usermanager.users.push_back(u);
+            logline(ACLOG_VERBOSE, "read user '%s'", u->id);
+        }
+        usermanager.sort_users();
+        DELETEP(f);
+
+        filelen = getfilesize(filename);
+    }
+
+    // reads from u->data
+    // and sets all the parameters according to its content
+    static void parsedata(user *u, char *data)
+    {
+        const char *current = strtok(data, " ");
+        while (current != NULL)
+        {
+            const char *val = strchr(current, '=');
+            char *key = newstring(current, val ? val-current : strlen(current));
+            val++;
+            if(!strcmp(key, "id"))
+            {
+                copystring(u->id, val, sizeof(u->id));
+            }
+            else if(!strcmp(key, "admin"))
+            {
+                u->admin = true;
+            }
+            else if(!strcmp(key, "group"))
+            {
+                if(val) u->groups.add(newstring(val));
+            }
+            else if(!strcmp(key, "name"))
+            {
+                if(val) u->name = newstring(val);
+            }
+            else if(!strcmp(key, "banned"))
+            {
+                u->banned = true;
+            }
+            else if(!strcmp(key, "pubkey"))
+            {
+                size_t len;
+                std::string encoded = std::string(val);
+                std::string decoded = base64_decode(encoded);
+                len = decoded.length();
+                u->pubkey.buf = new uchar[len];
+                u->pubkey.maxlen = len;
+                u->pubkey.put((uchar *)decoded.c_str(), len);
+            }
+            DELETEA(key);
+            current = strtok(NULL, " ");
+        }
+    }
+};
+
+struct groupsdatabasefile : serverconfigfile
+{
+    void init(const char *name) { serverconfigfile::init(name); }
+
+    void read()
+    {
+
+    }
+
+    void read(serverusermanager &usermanager)
+    {
+        if(getfilesize(filename) == filelen) return;
+
+        logline(ACLOG_VERBOSE, "opening groups database");
+        stream *f = opengzfile(filename, "rb");
+        if(!f)
+        {
+            logline(ACLOG_ERROR, "could not open '%s' for reading", filename);
+            return;
+        }
+        char buf[4096] = "";
+        loopstdv(usermanager.groups) DELETEP(usermanager.groups[i]);
+        usermanager.groups.clear();
+        while(f->getline(buf, sizeof(buf)))
+        {
+            groupent *g = new groupent();
+            groupsdatabasefile::parsedata(g, buf);
+            usermanager.groups.push_back(g);
+            logline(ACLOG_VERBOSE, "read group '%s'", g->id);
+        }
+        usermanager.sort_groups();
+        DELETEP(f);
+
+        filelen = getfilesize(filename);
+    }
+
+    // reads from u->data
+    // and sets all the parameters according to its content
+    static void parsedata(groupent *g, char *data)
+    {
+        const char *current = strtok(data, " ");
+        while (current != NULL)
+        {
+            const char *val = strchr(current, '=');
+            char *key = newstring(current, val ? val-current : strlen(current));
+            val++;
+            if(!strcmp(key, "id"))
+            {
+                copystring(g->id, val, sizeof(g->id));
+            }
+            else if(!strcmp(key, "name"))
+            {
+                if(val) copystring(g->name, val, sizeof(g->name));
+            }
+            DELETEA(key);
+            current = strtok(NULL, " ");
+        }
+    }
+};

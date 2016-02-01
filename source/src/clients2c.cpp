@@ -427,6 +427,21 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 sessionid = getint(p);
                 player1->clientnum = mycn;
                 if(getint(p) > 0) conoutf("INFO: this server is password protected");
+
+                // get authentication challenge
+                int challsize = getint(p);
+
+                extern ucharbuf auth_challenge;
+                auth_challenge.reset();
+
+                if(challsize)
+                {
+                    auth_challenge.maxlen = challsize;
+                    auth_challenge.len = challsize;
+                    auth_challenge.buf = new uchar[challsize];
+                    p.get(auth_challenge.buf, auth_challenge.len);
+                }
+
                 sendintro();
                 break;
             }
@@ -551,6 +566,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             }
 
             case SV_SWITCHNAME:
+            {
+                int cn = getint(p);
+                playerent *d = getclient(cn);
                 getstring(text, p);
                 filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
                 if(!text[0]) copystring(text, "unarmed");
@@ -562,6 +580,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     updateclientname(d);
                 }
                 break;
+            }
 
             case SV_SWITCHTEAM:
                 getint(p);
@@ -601,6 +620,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 }
                 copystring(d->name, text, MAXNAMELEN+1);
                 exechook(HOOK_SP_MP, "onConnect", "%d", d->clientnum);
+
+                getstring(text, p);
+                filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
+                copystring(d->userid, text);
+
+                getstring(text, p);
+                filtertext(text, text, FTXT__PLAYERNAME, MAXGROUPIDLEN);
+                copystring(d->group.id, text);
+                getstring(text, p);
+                filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
+                copystring(d->group.name, text);
+
                 loopi(2) d->setskin(i, getint(p));
                 d->team = getint(p);
 
@@ -612,6 +643,22 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     if(!f.actor) f.actor = getclient(f.actor_cn);
                 }
                 updateclientname(d);
+                break;
+            }
+
+            case SV_SWITCHGROUP:
+            {
+                int cn = getint(p);
+                playerent *d = getclient(cn);
+                
+                getstring(text, p);
+                filtertext(text, text, FTXT__PLAYERNAME, MAXGROUPIDLEN);
+                copystring(d->group.id, text);
+                getstring(text, p);
+                filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
+                copystring(d->group.name, text);
+
+                conoutf("%s switched to group %s", colorname(d), d->group.name);
                 break;
             }
 
@@ -744,34 +791,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
-            // for AUTH: WIP
-
-            case SV_AUTHREQ:
-            {
-                extern int autoauth;
-                getstring(text, p);
-                if(autoauth && text[0] && tryauth(text)) conoutf("server requested authkey \"%s\"", text);
-                break;
-            }
-
-            case SV_AUTHCHAL:
-            {
-                getstring(text, p);
-                authkey *a = findauthkey(text);
-                uint id = (uint)getint(p);
-                getstring(text, p);
-                if(a && a->lastauth && lastmillis - a->lastauth < 60*1000)
-                {
-                    vector<char> buf;
-                    answerchallenge(a->key, text, buf);
-                    //conoutf("answering %u, challenge %s with %s", id, text, buf.getbuf());
-                    addmsg(SV_AUTHANS, "rsis", a->desc, id, buf.getbuf());
-                }
-                break;
-            }
-
-            // :for AUTH
-
             case SV_GIBDAMAGE:
             case SV_DAMAGE:
             {
@@ -888,6 +907,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     ds.team = team;
                     getstring(text, p);
                     filtertext(ds.name, text, FTXT__PLAYERNAME, MAXNAMELEN);
+                    getstring(text, p);
+                    filtertext(ds.userid, text, FTXT__PLAYERNAME, MAXUSERIDLEN);
                     ds.flags = getint(p);
                     ds.frags = getint(p);
                     ds.deaths = getint(p);

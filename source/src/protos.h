@@ -32,25 +32,6 @@ struct color
     color(float r, float g, float b, float a) : r(r), g(g), b(b), alpha(a) {}
 };
 
-struct authkey // for AUTH
-{
-    char *name, *key, *desc;
-    int lastauth;
-
-    authkey(const char *name, const char *key, const char *desc)
-        : name(newstring(name)), key(newstring(key)), desc(newstring(desc)),
-          lastauth(0)
-    {
-    }
-
-    ~authkey()
-    {
-        DELETEA(name);
-        DELETEA(key);
-        DELETEA(desc);
-    }
-};
-
 // console
 extern stream *clientlogfile;
 extern vector<char> *bootclientlog;
@@ -445,8 +426,6 @@ extern int getbuildtype();
 extern void sendintro();
 extern void getdemo(int *idx, char *dsp);
 extern void listdemos();
-extern bool tryauth(const char *desc);
-extern authkey *findauthkey(const char *desc);
 
 // serverms
 bool requestmasterf(const char *fmt, ...); // for AUTH et al
@@ -526,7 +505,7 @@ extern void votecount(int v);
 extern void clearvote();
 
 // scoreboard
-struct discscore { int team, flags, frags, deaths, points; char name[MAXNAMELEN + 1]; };
+struct discscore { int team, flags, frags, deaths, points; char userid[MAXUSERIDLEN + 1]; char name[MAXNAMELEN + 1]; };
 extern vector<discscore> discscores;
 extern void showscores(bool on);
 extern void renderscores(void *menu, bool init);
@@ -869,15 +848,11 @@ extern const char *fullmodestr(int n);
 extern int defaultgamelimit(int gamemode);
 
 // crypto // for AUTH
-extern void genprivkey(const char *seed, vector<char> &privstr, vector<char> &pubstr);
-extern bool hashstring(const char *str, char *result, int maxlen);
 const char *genpwdhash(const char *name, const char *pwd, int salt);
-extern void answerchallenge(const char *privstr, const char *challenge, vector<char> &answerstr);
-extern void *parsepubkey(const char *pubstr);
-extern void freepubkey(void *pubkey);
-extern void *genchallenge(void *pubkey, const void *seed, int seedlen, vector<char> &challengestr);
-extern void freechallenge(void *answer);
-extern bool checkchallenge(const char *answerstr, void *correct);
+extern void readauthkey();
+extern void writeauthkey();
+extern std::string base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len);
+extern std::string base64_decode(std::string const& encoded_string);
 
 // console
 extern void conoutf(const char *s, ...) PRINTFARGS(1, 2);
@@ -1029,6 +1004,7 @@ struct servercommandline
 {
     int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time, demotimelocal;
     const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *motdpath, *forbidden, *killmessages, *demofilenameformat, *demotimestampformat;
+    const char *id;
     bool logtimestamp, demo_interm, loggamestatus;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
@@ -1039,6 +1015,7 @@ struct servercommandline
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
                             infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"), killmessages("config/serverkillmessages.cfg"),
+                            id("unnamed"),
                             logtimestamp(false), demo_interm(false), loggamestatus(true),
                             clfilenesting(0)
     {
@@ -1082,6 +1059,7 @@ struct servercommandline
                     }
                     else return false;
                     break;
+            case 'S': id = a; break;
             case 'u': uprate = ai; break;
             case 'f': if(ai > 0 && ai < 65536) serverport = ai; break;
             case 'i': ip     = a; break;

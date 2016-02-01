@@ -19,6 +19,10 @@
 #include <ctype.h>
 #include <time.h>
 #include <limits.h>
+#include <vector>
+#include <algorithm>
+#include <string>
+
 #ifdef __MINGW32__
     #include <stdint.h>
 #endif
@@ -32,6 +36,13 @@
 #include <zlib.h>
 #include <enet/enet.h>
 
+#include <openssl/dsa.h>
+#include <openssl/engine.h>
+#include <openssl/rand.h>
+#include <openssl/bio.h>
+#include <openssl/pem.h>
+#include <openssl/sha.h>
+
 #ifdef WIN32
     #define WIN32_LEAN_AND_MEAN
     #include "windows.h"
@@ -40,7 +51,7 @@
     #endif
     #include <tlhelp32.h>
     #ifndef __GNUC__
-        #include <Dbghelp.h>
+        #include <Dbghelp.h> 
     #endif
     #define ZLIB_DLL
 #endif

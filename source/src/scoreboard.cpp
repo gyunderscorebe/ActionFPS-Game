@@ -21,7 +21,8 @@ VARFP(sc_ratio,     -1, -1, 100, needscoresreorder = true);
 VARFP(sc_score,     -1,  4, 100, needscoresreorder = true);
 VARFP(sc_lag,       -1,  5, 100, needscoresreorder = true);
 VARFP(sc_clientnum,  0,  6, 100, needscoresreorder = true);
-VARFP(sc_name,       0,  7, 100, needscoresreorder = true);
+VARFP(sc_group,      0,  7, 100, needscoresreorder = true);
+VARFP(sc_name,       0,  8, 100, needscoresreorder = true);
 
 struct coldata
 {
@@ -195,6 +196,7 @@ void renderdiscscores(int team)
         if(multiplayer(false) || watchingdemo) line.addcol(sc_score, "%d", max(d.points, 0));
         line.addcol(sc_lag, "%s", clag);
         line.addcol(sc_clientnum, "DISC");
+        line.addcol(sc_group, ""); // FIXME
         line.addcol(sc_name, "%s", d.name);
     }
 }
@@ -238,6 +240,7 @@ void renderscore(playerent *d)
             if(flaginfos[i].state == CTFF_STOLEN && flaginfos[i].actor == d) flagicon = m_ktf ? 'L' : "DH"[i];
         }
     }
+    line.addcol(sc_group, "%s", d->group.name);
     line.addcol(sc_name, "\fs%s%s\fr%s%s%c ", status, colorname(d), ign, flagicon ? " \a" : "", flagicon);
 }
 
@@ -263,6 +266,7 @@ void renderteamscore(teamscore *t)
     }
     line.addcol(sc_clientnum, "%s", team_string(t->team));
     int n = t->teammembers.length();
+    line.addcol(sc_group, "");
     line.addcol(sc_name, "(%d %s)", n, n == 1 ? "player" : "players");
 
     static color teamcolors[2] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f) };
@@ -289,6 +293,7 @@ void reorderscorecolumns()
         sscore.addcol(sc_lag, "pj/ping");
     }
     sscore.addcol(sc_clientnum, "cn");
+    sscore.addcol(sc_group, "group");
     sscore.addcol(sc_name, "name");
     copystring(scoreboardtitle, sscore.getcols());
     menutitle(scoremenu, scoreboardtitle);
