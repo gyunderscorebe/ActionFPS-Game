@@ -1023,10 +1023,9 @@ void gameprotocol(char *protocolstring, string &servername, int &serverport, str
         }
         else if(!strncmp(c, "key=", 4))
         {
-            extern char *authkey;
             c += 4; p = c; len = 0;
             while(*c && *c!='&' && *c!='/') { len++, c++; }
-            if(len) copystring(auth_key, p, min(len+1, (int)sizeof(authkey)));
+            if(len) copystring(auth_key, p, min(len+1, (int)sizeof(auth_key)));
         }
         else break;
     } while(*c && *c=='&' && *c!='/');
