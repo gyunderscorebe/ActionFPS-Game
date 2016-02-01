@@ -2331,7 +2331,9 @@ void changeclientrole(int client, int role, char *pwd, bool force)
     pwddetail pd;
     if(!isdedicated || !valid_client(client)) return;
     pd.line = -1;
-    if(force || role == CR_DEFAULT || (role == CR_ADMIN && pwd && pwd[0] && passwords.check(clients[client]->name, pwd, clients[client]->salt, &pd) && !pd.denyadmin))
+    user *u = usermanager.find(clients[client]->userid);
+    if(force || role == CR_DEFAULT || (role == CR_ADMIN &&
+        ((pwd && pwd[0] && passwords.check(clients[client]->name, pwd, clients[client]->salt, &pd) && !pd.denyadmin) || (u && u->admin))))
     {
         if(role == clients[client]->role) return;
         if(role > CR_DEFAULT)
@@ -2701,8 +2703,9 @@ void process(ENetPacket *packet, int sender, int chan)
                 }
             }
 
+            user *u = usermanager.find(cl->userid);
             int bantype = getbantype(sender);
-            bool banned = bantype > BAN_NONE || (usermanager.find(cl->userid) && usermanager.find(cl->userid)->banned);
+            bool banned = bantype > BAN_NONE || (u && u->banned);
             bool srvfull = numnonlocalclients() > scl.maxclients;
             bool srvprivate = mastermode == MM_PRIVATE || mastermode == MM_MATCH;
             bool matchreconnect = mastermode == MM_MATCH && findscore(*cl, false);
@@ -3763,7 +3766,7 @@ void loggamestatus(const char *reason)
         concatformatstring(text, "%6d ", c.state.points);                            // score
         concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);          // frag death
         if(m_teammode) concatformatstring(text, " %2d", c.state.teamkills);          // tk
-        logline(ACLOG_INFO, "%s%5d %s  %s", text, c.ping, c.role == CR_ADMIN ? "admin " : "normal", c.hostname);
+        logline(ACLOG_INFO, "%s%5d %s  %s", text, c.ping, c.role == CR_ADMIN ? "admin " : "normal", c.identity);
         if(c.team != TEAM_SPECT)
         {
             int t = team_base(c.team);
@@ -3782,7 +3785,7 @@ void loggamestatus(const char *reason)
                 if(m_teammode) formatstring(text)("%-4s ", team_string(sc.team, true));
                 else text[0] = '\0';
                 if(m_flags) concatformatstring(text, "%4d ", sc.flagscore);
-                logline(ACLOG_INFO, "   %-16s %s%6d %4d %5d%s    - disconnected", sc.name, text, sc.points, sc.frags, sc.deaths, m_teammode ? "  -" : "");
+                logline(ACLOG_INFO, "   %-16s %s%6d %4d %5d%s    - disconnected (%s)", sc.name, text, sc.points, sc.frags, sc.deaths, m_teammode ? "  -" : "", sc.identity);
                 if(sc.team != TEAM_SPECT)
                 {
                     int t = team_base(sc.team);
@@ -4117,6 +4120,8 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
         putint(p,clients[i]->clientnum);  //add player id
         putint(p,clients[i]->ping);             //Ping
         sendstring(clients[i]->name,p);         //Name
+        sendstring(clients[i]->userid, p);
+        sendstring(clients[i]->group.id, p);
         sendstring(team_string(clients[i]->team),p); //Team
         // "team_string(clients[i]->team)" sometimes return NULL according to RK, causing the server to crash. WTF ?
         putint(p,clients[i]->state.frags);      //Frags

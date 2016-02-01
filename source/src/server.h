@@ -319,6 +319,7 @@ struct savedscore
 {
     string name;
     string userid;
+    string identity;
     uint ip;
     int frags, flagscore, deaths, teamkills, shotdamage, damage, team, points, events, lastdisc, reconnections;
     bool valid, forced;
@@ -345,6 +346,7 @@ struct savedscore
         reconnections = c.state.reconnections;
         team = c.t;
         copystring(userid, c.userid);
+        copystring(identity, c.identity);
         valid = true;
     }
 
