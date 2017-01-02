@@ -1,4 +1,3 @@
-.travis.yml
 *.o
 *.lo
 shadows.dat
