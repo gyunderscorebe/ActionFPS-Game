@@ -39,5 +39,7 @@ We're running an always up-to-date server (synchronized with the branch that is 
 /connect woop.ac 2500
 ```
 ## Contribute
- * Have a look at the projects : https://github.com/lucasgautheron/ActionFPS-Game/projects
+ * Have a look at the current [projects](https://github.com/lucasgautheron/ActionFPS-Game/projects)
+ * Check out open [issues](https://github.com/lucasgautheron/ActionFPS-Game/issues?q=is%3Aissue+is%3Aopen), especially [high-priority issues](https://github.com/lucasgautheron/ActionFPS-Game/issues?q=is%3Aissue+is%3Aopen+label%3Ahigh-priority)
  * Come and talk to us at our gitter [![Join the chat at https://gitter.im/ScalaWilliam/ActionFPS](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ScalaWilliam/actionfps?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+ * Fork the repository and submit patches
