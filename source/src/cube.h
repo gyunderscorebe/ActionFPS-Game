@@ -18,11 +18,11 @@
  #include "console.h"
  enum
  {
-   SDL_AC_BUTTON_WHEELDOWN = -5,
-   SDL_AC_BUTTON_WHEELUP = -4,
-   SDL_AC_BUTTON_RIGHT = -3,
-   SDL_AC_BUTTON_MIDDLE = -2,
-   SDL_AC_BUTTON_LEFT = -1
+   SDL_AF_BUTTON_WHEELDOWN = -5,
+   SDL_AF_BUTTON_WHEELUP = -4,
+   SDL_AF_BUTTON_RIGHT = -3,
+   SDL_AF_BUTTON_MIDDLE = -2,
+   SDL_AF_BUTTON_LEFT = -1
  };
 #endif
 
@@ -58,11 +58,12 @@ extern int numspawn[3], maploaded, numflagspawn[2];
 extern int verbose;
 extern float waterlevel;
 
-#define AC_VERSION 1000
-#define AC_MASTER_URI "actionfps.com"
-#define AC_MASTER_PORT 28760
-#define AC_MASTER_HTTP 1 // default
-#define AC_MASTER_RAW 0
+#define AF_VERSION 1000
+#define AF_WEBSITE "https://actionfps.com"
+#define AF_MASTER_URI "actionfps.com"
+#define AF_MASTER_PORT 28760
+#define AF_MASTER_HTTP 1 // default
+#define AF_MASTER_RAW 0
 #define MAXCL 24
 #define CONFIGROTATEMAX 5               // keep 5 old versions of saved.cfg and init.cfg around
 

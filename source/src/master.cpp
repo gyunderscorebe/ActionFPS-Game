@@ -708,8 +708,8 @@ int main(int argc, char **argv)
     if(enet_initialize()<0) fatal("Unable to initialise network module");
     atexit(enet_deinitialize);
 
-    const char *dir = "", *ip = AC_MASTER_URI;
-    int port = AC_MASTER_PORT;
+    const char *dir = "", *ip = AF_MASTER_URI;
+    int port = AF_MASTER_PORT;
     if(argc>=2) dir = argv[1];
     if(argc>=3 && argv[2][0]) port = atoi(argv[2]);
     if(argc>=4) ip = argv[3][0] ? argv[3] : NULL;

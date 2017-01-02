@@ -1093,7 +1093,7 @@ int sdl_syswmevent_filter(const SDL_Event *e)
     char* str = ((char*)(pcds.lpData));
 
     if(!str || !strlen(str)) return 0;
-    
+
     string servername = "", password = "", auth_id = "";
     char auth_key[4096] = "";
     int serverport;
@@ -1195,7 +1195,7 @@ int main(int argc, char **argv)
                     }
                     else if(!strcmp(argv[i], "--version"))
                     {
-                        printf("%.3f\n", AC_VERSION/1000.0f);
+                        printf("%.3f\n", AF_VERSION/1000.0f);
                         quitdirectly = true;
                     }
                     else if(!strcmp(argv[i], "--protocol"))
@@ -1263,7 +1263,7 @@ int main(int argc, char **argv)
         //FIXME the server executed in this way does not catch the SIGTERM or ^C
     initserver(dedicated,argc,argv);  // never returns if dedicated
 
-    initlog("world (" STRINGIFY(AC_VERSION) ")");
+    initlog("world (" STRINGIFY(AF_VERSION) ")");
     empty_world(7, true);
 
     initlog("video: sdl");
@@ -1443,7 +1443,7 @@ int main(int argc, char **argv)
     }
     for(;;)
     {
-        static int frames = 0; 
+        static int frames = 0;
         static float fps = 10.0f;
         int millis = SDL_GetTicks() - clockrealbase;
         if(clockfix) millis = int(millis*(double(clockerror)/1000000));
@@ -1514,5 +1514,5 @@ int main(int argc, char **argv)
 #endif
 }
 
-VAR(version, 1, AC_VERSION, 0);
+VAR(version, 1, AF_VERSION, 0);
 VAR(protocol, 1, PROTOCOL_VERSION, 0);

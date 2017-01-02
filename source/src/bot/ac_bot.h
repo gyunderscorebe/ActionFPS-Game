@@ -3,15 +3,15 @@
 //
 // Description:
 //
-// Header specific for AC_CUBE
+// Header specific for AF_CUBE
 //
 // Author:  Rick <rickhelmus@gmail.com>
 //
 //
 //
 
-#ifndef AC_BOT_H
-#define AC_BOT_H
+#ifndef AF_BOT_H
+#define AF_BOT_H
 
 //#define BOTDEBUG
 #define MAX_WEAPONS      10

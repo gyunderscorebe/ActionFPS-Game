@@ -1126,20 +1126,20 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 else menusel += pagesize;
                 break;
             case SDLK_ESCAPE:
-            case SDL_AC_BUTTON_RIGHT:
+            case SDL_AF_BUTTON_RIGHT:
                 if(!curmenu->allowinput) return false;
                 menuset(menustack.empty() ? NULL : menustack.pop(), false);
                 return true;
                 break;
             case SDLK_UP:
-            case SDL_AC_BUTTON_WHEELUP:
+            case SDL_AF_BUTTON_WHEELUP:
                 if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_LEFT, isdown, 0);
                 if(iskeypressed(SDLK_LALT)) return menukey(SDLK_RIGHTBRACKET, isdown, 0);
                 if(!curmenu->allowinput) return false;
                 menusel--;
                 break;
             case SDLK_DOWN:
-            case SDL_AC_BUTTON_WHEELDOWN:
+            case SDL_AF_BUTTON_WHEELDOWN:
                 if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_RIGHT, isdown, 0);
                 if(iskeypressed(SDLK_LALT)) return menukey(SDLK_LEFTBRACKET, isdown, 0);
                 if(!curmenu->allowinput) return false;
@@ -1203,7 +1203,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
         }
         if(!curmenu->allowinput || !curmenu->items.inrange(menusel)) return false;
         mitem &m = *curmenu->items[menusel];
-        if(code==SDLK_RETURN || code==SDLK_SPACE || code==SDL_AC_BUTTON_LEFT || code==SDL_AC_BUTTON_MIDDLE)
+        if(code==SDLK_RETURN || code==SDLK_SPACE || code==SDL_AF_BUTTON_LEFT || code==SDL_AF_BUTTON_MIDDLE)
         {
             m.select();
             if(m.getaction()!=NULL && !strcmp(m.getaction(), "-1")) return true; // don't playsound S_MENUENTER if menuitem action == -1 (null/blank/text only item) - Bukz 2013feb13

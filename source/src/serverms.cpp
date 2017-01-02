@@ -18,8 +18,8 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remot
 
 ENetSocket mastersock = ENET_SOCKET_NULL;
 ENetAddress masteraddress = { ENET_HOST_ANY, ENET_PORT_ANY }, serveraddress = { ENET_HOST_ANY, ENET_PORT_ANY };
-string mastername = AC_MASTER_URI;
-int masterport = AC_MASTER_PORT, mastertype = AC_MASTER_HTTP;
+string mastername = AF_MASTER_URI;
+int masterport = AF_MASTER_PORT, mastertype = AF_MASTER_HTTP;
 int lastupdatemaster = 0;
 vector<char> masterout, masterin;
 int masteroutpos = 0, masterinpos = 0;
@@ -171,7 +171,7 @@ static inline void updatemasterserver(int millis, int port)
     if(!lastupdatemaster || ((millis-lastupdatemaster)>40*60*1000 && (interm || !totalclients)))
     {
         char servername[30]; memset(servername,'\0',30); filtertext(servername, global_name, FTXT__GLOBALNAME, 20);
-        if(mastername[0]) requestmasterf("regserv %d %s %d\n", port, servername[0] ? servername : "noname", AC_VERSION);
+        if(mastername[0]) requestmasterf("regserv %d %s %d\n", port, servername[0] ? servername : "noname", AF_VERSION);
         lastupdatemaster = millis + 1;
     }
 }

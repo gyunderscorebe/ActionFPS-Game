@@ -1741,12 +1741,12 @@ void groupteams()
     logline(ACLOG_INFO, "Beginning team sort");
 
     vector<groupplayers> gplayers;
-    
+
     loopv(clients) if(clients[i] && (clients[i]->isauthed && (clients[i]->type == ST_TCPIP && (clients[i]->team != TEAM_SPECT))))
     {
         client *cl = clients[i];
         bool found_group = false;
-        loopv(gplayers) if(!strcmp(gplayers[i].id, cl->group.id)) 
+        loopv(gplayers) if(!strcmp(gplayers[i].id, cl->group.id))
         {
             found_group = true;
             gplayers[i].players.add(cl);
@@ -2726,7 +2726,7 @@ void process(ENetPacket *packet, int sender, int chan)
             cl->acversion = getint(p);
             cl->acbuildtype = getint(p);
             defformatstring(tags)(", AC: %d|%x", cl->acversion, cl->acbuildtype);
-            
+
             // requested name
             getstring(text, p);
             filtertext(text, text, FTXT__PLAYERNAME, MAXNAMELEN);
@@ -2752,7 +2752,7 @@ void process(ENetPacket *packet, int sender, int chan)
             signature.len = signature.maxlen = getint(p);
             signature.buf = new uchar[signature.maxlen];
 
-            
+
 #ifdef STANDALONE
             bool is_authenticated = false;
             if(signature.len)
@@ -2860,7 +2860,7 @@ void process(ENetPacket *packet, int sender, int chan)
             sendf(cl->clientnum, 1, "riiss", SV_SWITCHGROUP, cl->clientnum, cl->group.id, cl->group.name);
             logline(ACLOG_INFO, "[%s] %s changed his group to %s", cl->identity, cl->name, cl->group.id);
         }
-        
+
         // set nickname
         string reqname;
         copystring(reqname, cl->name);
@@ -3135,7 +3135,7 @@ void process(ENetPacket *packet, int sender, int chan)
 
                 const char *auth_nickname = usermanager.get_user_nickname(cl);
                 if(auth_nickname && strcmp(auth_nickname, text)) break;
-                
+
                 //QUEUE_STR(text);
                 bool namechanged = strcmp(cl->name, text) != 0;
                 if(namechanged) logline(ACLOG_INFO,"[%s] %s changed name to %s", cl->identity, cl->name, text);
@@ -3180,7 +3180,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 getstring(text, p);
                 filtertext(text, text, FTXT__PLAYERNAME, MAXGROUPIDLEN);
-                
+
                 bool can_switch = usermanager.request_group(cl, text);
                 if(can_switch)
                 {
@@ -3192,7 +3192,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 {
                     logline(ACLOG_INFO, "[%s] %s was denied group %s", cl->identity, cl->name, text);
                 }
-                
+
                 break;
             }
 
@@ -4330,10 +4330,10 @@ void initserver(bool dedicated, int argc, char **argv)
     int conthres = scl.verbose > 1 ? ACLOG_DEBUG : (scl.verbose ? ACLOG_VERBOSE : ACLOG_INFO);
     if(dedicated && !initlogging(identity, scl.syslogfacility, conthres, scl.filethres, scl.syslogthres, scl.logtimestamp))
         printf("WARNING: logging not started!\n");
-    logline(ACLOG_INFO, "logging local ActionFPS server (version %d, protocol %d/%d) now..", AC_VERSION, SERVER_PROTOCOL_VERSION, EXT_VERSION);
+    logline(ACLOG_INFO, "logging local ActionFPS server (version %d, protocol %d/%d) now..", AF_VERSION, SERVER_PROTOCOL_VERSION, EXT_VERSION);
 
     copystring(servdesc_current, scl.servdesc_full);
-    servermsinit(scl.master ? scl.master : AC_MASTER_URI, scl.ip, CUBE_SERVINFO_PORT(scl.serverport), dedicated);
+    servermsinit(scl.master ? scl.master : AF_MASTER_URI, scl.ip, CUBE_SERVINFO_PORT(scl.serverport), dedicated);
 
     if((isdedicated = dedicated))
     {

@@ -342,7 +342,7 @@ COMMAND(go_to, "ffs");
 void current_version(char *text)
 {
     int version = atoi(text);
-    if (version && AC_VERSION<version)
+    if (version && AF_VERSION<version)
     {
         hudoutf("\f3YOUR VERSION OF ASSAULTCUBE IS OUTDATED!");
         conoutf("\f3YOU MUST UPDATE ASSAULTCUBE\nplease visit \f2http://assault.cubers.net \f3for more information");
@@ -580,12 +580,12 @@ void readauthkey()
     if(!f) return;
     char buf[5000] = "";
     int bytes = f->read(buf, sizeof(buf));
-    
+
     authkey.reset();
     authkey.buf = new uchar[bytes];
     authkey.maxlen = bytes;
     authkey.put((uchar *)buf, bytes);
-    
+
     delete f;
 }
 
@@ -605,7 +605,7 @@ void sendintro()
 
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_CONNECT);
-    putint(p, AC_VERSION);
+    putint(p, AF_VERSION);
     putint(p, getbuildtype());
     sendstring(player1->name, p);
     sendstring(defaultgroup, p);

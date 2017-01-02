@@ -1317,7 +1317,7 @@ int progress_callback_retrieveservers(void *data, float progress)
 
 void retrieveservers(vector<char> &data)
 {
-    if(mastertype == AC_MASTER_HTTP)
+    if(mastertype == AF_MASTER_HTTP)
     {
         httpget h;
         defformatstring(progresstext)("resolving %s", mastername);
@@ -1327,7 +1327,7 @@ void retrieveservers(vector<char> &data)
         if(h.set_host(mastername))
         {
             formatstring(progresstext)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
-            defformatstring(url)("/retrieve.do?action=list&name=%s&version=%d&build=%d", urlencode(global_name, true), AC_VERSION, getbuildtype()|(1<<16));
+            defformatstring(url)("/retrieve.do?action=list&name=%s&version=%d&build=%d", urlencode(global_name, true), AF_VERSION, getbuildtype()|(1<<16));
             h.outvec = (vector<uchar> *) &data; // ouch...
             show_out_of_renderloop_progress(0, progresstext);
             int got = h.get(url, RETRIEVELIMIT, RETRIEVELIMIT);
@@ -1355,7 +1355,7 @@ void retrieveservers(vector<char> &data)
         defformatstring(text)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
         show_out_of_renderloop_progress(0, text);
         int starttime = SDL_GetTicks(), timeout = 0;
-        defformatstring(request)("list %s %d %d\n", global_name, AC_VERSION, getbuildtype());
+        defformatstring(request)("list %s %d %d\n", global_name, AF_VERSION, getbuildtype());
         const char *req = request;
         int reqlen = strlen(req);
         ENetBuffer buf;
@@ -1412,7 +1412,7 @@ void updatefrommaster(int force)
 
     if(data.empty())
     {
-        if (!clfail) conoutf("Master server is not replying. \f1Get more information at http://masterserver.cubers.net/");
+        if (!clfail) conoutf("Failed to fetch the server list. \f1Get more information at " AF_WEBSITE);
         cllock = !clfail;
     }
     else

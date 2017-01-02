@@ -51,7 +51,7 @@
     #endif
     #include <tlhelp32.h>
     #ifndef __GNUC__
-        #include <Dbghelp.h> 
+        #include <Dbghelp.h>
     #endif
     #define ZLIB_DLL
 #endif
@@ -85,7 +85,7 @@
     #include <setjmp.h>
 #endif
 
-#if defined(WIN32) || defined(__APPLE__) || !defined(STANDALONE) || defined(AC_FORCE_SDL_THREADS)
-    #define AC_USE_SDL_THREADS
+#if defined(WIN32) || defined(__APPLE__) || !defined(STANDALONE) || defined(AF_FORCE_SDL_THREADS)
+    #define AF_USE_SDL_THREADS
 #endif
 

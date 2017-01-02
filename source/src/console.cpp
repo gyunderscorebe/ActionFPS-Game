@@ -512,13 +512,13 @@ void consolekey(int code, bool isdown, int cooked, SDLMod mod)
                 scrolldoc(4);
                 break;
 
-            case SDL_AC_BUTTON_WHEELUP:
+            case SDL_AF_BUTTON_WHEELUP:
             case SDLK_UP:
                 if(histpos > history.length()) histpos = history.length();
                 if(histpos > 0) history[--histpos]->restore();
                 break;
 
-            case SDL_AC_BUTTON_WHEELDOWN:
+            case SDL_AF_BUTTON_WHEELDOWN:
             case SDLK_DOWN:
                 if(histpos + 1 < history.length()) history[++histpos]->restore();
                 break;
@@ -551,10 +551,10 @@ void consolekey(int code, bool isdown, int cooked, SDLMod mod)
     }
     else
     {
-        if(code==SDLK_RETURN || code==SDLK_KP_ENTER || code==SDL_AC_BUTTON_LEFT || code==SDL_AC_BUTTON_MIDDLE)
+        if(code==SDLK_RETURN || code==SDLK_KP_ENTER || code==SDL_AF_BUTTON_LEFT || code==SDL_AF_BUTTON_MIDDLE)
         {
             // make laptop users happy; LMB shall only work with history
-            if(code == SDL_AC_BUTTON_LEFT && histpos == history.length()) return;
+            if(code == SDL_AF_BUTTON_LEFT && histpos == history.length()) return;
 
             hline *h = NULL;
             if(cmdline.buf[0])
@@ -574,7 +574,7 @@ void consolekey(int code, bool isdown, int cooked, SDLMod mod)
             saycommand(NULL);
             if(h) h->run();
         }
-        else if((code==SDLK_ESCAPE && !ignoreescup) || code== SDL_AC_BUTTON_RIGHT)
+        else if((code==SDLK_ESCAPE && !ignoreescup) || code== SDL_AF_BUTTON_RIGHT)
         {
             histpos = history.length();
             saycommand(NULL);

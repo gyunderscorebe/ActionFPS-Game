@@ -7,7 +7,7 @@
     #include <syslog.h>
     #include <signal.h>
 
-    #define AC_USE_SYSLOG
+    #define AF_USE_SYSLOG
 
     static const int facilities[] = { LOG_LOCAL0, LOG_LOCAL1, LOG_LOCAL2, LOG_LOCAL3, LOG_LOCAL4, LOG_LOCAL5, LOG_LOCAL6, LOG_LOCAL7 };
     static const int levels[] = { LOG_DEBUG, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
@@ -22,7 +22,7 @@ static const char *levelname[] = { "DEBUG", "VERBOSE", "INFO", "WARNING", "ERROR
 static FILE *fp = NULL;
 static string filepath, ident;
 static int facility = -1,
-#ifdef AC_USE_SYSLOG
+#ifdef AF_USE_SYSLOG
         filethreshold = ACLOG_NUM,
         syslogthreshold = ACLOG_INFO,
 #else
@@ -43,7 +43,7 @@ bool initlogging(const char *identity, int facility_, int consolethres, int file
     formatstring(ident)("ActionFPS[%s]", identity);
     if(syslogthreshold < ACLOG_NUM)
     {
-#ifdef AC_USE_SYSLOG
+#ifdef AF_USE_SYSLOG
         openlog(ident, LOG_NDELAY, facilities[facility]);
 #else
         if((logsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM)) == ENET_SOCKET_NULL || enet_address_set_host(&logdest, "localhost") < 0) syslogthreshold = ACLOG_NUM;
@@ -69,7 +69,7 @@ bool initlogging(const char *identity, int facility_, int consolethres, int file
 void exitlogging()
 {
     if(fp) { fclose(fp); fp = NULL; }
-#ifdef AC_USE_SYSLOG
+#ifdef AF_USE_SYSLOG
     if(syslogthreshold < ACLOG_NUM) closelog();
 #endif
     syslogthreshold = ACLOG_NUM;
@@ -91,7 +91,7 @@ bool logline(int level, const char *msg, ...)
         if(logtocon) printf("%s%s%s\n", ts, ld, l);
         if(logtofile) fprintf(fp, "%s%s%s\n", ts, ld, l);
         if(logtosyslog)
-#ifdef AC_USE_SYSLOG
+#ifdef AF_USE_SYSLOG
             syslog(levels[level], "%s", l);
 #else
         {

@@ -1050,7 +1050,7 @@ struct servercommandline
                     else if(!strncmp(arg, "--masterport=", 13))
                     {
                         int ai = atoi(arg+13);
-                        masterport = ai == 0 ? AC_MASTER_PORT : ai;
+                        masterport = ai == 0 ? AF_MASTER_PORT : ai;
                     }
                     else if(!strncmp(arg, "--mastertype=", 13))
                     {
