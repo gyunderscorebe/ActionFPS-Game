@@ -2,7 +2,7 @@
 
 Game client and server for http://actionfps.com/ | http://github.com/ScalaWilliam/ActionFPS/
 
-[![Build Status](https://travis-ci.org/lucasgautheron/ActionFPS-Game.svg?branch=master)](https://travis-ci.org/lucasgautheron/ActionFPS-Game)
+[![Build Status](https://travis-ci.org/ActionFPS/ActionFPS-Game.svg?branch=master)](https://travis-ci.org/ActionFPS/ActionFPS-Game)
 [![Join the chat at https://gitter.im/ScalaWilliam/ActionFPS](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ScalaWilliam/actionfps?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Test
