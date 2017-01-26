@@ -3,7 +3,9 @@ build:
   project: source/vcpp/cube.vcxproj
   verbosity: normal
 after_build:
-- cmd: cd source\vcpp\buildEnv && .\build_1_getfiles.bat
+- cmd: cd source\vcpp\buildEnv && .\build_1_getfiles.bat && .\build_2_prepare.bat && .\build_3_makeinstaller.bat
+artifacts:
+  - path: source\vcpp\buildEnv\windows_client.exe
 notifications:
 - provider: GitHubPullRequest
   on_build_success: true
