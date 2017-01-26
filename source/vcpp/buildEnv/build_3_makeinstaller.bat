@@ -3,4 +3,3 @@ IF EXIST "%programfiles%\NSIS\makensis.exe" (
 ) ELSE (
 	"%programfiles(x86)%\NSIS\makensis.exe" af.nsi
 )
-pause
