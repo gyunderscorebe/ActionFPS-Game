@@ -999,6 +999,8 @@ struct serverconfigfile
     bool load();
 };
 
+#define ARGUMENT_CHECK(arg, val) (!strncmp(arg, (val), strlen((val))))
+
 // server commandline parsing
 struct servercommandline
 {
@@ -1006,6 +1008,7 @@ struct servercommandline
     const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *motdpath, *forbidden, *killmessages, *demofilenameformat, *demotimestampformat;
     const char *id;
     bool logtimestamp, demo_interm, loggamestatus;
+    bool disable_authentication;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
     vector<const char *> adminonlymaps;
@@ -1017,6 +1020,7 @@ struct servercommandline
                             infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"), killmessages("config/serverkillmessages.cfg"),
                             id("unnamed"),
                             logtimestamp(false), demo_interm(false), loggamestatus(true),
+                            disable_authentication(false),
                             clfilenesting(0)
     {
         motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = mapperm[0] = '\0';
@@ -1034,28 +1038,32 @@ struct servercommandline
         switch(arg[1])
         { // todo: gjlqGHJQUYZ
             case '-':
-                    if(!strncmp(arg, "--demofilenameformat=", 21))
+                    if(ARGUMENT_CHECK(arg, "--demofilenameformat="))
                     {
                         demofilenameformat = arg+21;
                     }
-                    else if(!strncmp(arg, "--demotimestampformat=", 22))
+                    else if(ARGUMENT_CHECK(arg, "--demotimestampformat="))
                     {
                         demotimestampformat = arg+22;
                     }
-                    else if(!strncmp(arg, "--demotimelocal=", 16))
+                    else if(ARGUMENT_CHECK(arg, "--demotimelocal="))
                     {
                         int ai = atoi(arg+16);
                         demotimelocal = ai == 0 ? 0 : 1;
                     }
-                    else if(!strncmp(arg, "--masterport=", 13))
+                    else if(ARGUMENT_CHECK(arg, "--masterport="))
                     {
                         int ai = atoi(arg+13);
                         masterport = ai == 0 ? AF_MASTER_PORT : ai;
                     }
-                    else if(!strncmp(arg, "--mastertype=", 13))
+                    else if(ARGUMENT_CHECK(arg, "--mastertype="))
                     {
                         int ai = atoi(arg+13);
                         mastertype = ai > 0 ? 1 : 0;
+                    }
+                    else if(ARGUMENT_CHECK(arg, "--disableauthentication"))
+                    {
+                        disable_authentication = true;
                     }
                     else return false;
                     break;

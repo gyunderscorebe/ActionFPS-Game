@@ -2768,7 +2768,12 @@ void process(ENetPacket *packet, int sender, int chan)
             if(!is_authenticated)
             {
                 logline(ACLOG_INFO, "[%s] %s failed to authenticate as '%s'", cl->hostname, cl->name, uid);
-                disconnect_client(sender, DISC_AUTHFAIL);
+                if(!scl.disable_authentication) disconnect_client(sender, DISC_AUTHFAIL);
+                else
+                {
+                    copystring(cl->userid, "anonymous");
+                    formatstring(cl->identity)("%s:%s", cl->userid, cl->hostname);
+                }
             }
             else
             {
@@ -3802,9 +3807,14 @@ void resetserverifempty()
     changemastermode(MM_OPEN);
     nextmapname[0] = '\0';
 
+#ifdef STANDALONE
     // read DB
-    userdb.read(usermanager);
-    groupdb.read(usermanager);
+    if(!scl.disable_authentication)
+    {
+        userdb.read(usermanager);
+        groupdb.read(usermanager);
+    }
+#endif
 }
 
 void sendworldstate()
@@ -4017,9 +4027,14 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(demorecord) enddemorecord();
         interm = nextsendscore = 0;
 
+#ifdef STANDALONE
         // read DB
-        userdb.read(usermanager);
-        groupdb.read(usermanager);
+        if(!scl.disable_authentication)
+        {
+            userdb.read(usermanager);
+            groupdb.read(usermanager);
+        }
+#endif
 
         //start next game
         if(nextmapname[0]) startgame(nextmapname, nextgamemode);
@@ -4350,10 +4365,15 @@ void initserver(bool dedicated, int argc, char **argv)
         nickblacklist.init(scl.nbfile);
         forbiddenlist.init(scl.forbidden);
         killmsgs.init(scl.killmessages);
-        userdb.init("config/users.gz");
-        userdb.read(usermanager);
-        groupdb.init("config/groups.gz");
-        groupdb.read(usermanager);
+#ifdef STANDALONE
+        if(!scl.disable_authentication)
+        {
+            userdb.init("config/users.gz");
+            userdb.read(usermanager);
+            groupdb.init("config/groups.gz");
+            groupdb.read(usermanager);
+        }
+#endif
         infofiles.init(scl.infopath, scl.motdpath);
         infofiles.getinfo("en"); // cache 'en' serverinfo
         logline(ACLOG_VERBOSE, "holding up to %d recorded demos in memory", scl.maxdemos);
