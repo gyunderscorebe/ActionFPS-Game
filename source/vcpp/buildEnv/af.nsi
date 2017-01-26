@@ -1,5 +1,7 @@
 !include MUI.nsh
 !include Sections.nsh
+!include WinVer.nsh
+!include "LogicLib.nsh"
 
 ## TOOLS
 
@@ -283,7 +285,7 @@ Var IMAGE
 VIProductVersion "${AC_FULLVERSIONINT}"
 VIAddVersionKey "ProductName" "${AC_SHORTNAME}"
 VIAddVersionKey "CompanyName" "Rabid Viper Productions"
-VIAddVersionKey "LegalCopyright" "Copyright © Rabid Viper Productions"
+VIAddVersionKey "LegalCopyright" "Copyright Â© Rabid Viper Productions"
 VIAddVersionKey "FileDescription" "ActionFPS is a FREE, multiplayer, first-person shooter game, based on the CUBE engine."
 VIAddVersionKey "FileVersion" "${AC_FULLVERSIONINT}"
 VIAddVersionKey "ProductVersion" "${AC_FULLVERSIONINT}"
@@ -489,21 +491,15 @@ Function InstallationTypePage
     
     ; check installed windows version, might change default option
     
-    GetVersion::WindowsVersion
-    Pop $R0
-    Push "." ; divider char
-    Push $R0 ; input string
-    Call SplitFirstStrPart
-    Pop $R0 ; major version
-    Pop $R1 ; minor version
+    ${WinVerGetMajor} $R0
  
-    StrCmp $R0 "6" 0 winvercheckdone ; vista
+    ${If} $R0 >= 5  ; vista
     
         ; suggest multiuser option on vista and later
         !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "State" "1"
         !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 1" "State" "0"
     
-    winvercheckdone:
+    ${Endif}
     
     
     ; set up GUI
