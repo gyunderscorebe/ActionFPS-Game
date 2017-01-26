@@ -23,7 +23,7 @@ git clone https://github.com/lucasgautheron/ActionFPS-Game.git
  * Compile and run
 ```
 cd source/src
-make 
+make install
 cd ../..
 ./assaultcube.sh
 ```
