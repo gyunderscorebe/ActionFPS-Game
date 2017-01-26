@@ -3,9 +3,23 @@ build:
   project: source/vcpp/cube.vcxproj
   verbosity: normal
 after_build:
-- cmd: cd source\vcpp\buildEnv && .\build_1_getfiles.bat
+- cmd: cd source\vcpp\buildEnv && .\build_1_getfiles.bat && .\build_2_prepare.bat && .\build_3_makeinstaller.bat
+artifacts:
+  - path: source\vcpp\buildEnv\windows_client.exe
 notifications:
 - provider: GitHubPullRequest
   on_build_success: true
   on_build_failure: true
   on_build_status_changed: true
+deploy:
+  release: actionfps-v$(appveyor_build_version)
+  description: 'ActionFPS Game'
+  provider: GitHub
+  auth_token:
+    secure: fGP2N3FWCyTdLaaPlBlT8GQRoeJhXZRltxBwwzFrXrrxkHW0eQA9ELWocGt/7/dr
+  artifact: /.*\.exe/
+  draft: true
+  prerelease: false
+  on:
+    branch: master                 # release from master branch only
+    appveyor_repo_tag: true        # deploy on tag push only

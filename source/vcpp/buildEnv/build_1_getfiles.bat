@@ -1,3 +1,4 @@
+set cur_dir=%cd%
 set tmp_ac=%TEMP%\af
 rd /s /q %tmp_ac%
 mkdir %tmp_ac%
@@ -11,4 +12,4 @@ cd source/vcpp
 \Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe cube.sln /p:Configuration=Release
 cd ../launcher
 \Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe aclauncher.sln /p:Configuration=Release
-cd ../vcpp/buildEnv
+cd %cur_dir%

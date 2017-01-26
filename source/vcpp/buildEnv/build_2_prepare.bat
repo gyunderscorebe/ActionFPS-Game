@@ -1,4 +1,5 @@
 @echo on
+set cur_dir=%cd%
 set acdir=ac
 set workingacdir=..\..\..\
 
@@ -27,3 +28,4 @@ ren %acdir%\actionfps_release.bat actionfps.bat
 )
 
 copy /Y  %workingacdir%\source\vcpp\buildEnv\icon.ico %acdir%\icon.ico
+cd %cur_dir%
