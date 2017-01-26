@@ -1,0 +1,11 @@
+version: 1.0.{build}
+build:
+  project: source/vcpp/cube.vcxproj
+  verbosity: normal
+after_build:
+- cmd: cd source\vcpp\buildEnv && .\build_1_getfiles.bat
+notifications:
+- provider: GitHubPullRequest
+  on_build_success: true
+  on_build_failure: true
+  on_build_status_changed: true
