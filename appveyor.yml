@@ -8,9 +8,8 @@ artifacts:
   - path: source\vcpp\buildEnv\windows_client.exe
 notifications:
 - provider: GitHubPullRequest
-  on_build_success: true
+  on_build_success: false
   on_build_failure: true
-  on_build_status_changed: true
 deploy:
   release: actionfps-v$(appveyor_build_version)
   description: 'ActionFPS Game'
