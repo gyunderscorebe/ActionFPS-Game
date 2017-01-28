@@ -727,6 +727,7 @@
 		B94198C709207E810029DAD1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
@@ -748,6 +749,7 @@
 				HEADER_SEARCH_PATHS = (
 					../enet/include,
 					../include/,
+					/usr/local/opt/openssl/include,
 				);
 				INFOPLIST_FILE = assaultcube.plist;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
@@ -755,9 +757,18 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				"LIBRARY_SEARCH_PATHS[arch=*]" = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../lib\"",
+					"\"/usr/local/opt/openssl/lib\"",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.5;
-				OTHER_LDFLAGS = "-lz";
+				OTHER_LDFLAGS = (
+					"-lssl",
+					"-lcrypto",
+					"-lz",
+				);
 				PRODUCT_NAME = assaultcube;
 				SDKROOT = macosx;
 				STRIP_STYLE = all;
@@ -767,6 +778,7 @@
 		B94198C809207E810029DAD1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
@@ -788,6 +800,7 @@
 				HEADER_SEARCH_PATHS = (
 					../enet/include,
 					../include/,
+					/usr/local/opt/openssl/include,
 				);
 				INFOPLIST_FILE = assaultcube.plist;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
@@ -795,9 +808,18 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				"LIBRARY_SEARCH_PATHS[arch=*]" = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../lib\"",
+					"\"/usr/local/opt/openssl/lib\"",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.5;
-				OTHER_LDFLAGS = "-lz";
+				OTHER_LDFLAGS = (
+					"-lssl",
+					"-lcrypto",
+					"-lz",
+				);
 				PRODUCT_NAME = assaultcube;
 				SDKROOT = macosx;
 				STRIP_STYLE = all;
@@ -807,7 +829,7 @@
 		B94198EB09207F510029DAD1 /* Release-Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEPLOYMENT_POSTPROCESSING = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -834,6 +856,7 @@
 				HEADER_SEARCH_PATHS = (
 					../enet/include,
 					../include/,
+					/usr/local/opt/openssl/include,
 				);
 				INFOPLIST_FILE = assaultcube.plist;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
@@ -841,10 +864,19 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				"LIBRARY_SEARCH_PATHS[arch=*]" = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../lib\"",
+					"\"/usr/local/opt/openssl/lib\"",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.5;
 				ONLY_ACTIVE_ARCH = NO;
-				OTHER_LDFLAGS = "-lz";
+				OTHER_LDFLAGS = (
+					"-lssl",
+					"-lcrypto",
+					"-lz",
+				);
 				PRODUCT_NAME = assaultcube;
 				SDKROOT = macosx;
 				STRIP_STYLE = all;
@@ -910,6 +942,7 @@
 				GCC_VERSION = "";
 				INFOPLIST_FILE = launcher.plist;
 				INSTALL_PATH = "$(USER_APPS_DIR)";
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-framework",
@@ -942,6 +975,7 @@
 				GCC_VERSION = "";
 				INFOPLIST_FILE = launcher.plist;
 				INSTALL_PATH = "$(USER_APPS_DIR)";
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-framework",
@@ -974,6 +1008,7 @@
 				GCC_VERSION = "";
 				INFOPLIST_FILE = launcher.plist;
 				INSTALL_PATH = "$(USER_APPS_DIR)";
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-framework",
