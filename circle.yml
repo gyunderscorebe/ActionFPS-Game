@@ -1,0 +1,16 @@
+
+dependencies:
+  pre:
+    - brew install openssl
+machine:
+  xcode:
+    version: 8.0
+  environment:
+    LC_CTYPE: en_US.UTF-8
+    XCODE_SCHEME: symbolicator
+test:
+  override:
+    - set -o pipefail && cd source/xcode && make
+general:
+  artifacts:
+    - source/xcode/build/Release/assaultcube.dmg
