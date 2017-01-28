@@ -17,6 +17,8 @@ addons:
       - libvorbis-dev
       - openssl
       - libssl-dev
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update && brew install openssl; fi
 script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cd source/xcode && make ; fi
   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then cd source/src && make && make install; fi
