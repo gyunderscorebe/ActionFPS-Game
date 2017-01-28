@@ -4350,9 +4350,9 @@ void initserver(bool dedicated, int argc, char **argv)
         nickblacklist.init(scl.nbfile);
         forbiddenlist.init(scl.forbidden);
         killmsgs.init(scl.killmessages);
-        userdb.init("config/users.gz");
+        userdb.init("config/users");
         userdb.read(usermanager);
-        groupdb.init("config/groups.gz");
+        groupdb.init("config/groups");
         groupdb.read(usermanager);
         infofiles.init(scl.infopath, scl.motdpath);
         infofiles.getinfo("en"); // cache 'en' serverinfo
@@ -4436,4 +4436,3 @@ int main(int argc, char **argv)
     #endif
 }
 #endif
-
