@@ -965,7 +965,7 @@ struct usersdatabasefile : serverconfigfile
         if(getfilesize(filename) == filelen) return;
 
         logline(ACLOG_VERBOSE, "opening users database");
-        stream *f = opengzfile(filename, "rb");
+        stream *f = openfile(filename, "rb");
         if(!f)
         {
             fatal("could not open '%s' for reading", filename);
@@ -1047,7 +1047,7 @@ struct groupsdatabasefile : serverconfigfile
         if(getfilesize(filename) == filelen) return;
 
         logline(ACLOG_VERBOSE, "opening groups database");
-        stream *f = opengzfile(filename, "rb");
+        stream *f = openfile(filename, "rb");
         if(!f)
         {
             fatal("could not open '%s' for reading", filename);

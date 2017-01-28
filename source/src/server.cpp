@@ -4368,9 +4368,9 @@ void initserver(bool dedicated, int argc, char **argv)
 #ifdef STANDALONE
         if(!scl.disable_authentication)
         {
-            userdb.init("config/users.gz");
+            userdb.init("config/users");
             userdb.read(usermanager);
-            groupdb.init("config/groups.gz");
+            groupdb.init("config/groups");
             groupdb.read(usermanager);
         }
 #endif
@@ -4456,4 +4456,3 @@ int main(int argc, char **argv)
     #endif
 }
 #endif
-
