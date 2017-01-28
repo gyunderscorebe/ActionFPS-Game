@@ -1,3 +1,4 @@
+target
 *.o
 *.lo
 shadows.dat
@@ -31,4 +32,4 @@ source/src/Makefile_local
 clientlog*.txt
 dumpmapconfig.txt
 packetlog.txt
-
+authkey

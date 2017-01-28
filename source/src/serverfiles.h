@@ -968,7 +968,7 @@ struct usersdatabasefile : serverconfigfile
         stream *f = opengzfile(filename, "rb");
         if(!f)
         {
-            logline(ACLOG_ERROR, "could not open '%s' for reading", filename);
+            fatal("could not open '%s' for reading", filename);
             return;
         }
         char buf[4096] = "";
@@ -1050,7 +1050,7 @@ struct groupsdatabasefile : serverconfigfile
         stream *f = opengzfile(filename, "rb");
         if(!f)
         {
-            logline(ACLOG_ERROR, "could not open '%s' for reading", filename);
+            fatal("could not open '%s' for reading", filename);
             return;
         }
         char buf[4096] = "";

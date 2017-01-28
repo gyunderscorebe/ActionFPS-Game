@@ -16,5 +16,13 @@ addons:
       - libvorbis-dev
       - openssl
       - libssl-dev
-script:
-  - cd source/src && make && make install
+script: cd source/src && make && make install && cd .. && cd ..
+before_deploy: "./package.sh"
+deploy:
+  provider: releases
+  api_key:
+    secure: oGxKN6OMt2giru5PZ+UsBwpqaAGvk2lvdcT6b4YBcqvPyoSXF6LksenStKTRCsDSdFA/jJPnKA+/Pz7Zmpbu8MqOqOoPzzGZxbE/aQK0j3eaO9DsSCmDT4ypYJRW7ZLnLVQhz77j2GOWtt1yBgffw04CwAoXXrasxYkisdxSpvnJNlWMwEWuY9peZJEZR3M+xxemlHhtkRq13S1j+4Ytgu2Zo57lRy6EmaItVVve7L9nX8RSTBzmo/jK/CzFCBDsI2T9ywhH977aR13ZT/xMp4osP3fsWsEBRNIpxt50uYnkv+xr+mwj6yeDgeaRzZGRKHNn4TGInzoJxxBx58vvGbLrM9KN+yRuVPihjktqqV2R0RWUx6JrqwNYXUCMWSF6zRaeYxxzrve62x5subGKRrABG9XUmpiWo1drV/hUeMyTjOMhKocG+0p7WYkgUvOSWvYu7r8SICy5MxjRbG8+CTNMciAjdZRIiapSVqFV+tmEYkeW6vHDqGrLwPlyXEWvC6i8n1+XQkvsS32vJpn0dfbgpQllWPwlwvLUeEPQ+ALwxvomAB0F9InJTqlR5JEK9W/47LoQ6CRNbiCPUOsbswEuRN+ASNAESAY6zgXI4J5uIm9dE47QNIw+3m9LFhQ/Nzkn2keoJ0A0LQGHghqUEQt5mScbaMnKatqOwB40tl0=
+  file: target/ActionFPS.tar.bz2
+  on:
+    tags: true
+    branch: master
