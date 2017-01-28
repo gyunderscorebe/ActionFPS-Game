@@ -1270,6 +1270,8 @@ int main(int argc, char **argv)
     if(SDL_InitSubSystem(SDL_INIT_VIDEO)<0) fatal("Unable to initialize SDL Video");
 
     SDL_Surface *icon = SDL_LoadBMP("packages/misc/icon.bmp");
+    if ( icon == NULL ) fatal("Unable to load icon.");
+
     SDL_SetColorKey(icon, SDL_SRCCOLORKEY, SDL_MapRGB(icon->format, 255, 255, 255));
     SDL_WM_SetIcon(icon, NULL);
 
