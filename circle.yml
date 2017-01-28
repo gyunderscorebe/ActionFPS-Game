@@ -13,5 +13,4 @@ test:
     - set -o pipefail && cd source/xcode && make
 general:
   artifacts:
-    - source/xcode/build/Release/launcher.app
-    - source/xcode/build/Release/assaultcube.app
+    - source/xcode/build/Release/assaultcube.dmg
