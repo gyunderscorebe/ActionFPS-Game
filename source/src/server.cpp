@@ -4350,7 +4350,7 @@ void initserver(bool dedicated, int argc, char **argv)
         nickblacklist.init(scl.nbfile);
         forbiddenlist.init(scl.forbidden);
         killmsgs.init(scl.killmessages);
-        userdb.init("config/users.gz");
+        userdb.init("config/users");
         userdb.read(usermanager);
         groupdb.init("config/groups.gz");
         groupdb.read(usermanager);

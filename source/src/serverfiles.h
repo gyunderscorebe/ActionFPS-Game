@@ -951,6 +951,16 @@ struct killmessagesfile : serverconfigfile
     }
 };
 
+
+bool has_extension(const char *name, const char *extension) {
+    std::string const filename(name);
+    std::string const targetExtension(extension);
+    return (filename.size() >= targetExtension.size()
+            && std::equal( filename.end() - targetExtension.size(),
+                          filename.end(),
+                          targetExtension.begin() ) );
+}
+
 struct usersdatabasefile : serverconfigfile
 {
     void init(const char *name) { serverconfigfile::init(name); }
@@ -959,18 +969,8 @@ struct usersdatabasefile : serverconfigfile
     {
 
     }
-
-    void read(serverusermanager &usermanager)
-    {
-        if(getfilesize(filename) == filelen) return;
-
-        logline(ACLOG_VERBOSE, "opening users database");
-        stream *f = opengzfile(filename, "rb");
-        if(!f)
-        {
-            logline(ACLOG_ERROR, "could not open '%s' for reading", filename);
-            return;
-        }
+    
+    void read_stream(stream *f, serverusermanager &usermanager) {
         char buf[4096] = "";
         loopstdv(usermanager.users) DELETEP(usermanager.users[i]);
         usermanager.users.clear();
@@ -982,6 +982,27 @@ struct usersdatabasefile : serverconfigfile
             logline(ACLOG_VERBOSE, "read user '%s'", u->id);
         }
         usermanager.sort_users();
+    }
+
+    void read(serverusermanager &usermanager)
+    {
+        if(getfilesize(filename) == filelen) return;
+
+        logline(ACLOG_VERBOSE, "opening users database");
+        stream *f;
+        if (has_extension(filename, ".gz")) {
+            f = opengzfile(filename, "rb");
+        } else {
+            f = openfile(filename, "rb");
+        }
+        if(!f)
+        {
+            logline(ACLOG_ERROR, "could not open '%s' for reading", filename);
+            return;
+        }
+        
+        read_stream(f, usermanager);
+        
         DELETEP(f);
 
         filelen = getfilesize(filename);
