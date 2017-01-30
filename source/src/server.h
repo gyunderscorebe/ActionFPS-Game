@@ -681,8 +681,14 @@ struct serverusermanager
         BIO *bio;
         bio = BIO_new(BIO_s_mem());
         BIO_write(bio, (const void *)u->pubkey.buf, u->pubkey.len);
-        DSA *ret = PEM_read_bio_DSA_PUBKEY(bio, &pub_dsa, NULL, NULL);;
-        if(!ret) return false;
+        DSA *ret = PEM_read_bio_DSA_PUBKEY(bio, &pub_dsa, NULL, NULL);
+        if(!ret)
+        {
+            char buffer[120];
+            ERR_error_string(ERR_get_error(), buffer);
+            logline(ACLOG_INFO, "OpenSSL error: %s", buffer);
+            return false;
+        }
 
         int res = DSA_verify(0, challenge, challength, signature, siglen, pub_dsa);
         DELETEP(pub_dsa);

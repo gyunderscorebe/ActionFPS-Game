@@ -576,6 +576,8 @@ ucharbuf authkey;
 
 void readauthkey()
 {
+    ERR_load_crypto_strings();
+
     stream *f = openfile(path("config/authkey", true), "r");
     if(!f) return;
     char buf[5000] = "";
@@ -628,6 +630,11 @@ void sendintro()
     DSA *ret = PEM_read_bio_DSAPrivateKey(bio, &priv_dsa, NULL, NULL);
     if(!ret)
     {
+        char buffer[120];
+        ERR_error_string(ERR_get_error(), buffer);
+
+        clientlogf("failed to read private key! please issue a new key.");
+        clientlogf("OpenSSL error: %s", buffer);
         putint(p, 0);
         DELETEP(priv_dsa);
         DELETEP(bio);
