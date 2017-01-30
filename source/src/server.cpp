@@ -2754,25 +2754,28 @@ void process(ENetPacket *packet, int sender, int chan)
 
 
 #ifdef STANDALONE
-            bool is_authenticated = false;
+            bool successful_authentication = false;
             if(signature.len)
             {
                 p.get(signature.buf, signature.len);
-                is_authenticated = usermanager.check_authentication(cl, uid, signature);
+                successful_authentication = usermanager.check_authentication(cl, uid, signature);
             }
 #else
-            bool is_authenticated = true;
+            bool successful_authentication = true;
 #endif
             signature.reset();
 
-            if(!is_authenticated)
+            if(!successful_authentication)
             {
                 logline(ACLOG_INFO, "[%s] %s failed to authenticate as '%s'", cl->hostname, cl->name, uid);
-                if(!scl.disable_authentication) disconnect_client(sender, DISC_AUTHFAIL);
+                if(scl.disable_authentication)
+                {
+                	copystring(cl->userid, "anonymous");
+                	formatstring(cl->identity)("%s:%s", cl->userid, cl->hostname);
+                }
                 else
                 {
-                    copystring(cl->userid, "anonymous");
-                    formatstring(cl->identity)("%s:%s", cl->userid, cl->hostname);
+                	disconnect_client(sender, DISC_AUTHFAIL);
                 }
             }
             else
@@ -2796,7 +2799,7 @@ void process(ENetPacket *packet, int sender, int chan)
             if(wl == NWL_UNLISTED) bl = nickblacklist.checkblacklist(cl->name);
             if(matchreconnect && !banned)
             { // former player reconnecting to a server in match mode
-                cl->isauthed = is_authenticated;
+                cl->isauthed = successful_authentication || scl.disable_authentication;
                 logline(ACLOG_INFO, "[%s] %s logged in (reconnect to match)%s", cl->identity, cl->name, tags);
             }
             else if(wl == NWL_IPFAIL || wl == NWL_PWDFAIL)
@@ -2811,7 +2814,7 @@ void process(ENetPacket *packet, int sender, int chan)
             }
             else if(passwords.check(cl->name, cl->pwd, cl->salt, &pd, (cl->type==ST_TCPIP ? cl->peer->address.host : 0)) && (!pd.denyadmin || (banned && !srvfull && !srvprivate)) && bantype != BAN_MASTER) // pass admins always through
             { // admin (or deban) password match
-                cl->isauthed = is_authenticated;
+                cl->isauthed = successful_authentication || scl.disable_authentication;
                 if(!pd.denyadmin && wantrole == CR_ADMIN) clientrole = CR_ADMIN;
                 if(bantype == BAN_VOTE)
                 {
@@ -2831,7 +2834,7 @@ void process(ENetPacket *packet, int sender, int chan)
             { // server password required
                 if(!strcmp(genpwdhash(cl->name, scl.serverpassword, cl->salt), cl->pwd))
                 {
-                    cl->isauthed = is_authenticated;
+                    cl->isauthed = successful_authentication || scl.disable_authentication;
                     logline(ACLOG_INFO, "[%s] %s client logged in (using serverpassword)%s", cl->identity, cl->name, tags);
                 }
                 else disconnect_client(sender, DISC_WRONGPW);
@@ -2841,7 +2844,7 @@ void process(ENetPacket *packet, int sender, int chan)
             else if(banned) disconnect_client(sender, DISC_BANREFUSE);
             else
             {
-                cl->isauthed = is_authenticated;
+                cl->isauthed = successful_authentication || scl.disable_authentication;
                 logline(ACLOG_INFO, "[%s] %s logged in (default)%s", cl->identity, cl->name, tags);
             }
         }

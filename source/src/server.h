@@ -595,6 +595,7 @@ struct serverusermanager
     {
         // load gz
         // extract users
+    	return true;
     }
 
     void sort_users()
@@ -632,7 +633,7 @@ struct serverusermanager
         copystring(tmp->id, id, MAXGROUPIDLEN);
         bool found = std::binary_search(groups.begin(), groups.end(), tmp, serverusermanager::groupcmp);
         return found ? *std::lower_bound(groups.begin(), groups.end(), tmp, serverusermanager::groupcmp) : NULL;
-#endif!
+#endif
     }
 
     void generate_challenge(client *cl, const char *sid)
