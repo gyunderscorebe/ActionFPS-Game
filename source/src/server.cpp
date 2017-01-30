@@ -4445,11 +4445,6 @@ int main(int argc, char **argv)
     #endif
     #endif
 
-    for(int i = 1; i<argc; i++)
-    {
-        if (!strncmp(argv[i],"--wizard",8)) return wizardmain(argc, argv);
-    }
-
     if(enet_initialize()<0) fatal("Unable to initialise network module");
     initserver(true, argc, argv);
     return EXIT_SUCCESS;

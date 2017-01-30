@@ -93,7 +93,6 @@ CLIENT_OBJS= \
 	tools.o \
 	water.o \
 	weapon.o \
-	wizard.o \
 	world.o \
 	worldio.o \
 	worldlight.o \
@@ -125,8 +124,7 @@ SERVER_OBJS= \
 	serverms-standalone.o \
 	server-standalone.o \
 	stream-standalone.o \
-	tools-standalone.o \
-	wizard-standalone.o
+	tools-standalone.o
 MASTER_OBJS= \
 	crypto-standalone.o \
 	stream-standalone.o \
@@ -337,9 +335,6 @@ weapon.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 weapon.o: weapon.h entity.h world.h command.h varray.h vote.h
 weapon.o: console.h protos.h bot/bot.h bot/bot_util.h bot/bot_waypoint.h
 weapon.o: bot/ac_bot.h hudgun.h
-wizard.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
-wizard.o: weapon.h entity.h world.h command.h varray.h vote.h
-wizard.o: console.h protos.h
 world.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h weapon.h
 world.o: entity.h world.h command.h varray.h vote.h console.h protos.h
 world.o: bot/bot.h bot/bot_util.h bot/bot_waypoint.h bot/ac_bot.h
@@ -413,9 +408,6 @@ stream-standalone.o: varray.h vote.h console.h protos.h
 tools-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 tools-standalone.o: sound.h weapon.h entity.h world.h command.h
 tools-standalone.o: varray.h vote.h console.h protos.h
-wizard-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
-wizard-standalone.o: sound.h weapon.h entity.h world.h command.h
-wizard-standalone.o: varray.h vote.h console.h protos.h
 
 command-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 command-standalone.o: sound.h weapon.h entity.h world.h command.h
