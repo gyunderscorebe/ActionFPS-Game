@@ -25,15 +25,15 @@ git clone https://github.com/lucasgautheron/ActionFPS-Game.git
 cd source/src
 make install
 cd ../..
-./assaultcube.sh
+./actionfps.sh
 ```
 
 ## Test server
 
-We're running an always up-to-date server (synchronized with the branch that is being test) at woop.ac:2500 :
+We're running an always up-to-date server (synchronized with the branch that is being test) at woop.ac:7654 :
 
 ```
-/connect woop.ac 2500
+/connect woop.ac 7654
 ```
 ## Contribute
  * Have a look at the current [projects](https://github.com/lucasgautheron/ActionFPS-Game/projects)
