@@ -1409,6 +1409,8 @@ int main(int argc, char **argv)
         authkey.put((uchar *)decoded.c_str(), len);
     }
 
+    updatefrommaster(1);
+
     if (direct_connect)
     {
         direct_connect = false;

@@ -1423,7 +1423,7 @@ void updatefrommaster(int force)
         if(curserver) copystring(curname, curserver->name);
 
         clearservers();
-        if(!strncmp(data.getbuf(), "addserver", 9)) cllock = false; // the ms could reply other thing... but currently, this is useless
+        //if(!strncmp(data.getbuf(), "addserver", 9)) cllock = false; // the ms could reply other thing... but currently, this is useless
         if(!cllock )
         {
             execute(data.getbuf());

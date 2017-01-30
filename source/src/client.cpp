@@ -344,11 +344,26 @@ void current_version(char *text)
     int version = atoi(text);
     if (version && AF_VERSION<version)
     {
-        hudoutf("\f3YOUR VERSION OF ASSAULTCUBE IS OUTDATED!");
-        conoutf("\f3YOU MUST UPDATE ASSAULTCUBE\nplease visit \f2http://assault.cubers.net \f3for more information");
+        conoutf("\f3YOUR VERSION OF ACTIONFPS IS OUTDATED. PLEASE DOWNLOAD ACTIONFPS %d", version);
+        showmenu("download");
     }
 }
 COMMAND(current_version, "s");
+
+void openwebbrowser(const char *url)
+{
+#ifdef WIN32
+    ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
+#else
+
+#endif
+}
+
+void downloadgame()
+{
+    openwebbrowser(AF_DOWNLOAD);
+}
+COMMAND(downloadgame, "");
 
 void cleanupclient()
 {

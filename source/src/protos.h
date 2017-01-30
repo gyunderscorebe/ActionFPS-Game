@@ -173,6 +173,7 @@ struct gmenu
 struct mline { string name, cmd; };
 
 // serverbrowser
+extern void updatefrommaster(int force);
 extern void addserver(const char *servername, int serverport, int weight);
 extern char *getservername(int n);
 extern bool resolverwait(const char *name, ENetAddress *address);
