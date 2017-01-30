@@ -352,8 +352,13 @@ COMMAND(current_version, "s");
 
 void openwebbrowser(const char *url)
 {
-#ifdef WIN32
+#if defined(WIN32)
     ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
+#elif defined(__linux__)
+    defformatstring(cmd)("x-www-browser %s &", url);
+    system(cmd);
+#elif defined(__APPLE__)
+
 #else
 
 #endif
