@@ -973,7 +973,7 @@ extern void connectserv(char *, int *, char *);
 
 void gameprotocol(char *protocolstring, string &servername, int &serverport, string &password, char *auth_id, char *auth_key, bool &direct_connect)
 {
-    const char *c = &protocolstring[14], *p = c;
+    const char *c = &protocolstring[strlen("actionfps://")], *p = c;
     int len = 0;
     direct_connect = false;
     string sp;
