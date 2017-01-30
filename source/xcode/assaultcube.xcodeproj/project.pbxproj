@@ -81,7 +81,6 @@
 		B914CECC11CAC42F009BA307 /* tools.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE7D11CAC42F009BA307 /* tools.cpp */; };
 		B914CED111CAC42F009BA307 /* water.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE8211CAC42F009BA307 /* water.cpp */; };
 		B914CED211CAC42F009BA307 /* weapon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE8311CAC42F009BA307 /* weapon.cpp */; };
-		B914CED511CAC42F009BA307 /* wizard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE8611CAC42F009BA307 /* wizard.cpp */; };
 		B914CED611CAC42F009BA307 /* world.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE8711CAC42F009BA307 /* world.cpp */; };
 		B914CED811CAC42F009BA307 /* worldio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE8911CAC42F009BA307 /* worldio.cpp */; };
 		B914CED911CAC42F009BA307 /* worldlight.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE8A11CAC42F009BA307 /* worldlight.cpp */; };
@@ -232,7 +231,6 @@
 		B914CE8311CAC42F009BA307 /* weapon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = weapon.cpp; sourceTree = "<group>"; };
 		B914CE8411CAC42F009BA307 /* weapon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = weapon.h; sourceTree = "<group>"; };
 		B914CE8511CAC42F009BA307 /* winserviceinstaller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = winserviceinstaller.h; sourceTree = "<group>"; };
-		B914CE8611CAC42F009BA307 /* wizard.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wizard.cpp; sourceTree = "<group>"; };
 		B914CE8711CAC42F009BA307 /* world.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = world.cpp; sourceTree = "<group>"; };
 		B914CE8811CAC42F009BA307 /* world.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = world.h; sourceTree = "<group>"; };
 		B914CE8911CAC42F009BA307 /* worldio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = worldio.cpp; sourceTree = "<group>"; };
@@ -460,7 +458,6 @@
 				B914CE8311CAC42F009BA307 /* weapon.cpp */,
 				B914CE8411CAC42F009BA307 /* weapon.h */,
 				B914CE8511CAC42F009BA307 /* winserviceinstaller.h */,
-				B914CE8611CAC42F009BA307 /* wizard.cpp */,
 				B914CE8711CAC42F009BA307 /* world.cpp */,
 				B914CE8811CAC42F009BA307 /* world.h */,
 				B914CE8911CAC42F009BA307 /* worldio.cpp */,
@@ -665,7 +662,6 @@
 				B914CECC11CAC42F009BA307 /* tools.cpp in Sources */,
 				B914CED111CAC42F009BA307 /* water.cpp in Sources */,
 				B914CED211CAC42F009BA307 /* weapon.cpp in Sources */,
-				B914CED511CAC42F009BA307 /* wizard.cpp in Sources */,
 				B914CED611CAC42F009BA307 /* world.cpp in Sources */,
 				B914CED811CAC42F009BA307 /* worldio.cpp in Sources */,
 				B914CED911CAC42F009BA307 /* worldlight.cpp in Sources */,
