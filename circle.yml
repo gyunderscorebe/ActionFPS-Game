@@ -1,7 +1,7 @@
 
 dependencies:
   pre:
-    - brew install openssl
+    - brew install openssl jq
 machine:
   xcode:
     version: 8.0
