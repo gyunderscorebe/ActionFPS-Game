@@ -4,7 +4,7 @@ rm -rf target
 mkdir -p target/ActionFPS
 cd target
 cp -R $DIR/{packages,mods,config,bin_unix} ActionFPS/
-rsync $DIR/{actionfps.sh,server.sh} ActionFPS/
+rsync $DIR/{actionfps.sh,server.sh,install.sh} ActionFPS/
 mv ActionFPS/bin_unix/{native_client,linux_64_client}
 mv ActionFPS/bin_unix/{native_server,linux_64_server}
 mkdir -p ActionFPS/{screenshots,demos}/
