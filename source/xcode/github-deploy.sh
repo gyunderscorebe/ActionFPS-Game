@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "CIRCLETAG=$CIRCLE_TAG"
 if [ "$CIRCLE_TAG" ]; then
   TAG_ID=$CIRCLE_TAG
   SOURCE_NAME=./build/Release/actionfps.dmg
