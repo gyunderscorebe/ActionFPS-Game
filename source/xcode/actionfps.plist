@@ -5,9 +5,9 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>assaultcube</string>
+	<string>actionfps</string>
 	<key>CFBundleIconFile</key>
-	<string>assaultcube</string>
+	<string>actionfps</string>
 	<key>CFBundleIdentifier</key>
 	<string>net.cubers</string>
 	<key>CFBundleInfoDictionaryVersion</key>
