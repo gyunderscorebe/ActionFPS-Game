@@ -15,7 +15,7 @@ general:
   artifacts:
     - source/xcode/build/Release/actionfps.dmg
 deployment:
-  release:
+  production:
     tag: /.*/
     branch: master
     owner: ActionFPS
