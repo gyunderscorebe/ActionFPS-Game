@@ -1409,8 +1409,6 @@ int main(int argc, char **argv)
         authkey.put((uchar *)decoded.c_str(), len);
     }
 
-    updatefrommaster(1);
-
     if (direct_connect)
     {
         direct_connect = false;
@@ -1431,6 +1429,8 @@ int main(int argc, char **argv)
     localconnect();
 
     if(initscript) execute(initscript);
+
+    updatefrommaster(1);
 
     initlog("mainloop");
 

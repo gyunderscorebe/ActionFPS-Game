@@ -945,7 +945,7 @@ extern void cutcolorstring(char *text, int len);
 extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
 extern string mastername;
-extern int masterport, mastertype;
+extern int masterport;
 extern ENetSocket connectmaster();
 extern uchar *retrieveservers(uchar *buf, int buflen);
 extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version);
@@ -1056,11 +1056,6 @@ struct servercommandline
                     {
                         int ai = atoi(arg+13);
                         masterport = ai == 0 ? AF_MASTER_PORT : ai;
-                    }
-                    else if(ARGUMENT_CHECK(arg, "--mastertype="))
-                    {
-                        int ai = atoi(arg+13);
-                        mastertype = ai > 0 ? 1 : 0;
                     }
                     else if(ARGUMENT_CHECK(arg, "--disableauthentication"))
                     {

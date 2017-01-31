@@ -345,7 +345,7 @@ void current_version(char *text)
     if (version && AF_VERSION<version)
     {
         conoutf("\f3YOUR VERSION OF ACTIONFPS IS OUTDATED. PLEASE DOWNLOAD ACTIONFPS %d", version);
-        showmenu("download");
+        execute("sleep 500 [ echo \"game outdated!\"; showmenu download ] 1");
     }
 }
 COMMAND(current_version, "s");

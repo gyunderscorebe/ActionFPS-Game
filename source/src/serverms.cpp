@@ -19,7 +19,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remot
 ENetSocket mastersock = ENET_SOCKET_NULL;
 ENetAddress masteraddress = { ENET_HOST_ANY, ENET_PORT_ANY }, serveraddress = { ENET_HOST_ANY, ENET_PORT_ANY };
 string mastername = AF_MASTER_URI;
-int masterport = AF_MASTER_PORT, mastertype = AF_MASTER_HTTP;
+int masterport = AF_MASTER_PORT;
 int lastupdatemaster = 0;
 vector<char> masterout, masterin;
 int masteroutpos = 0, masterinpos = 0;
