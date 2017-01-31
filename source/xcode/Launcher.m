@@ -290,10 +290,10 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     NSMutableArray *arr = [NSMutableArray array];
     NSEnumerator *e = [dict keyEnumerator];
     NSString *key;
-    while ((key = [e nextObject]))
+    while (key = [e nextObject])
     {
         int pos = [key rangeOfString:@"bind."].location;
-        if(pos == NSNotFound || pos > 5) continue;
+        if(pos == -1 || pos == NSNotFound || pos > 5) continue;
         [arr addObject:[NSDictionary dictionaryWithObjectsAndKeys: //keys used in nib
             [key substringFromIndex:pos+5], @"key",
             [key substringToIndex:pos], @"mode",
@@ -458,7 +458,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
             [task launch];
             if(server == -1) [NSApp terminate:self]; //if there is a server then don't exit!
         NS_HANDLER
-            //NSLog(@"%@", localException);
+            NSLog(@"failed somehow: %@", localException);
             NSBeginCriticalAlertSheet(
                 [NSLocalizedString(@"ClientAlertTitle", @"") expand] , nil, nil, nil,
                 window, nil, nil, nil, nil,
@@ -617,11 +617,13 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
 - (void)applicationDidFinishLaunching:(NSNotification *)note {
     NSFileManager *fm = [NSFileManager defaultManager];
     NSString *dir = [Launcher cwd];
-    if(![fm fileExistsAtPath:dir])
+    if(![fm fileExistsAtPath:dir]) {
+        NSLog(@"Looking for %@, not found.", dir);
         NSBeginCriticalAlertSheet(
             [NSLocalizedString(@"InitAlertTitle", @"") expand], nil, nil, nil,
             window, self, nil, nil, nil,
             [NSLocalizedString(@"InitAlertMesg", @"") expand]);
+    }
 }
 
 -(BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)theApplication {
