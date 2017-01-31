@@ -623,6 +623,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
             [NSLocalizedString(@"InitAlertTitle", @"") expand], nil, nil, nil,
             window, self, nil, nil, nil,
             [NSLocalizedString(@"InitAlertMesg", @"") expand]);
+    }
 }
 
 -(BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)theApplication {
