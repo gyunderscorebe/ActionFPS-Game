@@ -26,14 +26,15 @@ std::string strreplace(std::string &str, const std::string& from, const std::str
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
     COPYDATASTRUCT data;
-    char datastr[512] = "";
     std::string datastring = std::string(lpCmdLine);
     strreplace(datastring, std::string("\""), std::string(""));
 
     BOOL CALLBACK InfoDlgProc( HWND, UINT, WPARAM, LPARAM );
-
-    strncpy(datastr, datastring.c_str(), sizeof(datastr));
     
+    char *datastr = new char[datastring.size() + 1];
+    std::copy(datastring.begin(), datastring.end(), datastr);
+    datastr[datastring.size()] = '\0';
+
     data.dwData = MSGID;
     data.lpData = &datastr;
     data.cbData = sizeof(datastr);
@@ -48,12 +49,10 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
     }
     else
     {
-        std::string Launcher = LauncherPath();
-        char command[512] = "";
+        std::string Launcher = LauncherPath(), command;
+        command = "cd /d \"" + Launcher  + "\\..\" & actionfps.bat \"" + datastring + "\"";
 
-        sprintf(command, "cd /d \"%s\\..\" & actionfps.bat \"%s\"", Launcher.c_str(), datastr);
-
-        system(command);
+        system(command.c_str());
     }
 	return 0;
 }
