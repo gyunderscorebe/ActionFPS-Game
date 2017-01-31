@@ -8,7 +8,7 @@ CUBE_DIR=$(dirname "$(readlink -f "${0}")")
 
 # CUBE_OPTIONS starts AssaultCube with any command line options you choose.
 #CUBE_OPTIONS="-f"
-CUBE_OPTIONS="--home=${HOME}/.actionfps/v1.2next --init"
+CUBE_OPTIONS="--home=${HOME}/.actionfps/v1.2next --init ${1}"
 
 # SYSTEM_NAME should be set to the name of your operating system.
 #SYSTEM_NAME=Linux
