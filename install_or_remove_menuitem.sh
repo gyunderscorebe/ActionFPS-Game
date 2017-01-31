@@ -1,12 +1,12 @@
 #!/bin/bash
-# Adds a custom menuitem for AssaultCube to your Desktop's launcher.
+# Adds a custom menuitem for ActionFPS to your Desktop's launcher.
 
 CUBE_DIR=$(dirname "$(readlink -f "${0}")")
-CUBE_EXEC=assaultcube.sh
+CUBE_EXEC=actionfps.sh
 LAUNCHERPATH="${HOME}/.local/share/applications/"
 
-LAUNCHERFILE=assaultcube_dev.desktop
-LAUNCHERTITLE="Assaultcube v1.2dev"
+LAUNCHERFILE=actionfps.desktop
+LAUNCHERTITLE="ActionFPS"
 
 # Remove existing menuitem, if it exists:
 EXISTINGEXEC=`find "${LAUNCHERPATH}" -name "assaultcube*" | xargs`
@@ -29,23 +29,29 @@ cat > "${LAUNCHERPATH}"${LAUNCHERFILE} << EOF
 Version=1.0
 Type=Application
 Name=$LAUNCHERTITLE
-Keywords=assaultcube;game;fps;
+Keywords=actionfps;game;fps;
 GenericName=First Person Shooter Game
 Categories=Game;ActionGame;Shooter;
 Terminal=false
 StartupNotify=false
-Exec=$CUBE_DIR/$CUBE_EXEC
+Exec=$CUBE_DIR/$CUBE_EXEC %u
 Icon=$CUBE_DIR/docs/images/icon.png
 Comment=A multiplayer, first-person shooter game, based on the CUBE engine. Fast, arcade gameplay.
+MimeType=x-scheme-handler/actionfps
 EOF
+
+if type "xdg-mime" &> /dev/null; then
+  echo "Registering xdg-mime"
+  xdg-mime default actionfps.desktop x-scheme-handler/actionfps
+fi
 
 chmod +x "${LAUNCHERPATH}"${LAUNCHERFILE}
 if [ -x "${LAUNCHERPATH}"${LAUNCHERFILE} ]; then
-  echo "An AssaultCube menuitem has been successfully created at"
+  echo "An ActionFPS menuitem has been successfully created at"
   echo "${LAUNCHERPATH}"${LAUNCHERFILE}
   exit 0
 else
-  echo "For some reason, we're unable to install an AssaultCube menuitem."
+  echo "For some reason, we're unable to install an ActionFPS menuitem."
   exit 1
 fi
 
