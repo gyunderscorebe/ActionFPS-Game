@@ -1363,15 +1363,9 @@ void updatefrommaster(int force)
         serverinfo *curserver = getconnectedserverinfo();
         string curname;
         if(curserver) copystring(curname, curserver->name);
-
         clearservers();
-        cllock = false; // the ms could reply other thing... but currently, this is useless
-        if(!cllock )
-        {
-            printf("%s", data.getbuf());
-            execute(data.getbuf());
-            if(curserver) addserver(curname, curserver->port, curserver->msweight);
-        }
+        execute(data.getbuf());
+        if(curserver) addserver(curname, curserver->port, curserver->msweight);
         lastupdate = totalmillis;
     }
 }
