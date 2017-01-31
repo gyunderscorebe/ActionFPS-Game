@@ -14,3 +14,8 @@ test:
 general:
   artifacts:
     - source/xcode/build/Release/actionfps.dmg
+deployment:
+  production:
+    branch: master
+    commands:
+      - cd source/xcode/ && ./github-deploy.sh
