@@ -9,13 +9,13 @@ LAUNCHERFILE=actionfps.desktop
 LAUNCHERTITLE="ActionFPS"
 
 # Remove existing menuitem, if it exists:
-EXISTINGEXEC=`find "${LAUNCHERPATH}" -name "assaultcube*" | xargs`
+EXISTINGEXEC=`find "${LAUNCHERPATH}" -name "actionfps*" | xargs`
 if [ "$EXISTINGEXEC" != "" ]; then
   echo "The following menuitem(s) currently exist:"
   echo "$EXISTINGEXEC"
   read -p "Would you like them all to be deleted? (y/N): " -r REPLY
   if [ "$REPLY" = "y" ] || [ "$REPLY" = "yes" ] || [ "$REPLY" = "Y" ] || [ "$REPLY" = "YES" ]; then
-    find "${LAUNCHERPATH}" -name "assaultcube*" -delete
+    find "${LAUNCHERPATH}" -name "actionfps*" -delete
     echo "Deleted menuitems as requested." && echo ""
     exit 0
   else
