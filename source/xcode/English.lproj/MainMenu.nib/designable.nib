@@ -60,7 +60,7 @@
 				<int key="NSWindowBacking">2</int>
 				<string key="NSWindowRect">{{178, 311}, {480, 202}}</string>
 				<int key="NSWTFlags">1886912512</int>
-				<string key="NSWindowTitle">AssaultCube Launcher</string>
+				<string key="NSWindowTitle">actionfps Launcher</string>
 				<string key="NSWindowClass">NSWindow</string>
 				<object class="NSMutableString" key="NSViewClass">
 					<characters key="NS.bytes">View</characters>
@@ -85,7 +85,7 @@
 				<array class="NSMutableArray" key="NSMenuItems">
 					<object class="NSMenuItem" id="200040219">
 						<reference key="NSMenu" ref="558421259"/>
-						<string key="NSTitle">AssaultCube</string>
+						<string key="NSTitle">actionfps</string>
 						<string key="NSKeyEquiv"/>
 						<int key="NSKeyEquivModMask">1048576</int>
 						<int key="NSMnemonicLoc">2147483647</int>
@@ -99,11 +99,11 @@
 						</object>
 						<string key="NSAction">submenuAction:</string>
 						<object class="NSMenu" key="NSSubmenu" id="607759251">
-							<string key="NSTitle">AssaultCube</string>
+							<string key="NSTitle">actionfps</string>
 							<array class="NSMutableArray" key="NSMenuItems">
 								<object class="NSMenuItem" id="156355477">
 									<reference key="NSMenu" ref="607759251"/>
-									<string key="NSTitle">About AssaultCube</string>
+									<string key="NSTitle">About actionfps</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSMnemonicLoc">2147483647</int>
 									<reference key="NSOnImage" ref="124633874"/>
@@ -170,7 +170,7 @@
 								</object>
 								<object class="NSMenuItem" id="585174937">
 									<reference key="NSMenu" ref="607759251"/>
-									<string key="NSTitle">Hide AssaultCube</string>
+									<string key="NSTitle">Hide actionfps</string>
 									<string key="NSKeyEquiv">h</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -208,7 +208,7 @@
 								</object>
 								<object class="NSMenuItem" id="129201546">
 									<reference key="NSMenu" ref="607759251"/>
-									<string key="NSTitle">Quit AssaultCube</string>
+									<string key="NSTitle">Quit actionfps</string>
 									<string key="NSKeyEquiv">q</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -452,7 +452,7 @@
 							<array class="NSMutableArray" key="NSMenuItems">
 								<object class="NSMenuItem" id="913703504">
 									<reference key="NSMenu" ref="915169534"/>
-									<string key="NSTitle">AssaultCube Help</string>
+									<string key="NSTitle">actionfps Help</string>
 									<string key="NSKeyEquiv">?</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -1158,7 +1158,7 @@ AAMAAAABAAEAAAFTAAMAAAAEAAAFwgAAAAAACAAIAAgACAABAAEAAQABA</bytes>
 							<int key="NSCellFlags2">272630784</int>
 							<string key="NSContents"/>
 							<reference key="NSSupport" ref="261745729"/>
-							<string key="NSPlaceholderString">My AssaultCube Server</string>
+							<string key="NSPlaceholderString">My actionfps Server</string>
 							<reference key="NSControlView" ref="496687689"/>
 							<bool key="NSDrawsBackground">YES</bool>
 							<reference key="NSBackgroundColor" ref="589366922"/>

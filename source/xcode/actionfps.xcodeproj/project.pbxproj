@@ -34,8 +34,8 @@
 		9EB8172111ED9AEF00799589 /* Vorbis.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171911ED9AEF00799589 /* Vorbis.framework */; };
 		9EB8179511ED9EDF00799589 /* Ogg.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171411ED9AEF00799589 /* Ogg.framework */; };
 		9EB8179A11ED9EDF00799589 /* Vorbis.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171911ED9AEF00799589 /* Vorbis.framework */; };
-		9EB8181D11EDA56D00799589 /* assaultcube.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9EB817DE11EDA3A300799589 /* assaultcube.icns */; };
-		9EB8188511EDACDB00799589 /* assaultcube.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9EB817DE11EDA3A300799589 /* assaultcube.icns */; };
+		9EB8181D11EDA56D00799589 /* actionfps.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9EB817DE11EDA3A300799589 /* actionfps.icns */; };
+		9EB8188511EDACDB00799589 /* actionfps.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9EB817DE11EDA3A300799589 /* actionfps.icns */; };
 		9EB8188611EDACDB00799589 /* Help.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 66899EA80C14887F00927C34 /* Help.tiff */; };
 		9EB8188711EDACDB00799589 /* Keys.gif in Resources */ = {isa = PBXBuildFile; fileRef = 66899EA90C14887F00927C34 /* Keys.gif */; };
 		9EB8188811EDACDB00799589 /* Main.gif in Resources */ = {isa = PBXBuildFile; fileRef = 66899EAA0C14887F00927C34 /* Main.gif */; };
@@ -160,8 +160,8 @@
 		9EB8171511ED9AEF00799589 /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = Frameworks/SDL.framework; sourceTree = "<group>"; };
 		9EB8171611ED9AEF00799589 /* SDL_image.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL_image.framework; path = Frameworks/SDL_image.framework; sourceTree = "<group>"; };
 		9EB8171911ED9AEF00799589 /* Vorbis.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Vorbis.framework; path = Frameworks/Vorbis.framework; sourceTree = "<group>"; };
-		9EB817DE11EDA3A300799589 /* assaultcube.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = assaultcube.icns; sourceTree = "<group>"; };
-		9EB8183711EDA6EE00799589 /* assaultcube.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = assaultcube.plist; sourceTree = "<group>"; };
+		9EB817DE11EDA3A300799589 /* actionfps.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = actionfps.icns; sourceTree = "<group>"; };
+		9EB8183711EDA6EE00799589 /* actionfps.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = actionfps.plist; sourceTree = "<group>"; };
 		9EB8183811EDA6EE00799589 /* launcher.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = launcher.plist; sourceTree = "<group>"; };
 		9EFB9B6E12634B1600FCE687 /* jpegenc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jpegenc.h; sourceTree = "<group>"; };
 		B2F67ED704C74A3F00A80002 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
@@ -238,7 +238,7 @@
 		B914CE8B11CAC42F009BA307 /* worldocull.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = worldocull.cpp; sourceTree = "<group>"; };
 		B914CE8C11CAC42F009BA307 /* worldrender.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = worldrender.cpp; sourceTree = "<group>"; };
 		B914CE8D11CAC42F009BA307 /* zip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = zip.cpp; sourceTree = "<group>"; };
-		B94198CB09207E810029DAD1 /* assaultcube.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = assaultcube.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B94198CB09207E810029DAD1 /* actionfps.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = actionfps.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B96D0D4C092096F200B6C936 /* launcher.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = launcher.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B96D0D570920970C00B6C936 /* Launcher.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Launcher.h; sourceTree = "<group>"; };
 		B96D0D580920970C00B6C936 /* Launcher.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = Launcher.m; sourceTree = "<group>"; };
@@ -316,7 +316,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				B94198CB09207E810029DAD1 /* assaultcube.app */,
+				B94198CB09207E810029DAD1 /* actionfps.app */,
 				B96D0D4C092096F200B6C936 /* launcher.app */,
 			);
 			name = Products;
@@ -346,8 +346,8 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				9EB817DE11EDA3A300799589 /* assaultcube.icns */,
-				9EB8183711EDA6EE00799589 /* assaultcube.plist */,
+				9EB817DE11EDA3A300799589 /* actionfps.icns */,
+				9EB8183711EDA6EE00799589 /* actionfps.plist */,
 				66899EA80C14887F00927C34 /* Help.tiff */,
 				66899EA90C14887F00927C34 /* Keys.gif */,
 				9EB8183811EDA6EE00799589 /* launcher.plist */,
@@ -492,9 +492,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		B941988A09207E810029DAD1 /* assaultcube */ = {
+		B941988A09207E810029DAD1 /* actionfps */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = B94198C609207E810029DAD1 /* Build configuration list for PBXNativeTarget "assaultcube" */;
+			buildConfigurationList = B94198C609207E810029DAD1 /* Build configuration list for PBXNativeTarget "actionfps" */;
 			buildPhases = (
 				B94198A409207E810029DAD1 /* Resources */,
 				B94198A709207E810029DAD1 /* Sources */,
@@ -507,10 +507,10 @@
 			dependencies = (
 				B96D0D790920980E00B6C936 /* PBXTargetDependency */,
 			);
-			name = assaultcube;
+			name = actionfps;
 			productInstallPath = "$(HOME)/Applications";
 			productName = sauerbraten;
-			productReference = B94198CB09207E810029DAD1 /* assaultcube.app */;
+			productReference = B94198CB09207E810029DAD1 /* actionfps.app */;
 			productType = "com.apple.product-type.application";
 		};
 		B96D0D4B092096F200B6C936 /* launcher */ = {
@@ -538,7 +538,7 @@
 			attributes = {
 				LastUpgradeCheck = 0410;
 			};
-			buildConfigurationList = B960CF35085F3CC7004FB142 /* Build configuration list for PBXProject "assaultcube" */;
+			buildConfigurationList = B960CF35085F3CC7004FB142 /* Build configuration list for PBXProject "actionfps" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
@@ -552,7 +552,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				B941988A09207E810029DAD1 /* assaultcube */,
+				B941988A09207E810029DAD1 /* actionfps */,
 				B96D0D4B092096F200B6C936 /* launcher */,
 			);
 		};
@@ -563,7 +563,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9EB8181D11EDA56D00799589 /* assaultcube.icns in Resources */,
+				9EB8181D11EDA56D00799589 /* actionfps.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -571,7 +571,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9EB8188511EDACDB00799589 /* assaultcube.icns in Resources */,
+				9EB8188511EDACDB00799589 /* actionfps.icns in Resources */,
 				9EB8188611EDACDB00799589 /* Help.tiff in Resources */,
 				9EB8188711EDACDB00799589 /* Keys.gif in Resources */,
 				9EB8188811EDACDB00799589 /* Main.gif in Resources */,
@@ -597,7 +597,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "echo $TARGET_BUILD_DIR\ncd $TARGET_BUILD_DIR\n\n#ensure old package is gone\nrm -f actionfps.dmg\n\n#make the directory which our disk image will be made of\n#use /tmp as a destination because copying ourself (xcode folder) whilst compling causes the dog to chase its tail\nACPKG=`mktemp -d /tmp/acpkg.XXXXXX` || exit 1\n\n#leave indicator of where temp directory is in case things break\nln -sf $ACPKG $TARGET_BUILD_DIR/acpkg\n\n#copy launcher\n/usr/bin/CpMac -r $TARGET_BUILD_DIR/launcher.app $ACPKG/AssaultCube.app\n\nHELPDIR=$ACPKG/AssaultCube.app/Contents/Resources/help/\nGAMEDIR=$ACPKG/AssaultCube.app/Contents/gamedata\nmkdir $GAMEDIR\nmkdir $HELPDIR\n\n#copy assaultcube\n/usr/bin/CpMac -r $TARGET_BUILD_DIR/assaultcube.app $GAMEDIR/\nstrip -u -r \"$GAMEDIR/assaultcube.app/Contents/MacOS/assaultcube\"\n\n#copy readme and data and remove unneccesary stuff\n/usr/bin/CpMac -r $SRCROOT/../../docs $HELPDIR/\n/usr/bin/CpMac -r $SRCROOT/../../bot $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../config $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../scripts $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../packages $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../demos $GAMEDIR/\n#/Developer/Tools/CpMac -r $SRCROOT/../../source $ACPKG/sourcecode\n\n#clean up\nfind -d $ACPKG -name \"shadows.dat\" -exec rm -rf {} \\;\nfind -d $ACPKG -name \"CVS\" -exec rm -rf {} \\;\nfind -d $ACPKG -name \".svn\" -exec rm -rf {} \\;\nfind $ACPKG -name \".DS_Store\" -exec rm -f {} \\;\nrm -rf $ACPKG/sourcecode/xcode/build\nrm -rf $ACPKG/sourcecode/xcode/DerivedData\nrm -rf $ACPKG/sourcecode/xcode/Frameworks/*\nrm -rf $ACPKG/sourcecode/vcpp\nrm -f $GAMEDIR/config/saved.cfg\nrm -f $GAMEDIR/config/init.cfg\nrm -f $GAMEDIR/config/servers.cfg\n\nrm -rf $HELPDIR/docs/autogen/\nmkdir $GAMEDIR/screenshots\nmkdir $GAMEDIR/mods\n\n#finally make a disk image out of the stuff\nhdiutil create -srcfolder $ACPKG -volname assaultcube actionfps.dmg\nhdiutil internet-enable -yes actionfps.dmg\n\n#cleanup\nrm -rf $ACPKG";
+			shellScript = "echo $TARGET_BUILD_DIR\ncd $TARGET_BUILD_DIR\n\n#ensure old package is gone\nrm -f actionfps.dmg\n\n#make the directory which our disk image will be made of\n#use /tmp as a destination because copying ourself (xcode folder) whilst compling causes the dog to chase its tail\nACPKG=`mktemp -d /tmp/acpkg.XXXXXX` || exit 1\n\n#leave indicator of where temp directory is in case things break\nln -sf $ACPKG $TARGET_BUILD_DIR/acpkg\n\n#copy launcher\n/usr/bin/CpMac -r $TARGET_BUILD_DIR/launcher.app $ACPKG/actionfps.app\n\nHELPDIR=$ACPKG/actionfps.app/Contents/Resources/help/\nGAMEDIR=$ACPKG/actionfps.app/Contents/gamedata\nmkdir $GAMEDIR\nmkdir $HELPDIR\n\n#copy actionfps\n/usr/bin/CpMac -r $TARGET_BUILD_DIR/actionfps.app $GAMEDIR/\nstrip -u -r \"$GAMEDIR/actionfps.app/Contents/MacOS/actionfps\"\n\n#copy readme and data and remove unneccesary stuff\n/usr/bin/CpMac -r $SRCROOT/../../docs $HELPDIR/\n/usr/bin/CpMac -r $SRCROOT/../../bot $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../config $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../scripts $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../packages $GAMEDIR/\n/usr/bin/CpMac -r $SRCROOT/../../demos $GAMEDIR/\n#/Developer/Tools/CpMac -r $SRCROOT/../../source $ACPKG/sourcecode\n\n#clean up\nfind -d $ACPKG -name \"shadows.dat\" -exec rm -rf {} \\;\nfind -d $ACPKG -name \"CVS\" -exec rm -rf {} \\;\nfind -d $ACPKG -name \".svn\" -exec rm -rf {} \\;\nfind $ACPKG -name \".DS_Store\" -exec rm -f {} \\;\nrm -rf $ACPKG/sourcecode/xcode/build\nrm -rf $ACPKG/sourcecode/xcode/DerivedData\nrm -rf $ACPKG/sourcecode/xcode/Frameworks/*\nrm -rf $ACPKG/sourcecode/vcpp\nrm -f $GAMEDIR/config/saved.cfg\nrm -f $GAMEDIR/config/init.cfg\nrm -f $GAMEDIR/config/servers.cfg\n\nrm -rf $HELPDIR/docs/autogen/\nmkdir $GAMEDIR/screenshots\nmkdir $GAMEDIR/mods\n\n#finally make a disk image out of the stuff\nhdiutil create -srcfolder $ACPKG -volname actionfps actionfps.dmg\nhdiutil internet-enable -yes actionfps.dmg\n\n#cleanup\nrm -rf $ACPKG";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -747,7 +747,7 @@
 					../include/,
 					/usr/local/opt/openssl/include,
 				);
-				INFOPLIST_FILE = assaultcube.plist;
+				INFOPLIST_FILE = actionfps.plist;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -765,7 +765,7 @@
 					"-lcrypto",
 					"-lz",
 				);
-				PRODUCT_NAME = assaultcube;
+				PRODUCT_NAME = actionfps;
 				SDKROOT = macosx;
 				STRIP_STYLE = all;
 			};
@@ -798,7 +798,7 @@
 					../include/,
 					/usr/local/opt/openssl/include,
 				);
-				INFOPLIST_FILE = assaultcube.plist;
+				INFOPLIST_FILE = actionfps.plist;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -816,7 +816,7 @@
 					"-lcrypto",
 					"-lz",
 				);
-				PRODUCT_NAME = assaultcube;
+				PRODUCT_NAME = actionfps;
 				SDKROOT = macosx;
 				STRIP_STYLE = all;
 			};
@@ -854,7 +854,7 @@
 					../include/,
 					/usr/local/opt/openssl/include,
 				);
-				INFOPLIST_FILE = assaultcube.plist;
+				INFOPLIST_FILE = actionfps.plist;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -873,7 +873,7 @@
 					"-lcrypto",
 					"-lz",
 				);
-				PRODUCT_NAME = assaultcube;
+				PRODUCT_NAME = actionfps;
 				SDKROOT = macosx;
 				STRIP_STYLE = all;
 			};
@@ -1028,7 +1028,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		B94198C609207E810029DAD1 /* Build configuration list for PBXNativeTarget "assaultcube" */ = {
+		B94198C609207E810029DAD1 /* Build configuration list for PBXNativeTarget "actionfps" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B94198C709207E810029DAD1 /* Debug */,
@@ -1038,7 +1038,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		B960CF35085F3CC7004FB142 /* Build configuration list for PBXProject "assaultcube" */ = {
+		B960CF35085F3CC7004FB142 /* Build configuration list for PBXProject "actionfps" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B960CF36085F3CC7004FB142 /* Debug */,

@@ -19,7 +19,7 @@
 #define kMaxDisplays	16
 
 //If you make a MOD then please change this, the bundle indentifier, the file extensions (.cgz, .dmo), and the url registration.
-#define kASSAULTCUBE @"actionfps"
+#define kactionfps @"actionfps"
 #define kUSERCONFGIDIR @"actionfps/next"
 
 //tab names, i.e. image names (text is localised)
@@ -34,7 +34,7 @@
 - (NSString*)expand {
     NSMutableString *str = [NSMutableString string];
     [str setString:self];
-    [str replaceOccurrencesOfString:@":s" withString:kASSAULTCUBE options:0 range:NSMakeRange(0, [str length])];
+    [str replaceOccurrencesOfString:@":s" withString:kactionfps options:0 range:NSMakeRange(0, [str length])];
     return str;
 }
 @end
@@ -241,7 +241,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
 }
 
 
-/* directory where user files are kept - typically /Users/<name>/Application Support/assaultcube_major.minor */
+/* directory where user files are kept - typically /Users/<name>/Application Support/actionfps_major.minor */
 + (NSString*)userdir
 {
     FSRef folder;
@@ -504,7 +504,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     {
         if([filename hasPrefix:@"-e"])
             [cmds addObject:[filename substringFromIndex:2]];
-        if([filename hasPrefix:[NSString stringWithFormat:@"%@://", kASSAULTCUBE]])
+        if([filename hasPrefix:[NSString stringWithFormat:@"%@://", kactionfps]])
             [args addObject:filename];
         else
         {
@@ -662,7 +662,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     [self openUserdir:nil];
 }
 
-//we register 'assaultcube' as a url scheme
+//we register 'actionfps' as a url scheme
 - (void)getUrl:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 {
     NSURL *url = [NSURL URLWithString:[[event paramDescriptorForKeyword:keyDirectObject] stringValue]];
