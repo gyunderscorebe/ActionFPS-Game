@@ -9,7 +9,7 @@
 
 # Uses $0
 Function openLinkNewWindow
-  Push $3 
+  Push $3
   Push $2
   Push $1
   Push $0
@@ -28,12 +28,12 @@ Function openLinkNewWindow
     StrCmp $1 "" found
     IntOp $3 $3 + 1
     Goto loop
- 
+
   found:
     StrCpy $1 $0 $3
     StrCmp $2 " " +2
     StrCpy $1 '$1"'
- 
+
   Pop $0
   Exec '$1 $0'
   Pop $1
@@ -43,7 +43,7 @@ FunctionEnd
 
 # Uses $0
 Function un.openLinkNewWindow
-  Push $3 
+  Push $3
   Push $2
   Push $1
   Push $0
@@ -62,12 +62,12 @@ Function un.openLinkNewWindow
     StrCmp $1 "" found
     IntOp $3 $3 + 1
     Goto loop
- 
+
   found:
     StrCpy $1 $0 $3
     StrCmp $2 " " +2
     StrCpy $1 '$1"'
- 
+
   Pop $0
   Exec '$1 $0'
   Pop $1
@@ -301,7 +301,7 @@ Function .onInit
     "${AC_SHORTNAME} is already installed. $\n$\nDo you want to uninstall the previous installation?" \
     IDYES uninst \
     IDNO done
- 
+
     ;Run the uninstaller silently
     uninst:
     ClearErrors
@@ -319,7 +319,7 @@ FunctionEnd
 Function .onInstSuccess
 
     IfSilent skipopenlink
-    StrCpy $0 "http://assault.cubers.net/releasenotes/v1.2/"
+    StrCpy $0 "https://github.com/ActionFPS/ActionFPS-Game/blob/master/RELEASENOTES.md"
     Call openLinkNewWindow
     skipopenlink:
 
@@ -328,8 +328,8 @@ FunctionEnd
 Function un.onUninstSuccess
 
     IfSilent skipopenlink
-    StrCpy $0 "http://assault.cubers.net/uninstallnotes/v1.2/"
-    Call un.openLinkNewWindow  
+    StrCpy $0 "https://github.com/ActionFPS/ActionFPS-Game/blob/master/UNINSTALL.md"
+    Call un.openLinkNewWindow
     skipopenlink:
 
 FunctionEnd
@@ -477,7 +477,7 @@ FunctionEnd
 Function InstallationTypePage
 
     ; check if "my documents" folder is present, might disable 2nd option
-    
+
     ReadRegStr $0 HKCU "Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" "Personal"
     StrCmp $0 "" nohome hashome
     nohome:
@@ -485,28 +485,28 @@ Function InstallationTypePage
     Call DisableMultiuserOption ; not present, disable option
         goto homecheckdone
 
-    hashome: 
+    hashome:
     homecheckdone:
-    
-    
+
+
     ; check installed windows version, might change default option
-    
+
     ${WinVerGetMajor} $R0
- 
+
     ${If} $R0 >= 5  ; vista
-    
+
         ; suggest multiuser option on vista and later
         !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "State" "1"
         !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 1" "State" "0"
-    
+
     ${Endif}
-    
-    
+
+
     ; set up GUI
-    
-    !insertmacro MUI_HEADER_TEXT "Installation Type" "Select the installation type" 
+
+    !insertmacro MUI_HEADER_TEXT "Installation Type" "Select the installation type"
     !insertmacro MUI_INSTALLOPTIONS_DISPLAY "InstallTypes.ini"
-    
+
     Pop $HWND
 
     GetDlgItem $1 $HWNDPARENT 1
@@ -519,9 +519,9 @@ FunctionEnd
 
 
 Function ConfigureWithoutAppdata
-    
+
     ; configure ac without home dir
-    
+
     FileOpen $9 "$INSTDIR\ActionFPS.bat" w
     FileWrite $9 "start bin_win32\af_client.exe --init %1 %2 %3 %4 %5$\r$\n"
     FileClose $9
@@ -546,8 +546,8 @@ Section "ActionFPS ${AC_FULLVERSION}" AC
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "DisplayIcon" '"$INSTDIR\icon.ico"'
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "HelpLink" "$INSTDIR\README.html"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "URLInfoAbout" "http://assault.cubers.net"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "URLUpdateInfo" "http://assault.cubers.net/download.html"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "URLInfoAbout" "https://actionfps.com"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "URLUpdateInfo" "https://actionfps.com"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "DisplayVersion" "${AC_FULLVERSIONINT}"
     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "VersionMajor" ${AC_MAJORVERSIONINT}
     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "VersionMinor" ${AC_MINORVERSIONINT}
@@ -555,12 +555,12 @@ Section "ActionFPS ${AC_FULLVERSION}" AC
     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "NoRepair" 1
 
     WriteUninstaller "$INSTDIR\Uninstall.exe"
-    
+
 
     ; create shortcuts
-    
+
     !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
-       
+
         SetShellVarContext all
 
         CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
@@ -569,13 +569,13 @@ Section "ActionFPS ${AC_FULLVERSION}" AC
         CreateShortCut "$SMPROGRAMS\$StartMenuFolder\README.lnk" "$INSTDIR\README.html" "" "" 0
 
     !insertmacro MUI_STARTMENU_WRITE_END
-    
+
 
     ; set up ac dir config
-    
+
     !insertmacro MUI_INSTALLOPTIONS_READ $R0 "InstallTypes.ini" "Field 1" "State"
     !insertmacro MUI_INSTALLOPTIONS_READ $R1 "InstallTypes.ini" "Field 2" "State"
-    
+
     StrCmp $R0 "1" 0 appdatadone
         Call ConfigureWithoutAppdata
     appdatadone:
@@ -607,7 +607,7 @@ Section "Register URL protocol" REGISTERURL
 SectionEnd
 
 Section "Uninstall"
-  
+
     SetShellVarContext all
 
     ; delete directory
@@ -617,20 +617,20 @@ Section "Uninstall"
     ; delete shortcuts
 
     Delete "$DESKTOP\ActionFPS.lnk"
-    
-    !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder 
-    
+
+    !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
+
     Delete "$SMPROGRAMS\$StartMenuFolder\${AC_SHORTNAME}.lnk"
     Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
     Delete "$SMPROGRAMS\$StartMenuFolder\README.lnk"
     RmDir  "$SMPROGRAMS\$StartMenuFolder"
-    
+
     ; delete reg keys
-    
+
     DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}"
     DeleteRegKey HKLM "SOFTWARE\${AC_SHORTNAME}"
     DeleteRegKey HKCR "${AC_URLPROTOCOL}"
-    
+
 SectionEnd
 
 

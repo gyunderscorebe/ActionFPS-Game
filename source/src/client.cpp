@@ -344,8 +344,8 @@ void current_version(char *text)
     int version = atoi(text);
     if (version && AF_VERSION<version)
     {
-        hudoutf("\f3YOUR VERSION OF ASSAULTCUBE IS OUTDATED!");
-        conoutf("\f3YOU MUST UPDATE ASSAULTCUBE\nplease visit \f2http://assault.cubers.net \f3for more information");
+        hudoutf("\f3YOUR VERSION OF ACTIONFPS IS OUTDATED!");
+        conoutf("\f3YOU MUST UPDATE ACTIONFPS\nplease visit \f2https://actionfps.com");
     }
 }
 COMMAND(current_version, "s");
@@ -736,7 +736,7 @@ bool securemapcheck(const char *map, bool msg)
             if(connected)
             {
                 conoutf("\f3If you get this error often, you (or the server) may be running an outdated game.");
-                conoutf("\f3You can check for updates at \f1http://assault.cubers.net/download.html");
+                conoutf("\f3You can check for updates at \f1https://actionfps.com");
             }
         }
         return true;
@@ -880,4 +880,3 @@ COMMAND(getdemo, "is");
 COMMAND(listdemos, "");
 COMMANDN(setmr, setminutesremaining, "i");
 COMMANDN(rewind, rewinddemo, "i");
-
