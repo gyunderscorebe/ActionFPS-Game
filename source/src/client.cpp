@@ -596,6 +596,8 @@ ucharbuf authkey;
 
 void readauthkey()
 {
+    ERR_load_crypto_strings();
+
     stream *f = openfile(path("config/authkey", true), "r");
     if(!f) return;
     char buf[5000] = "";
@@ -648,6 +650,11 @@ void sendintro()
     DSA *ret = PEM_read_bio_DSAPrivateKey(bio, &priv_dsa, NULL, NULL);
     if(!ret)
     {
+        char buffer[120];
+        ERR_error_string(ERR_get_error(), buffer);
+
+        clientlogf("failed to read private key! please issue a new key.");
+        clientlogf("OpenSSL error: %s", buffer);
         putint(p, 0);
         DELETEP(priv_dsa);
         DELETEP(bio);
@@ -749,7 +756,7 @@ bool securemapcheck(const char *map, bool msg)
             if(connected)
             {
                 conoutf("\f3If you get this error often, you (or the server) may be running an outdated game.");
-                conoutf("\f3You can check for updates at \f1http://assault.cubers.net/download.html");
+                conoutf("\f3You can check for updates at \f1https://actionfps.com");
             }
         }
         return true;
@@ -893,4 +900,3 @@ COMMAND(getdemo, "is");
 COMMAND(listdemos, "");
 COMMANDN(setmr, setminutesremaining, "i");
 COMMANDN(rewind, rewinddemo, "i");
-

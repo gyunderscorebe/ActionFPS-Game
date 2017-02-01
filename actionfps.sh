@@ -1,12 +1,12 @@
 #!/bin/sh
 
-# CUBE_DIR should refer to the directory in which AssaultCube is placed.
+# CUBE_DIR should refer to the directory in which ActionFPS is placed.
 #CUBE_DIR=~/actionfps
 #CUBE_DIR=/usr/local/actionfps
 #CUBE_DIR=.
 CUBE_DIR=$(dirname "$(readlink -f "${0}")")
 
-# CUBE_OPTIONS starts AssaultCube with any command line options you choose.
+# CUBE_OPTIONS starts ActionFPS with any command line options you choose.
 #CUBE_OPTIONS="-f"
 CUBE_OPTIONS="--home=${HOME}/.actionfps/v1.2next --init"
 
@@ -58,7 +58,7 @@ elif [ -x "${BINARYPATH}" ]; then
   cd "${CUBE_DIR}"
   exec "${BINARYPATH}" ${CUBE_OPTIONS} "$@"
 else
-  echo "Your platform does not have a pre-compiled AssaultCube client."
+  echo "Your platform does not have a pre-compiled ActionFPS client."
   echo "Please follow the following steps to build a native client:"
   echo "1) Ensure you have the following DEVELOPMENT libraries installed:"
   echo "   OpenGL, SDL, SDL_image, zlib, libogg, libvorbis, OpenAL Soft"
@@ -67,4 +67,3 @@ else
   echo "4) If the compile succeeds, return to this directory and re-run this script."
   exit 1
 fi
-

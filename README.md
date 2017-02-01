@@ -1,4 +1,4 @@
-# ActionFPS Game [![Build Status](https://travis-ci.org/ActionFPS/ActionFPS-Game.svg?branch=master)](https://travis-ci.org/ActionFPS/ActionFPS-Game) [![Join the chat at https://gitter.im/ScalaWilliam/ActionFPS](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ScalaWilliam/actionfps?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build status](https://ci.appveyor.com/api/projects/status/dx4x857jldgx5d9h/branch/master?svg=true)](https://ci.appveyor.com/project/ScalaWilliam/actionfps-game/branch/master)
+# ActionFPS Game [![Build Status](https://travis-ci.org/ActionFPS/ActionFPS-Game.svg?branch=master)](https://travis-ci.org/ActionFPS/ActionFPS-Game) [![CircleCI](https://circleci.com/gh/ActionFPS/ActionFPS-Game.svg?style=svg)](https://circleci.com/gh/ActionFPS/ActionFPS-Game) [![Build status](https://ci.appveyor.com/api/projects/status/dx4x857jldgx5d9h/branch/master?svg=true)](https://ci.appveyor.com/project/ScalaWilliam/actionfps-game/branch/master)
 
 Game client and server for https://actionfps.com/ | http://github.com/ScalaWilliam/ActionFPS/
 
@@ -25,15 +25,15 @@ git clone https://github.com/lucasgautheron/ActionFPS-Game.git
 cd source/src
 make install
 cd ../..
-./assaultcube.sh
+./actionfps.sh
 ```
 
 ## Test server
 
-We're running an always up-to-date server (synchronized with the branch that is being test) at woop.ac:2500 :
+We're running an always up-to-date server (synchronized with the branch that is being test) at woop.ac:7654 :
 
 ```
-/connect woop.ac 2500
+/connect woop.ac 7654
 ```
 ## Contribute
  * Have a look at the current [projects](https://github.com/lucasgautheron/ActionFPS-Game/projects)

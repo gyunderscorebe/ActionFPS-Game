@@ -1,7 +1,7 @@
 
 dependencies:
   pre:
-    - brew install openssl
+    - brew install openssl jq
 machine:
   xcode:
     version: 8.0
@@ -13,4 +13,10 @@ test:
     - set -o pipefail && cd source/xcode && make
 general:
   artifacts:
-    - source/xcode/build/Release/assaultcube.dmg
+    - source/xcode/build/Release/actionfps.dmg
+deployment:
+  production:
+    tag: /.*/
+    owner: ActionFPS
+    commands:
+      - cd source/xcode/ && ./github-deploy.sh

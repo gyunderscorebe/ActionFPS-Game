@@ -12,7 +12,7 @@
 			<key>CFBundleTypeIconFile</key>
 			<string>map.icns</string>
 			<key>CFBundleTypeName</key>
-			<string>AssaultCube demo</string>
+			<string>actionfps demo</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>LSTypeIsPackage</key>
@@ -28,7 +28,7 @@
 			<key>CFBundleTypeIconFile</key>
 			<string>map.icns</string>
 			<key>CFBundleTypeName</key>
-			<string>AssaultCube map</string>
+			<string>actionfps map</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSTypeIsPackage</key>
@@ -42,9 +42,9 @@
 	<key>CFBundleExecutable</key>
 	<string>launcher</string>
 	<key>CFBundleIconFile</key>
-	<string>assaultcube</string>
+	<string>actionfps</string>
 	<key>CFBundleIdentifier</key>
-	<string>assaultcube</string>
+	<string>actionfps</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -59,10 +59,10 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>AssaultCubeServer</string>
+			<string>actionfpsServer</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>assaultcube</string>
+				<string>actionfps</string>
 			</array>
 		</dict>
 	</array>

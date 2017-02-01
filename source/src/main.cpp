@@ -1025,7 +1025,7 @@ void gameprotocol(char *protocolstring, string &servername, int &serverport, str
         {
             c += 4; p = c; len = 0;
             while(*c && *c!='&' && *c!='/') { len++, c++; }
-            if(len) copystring(auth_key, p, min(len+1, (int)sizeof(auth_key)));
+            if(len) copystring(auth_key, p, min(len+1, 4096));
         }
         else break;
     } while(*c && *c=='&' && *c!='/');
