@@ -19,7 +19,7 @@
 // -n     // server description
 // -n1    // custom server description prefix
 // -n2    // custom server description suffix
-// -f     // port, 1..65534, default 28763
+// -f     // port, 1..65534, default 30000
 // -c     // max client number, 1..16, default 6
 // -D     // number of demos to keep in RAM, default 5
 

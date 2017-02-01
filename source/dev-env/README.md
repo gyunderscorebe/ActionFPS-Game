@@ -6,7 +6,7 @@
 ## Running local ActionFPS server
 
     $ docker run \
-      -p 28763:28763/udp \
+      -p 30000:30000/udp \
       -v $ACTIONFPS_GAME:/game/ \
       -it \
       --entrypoint '' \
