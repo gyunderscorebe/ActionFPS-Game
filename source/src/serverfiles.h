@@ -977,7 +977,8 @@ struct usersdatabasefile : serverconfigfile
         while(f->getline(buf, sizeof(buf)))
         {
             user *u = new user();
-            usersdatabasefile::parsedata(u, buf);
+            std::string sbuf = buf;
+            usersdatabasefile::parsedata(u, trim(sbuf).c_str());
             usermanager.users.push_back(u);
             logline(ACLOG_VERBOSE, "read user '%s'", u->id);
         }
@@ -989,9 +990,9 @@ struct usersdatabasefile : serverconfigfile
 
     // reads from u->data
     // and sets all the parameters according to its content
-    static void parsedata(user *u, char *data)
+    static void parsedata(user *u, const char *data)
     {
-        const char *current = strtok(data, " ");
+        const char *current = strtok((char *)data, " ");
         while (current != NULL)
         {
             const char *val = strchr(current, '=');
@@ -1059,7 +1060,8 @@ struct groupsdatabasefile : serverconfigfile
         while(f->getline(buf, sizeof(buf)))
         {
             groupent *g = new groupent();
-            groupsdatabasefile::parsedata(g, buf);
+            std::string sbuf = buf;
+            groupsdatabasefile::parsedata(g, trim(sbuf).c_str());
             usermanager.groups.push_back(g);
             logline(ACLOG_VERBOSE, "read group '%s'", g->id);
         }
@@ -1071,9 +1073,9 @@ struct groupsdatabasefile : serverconfigfile
 
     // reads from u->data
     // and sets all the parameters according to its content
-    static void parsedata(groupent *g, char *data)
+    static void parsedata(groupent *g, const char *data)
     {
-        const char *current = strtok(data, " ");
+        const char *current = strtok((char *)data, " ");
         while (current != NULL)
         {
             const char *val = strchr(current, '=');
