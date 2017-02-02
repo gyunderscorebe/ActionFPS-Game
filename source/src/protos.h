@@ -849,8 +849,11 @@ extern int defaultgamelimit(int gamemode);
 
 // crypto // for AUTH
 const char *genpwdhash(const char *name, const char *pwd, int salt);
+extern char *authid;
 extern void readauthkey();
 extern void writeauthkey();
+extern void updateauthkey(const char *new_key_base64);
+extern bool testauthkey();
 extern std::string base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len);
 extern std::string base64_decode(std::string const& encoded_string);
 

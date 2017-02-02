@@ -1016,7 +1016,6 @@ void gameprotocol(char *protocolstring, string &servername, int &serverport, str
         }
         else if(!strncmp(c, "id=", 3))
         {
-            extern char *authid;
             c += 3; p = c; len = 0;
             while(*c && *c!='&' && *c!='/') { len++, c++; }
             if(len) copystring(auth_id, p, min(len+1, MAXSTRLEN));
@@ -1104,14 +1103,8 @@ int sdl_syswmevent_filter(const SDL_Event *e)
     if(auth_id[0]) { setsvar("authid", auth_id); }
     if(auth_key[0])
     {
-        size_t len;
-        std::string encoded = std::string(auth_key);
-        std::string decoded = base64_decode(encoded);
-        len = decoded.length();
-        authkey.reset();
-        authkey.buf = new uchar[len];
-        authkey.maxlen = len;
-        authkey.put((uchar *)decoded.c_str(), len);
+        updateauthkey(auth_key);
+        conoutf("%s set authentication key for user '%s'", testauthkey() ? "successfully" : "\f3failed to", authid);
     }
 
     if (direct_connect)
@@ -1399,14 +1392,8 @@ int main(int argc, char **argv)
     if(auth_id[0]) { setsvar("authid", auth_id); }
     if(auth_key[0])
     {
-        size_t len;
-        std::string encoded = std::string(auth_key);
-        std::string decoded = base64_decode(encoded);
-        len = decoded.length();
-        authkey.reset();
-        authkey.buf = new uchar[len];
-        authkey.maxlen = len;
-        authkey.put((uchar *)decoded.c_str(), len);
+        updateauthkey(auth_key);
+        conoutf("%s set authentication key for user '%s'", testauthkey() ? "successfully" : "\f3failed to", authid);
     }
 
     if (direct_connect)

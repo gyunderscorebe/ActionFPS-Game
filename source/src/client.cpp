@@ -591,6 +591,33 @@ void readauthkey()
     delete f;
 }
 
+void updateauthkey(const char *new_key_base64)
+{
+    size_t len;
+    std::string encoded = std::string(new_key_base64);
+    std::string decoded = base64_decode(encoded);
+    len = decoded.length();
+    authkey.reset();
+    authkey.buf = new uchar[len];
+    authkey.maxlen = len;
+    authkey.put((uchar *)decoded.c_str(), len);
+}
+
+bool testauthkey()
+{
+    DSA *priv_dsa = DSA_new();
+    BIO *bio = BIO_new(BIO_s_mem());
+    BIO_write(bio, (const void *) authkey.buf, authkey.len);
+    DSA *ret = PEM_read_bio_DSAPrivateKey(bio, &priv_dsa, NULL, NULL);
+
+    bool valid = ret != NULL;
+
+    DELETEP(bio);
+    DELETEP(priv_dsa);
+
+    return valid;
+}
+
 void writeauthkey()
 {
     stream *f = openfile(path("config/authkey", true), "w");
@@ -623,9 +650,7 @@ void sendintro()
     sendstring(authid, p);
 
     DSA *priv_dsa = DSA_new();
-
-    BIO *bio;
-    bio = BIO_new(BIO_s_mem());
+    BIO *bio = BIO_new(BIO_s_mem());
     BIO_write(bio, (const void *) authkey.buf,  authkey.len);
     DSA *ret = PEM_read_bio_DSAPrivateKey(bio, &priv_dsa, NULL, NULL);
     if(!ret)
