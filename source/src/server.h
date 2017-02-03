@@ -247,9 +247,9 @@ struct client                   // server side version of "dynent" type
         if(userid[0])
         {
             if(group.id[0])
-                formatstring(identity)("%s:%s:%s", group.id, userid, hostname);
+                formatstring(identity)("%s:%s:%s", hostname, userid, group.id);
             else
-                formatstring(identity)("%s:%s", userid, hostname);
+                formatstring(identity)("%s:%s", hostname, userid);
         }
         else
             formatstring(identity)("%s", hostname);
