@@ -242,6 +242,19 @@ struct client                   // server side version of "dynent" type
         return events.add();
     }
 
+    void setidentity()
+    {
+        if(userid[0])
+        {
+            if(group.id[0])
+                formatstring(identity)("%s:%s:%s", group.id, userid, hostname);
+            else
+                formatstring(identity)("%s:%s", userid, hostname);
+        }
+        else
+            formatstring(identity)("%s", hostname);
+    }
+
     void mapchange(bool getmap = false)
     {
         state.reset();
@@ -668,7 +681,7 @@ struct serverusermanager
         {
             //cl->u = u;
             copystring(cl->userid, id);
-            formatstring(cl->identity)("%s:%s", cl->userid, cl->hostname);
+            cl->setidentity();
             return true;
         }
         return false;
@@ -699,7 +712,11 @@ struct serverusermanager
     void set_group(client *cl, const char *group)
     {
         groupent *g = find_group(group);
-        if(g) cl->group = *g;
+        if(g)
+        {
+            cl->group = *g;
+            cl->setidentity();
+        }
     }
 
     bool request_group(client *cl, const char *group)
