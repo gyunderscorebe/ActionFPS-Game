@@ -350,7 +350,7 @@ void current_version(char *text)
 }
 COMMAND(current_version, "s");
 
-void openwebbrowser(const char *url)
+void open_web_browser(const char *url)
 {
 #if defined(WIN32)
     ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
@@ -358,7 +358,8 @@ void openwebbrowser(const char *url)
     defformatstring(cmd)("x-www-browser %s &", url);
     system(cmd);
 #elif defined(__APPLE__)
-
+    defformatstring(cmd)("open %s &", url);
+    system(cmd);
 #else
 
 #endif
@@ -366,7 +367,15 @@ void openwebbrowser(const char *url)
 
 void downloadgame()
 {
-    openwebbrowser(AF_DOWNLOAD);
+#if defined(WIN32)
+    open_web_browser(AF_DOWNLOAD "/?os=windows&ref=game");
+#elif defined(__linux__)
+    open_web_browser(AF_DOWNLOAD "/?os=linux&ref=game");
+#elif defined(__APPLE__)
+    open_web_browser(AF_DOWNLOAD "/?os=mac&ref=game");
+#else
+
+#endif
 }
 COMMAND(downloadgame, "");
 

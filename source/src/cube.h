@@ -60,7 +60,7 @@ extern float waterlevel;
 
 #define AF_VERSION 900
 #define AF_WEBSITE "http://actionfps.com"
-#define AF_DOWNLOAD "http://actionfps.com/download/?ref=game"
+#define AF_DOWNLOAD "http://actionfps.com/download-direct/game"
 #define AF_MASTER_URI "actionfps.com"
 #define AF_MASTER_PORT 28760
 #define MAXCL 24
