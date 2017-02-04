@@ -1,3 +1,5 @@
+Delete where appropriate 
+
 ## Original issue
 
 Link here
@@ -8,6 +10,6 @@ Write here
 
 ## Check List
 
-* [ ] Tests written
+* [ ] Tests written (if appropriate)
 * [ ] Locally tested
 * [ ] Documented well enough
