@@ -542,9 +542,9 @@ void renderbounceents()
 }
 
 VARP(gib, 0, 1, 1);
-VARP(gibnum, 0, 6, 1000);
+VARP(gibnum, 0, 100, 1000);
 VARP(gibttl, 0, 7000, 60000);
-VARP(gibspeed, 1, 30, 100);
+VARP(gibspeed, 1, 100, 100);
 
 void addgib(playerent *d)
 {
