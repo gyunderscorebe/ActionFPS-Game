@@ -1367,6 +1367,7 @@ void updatefrommaster(int force)
         execute(data.getbuf());
         if(curserver) addserver(curname, curserver->port, curserver->msweight);
         lastupdate = totalmillis;
+        cllock = false;
     }
 }
 
