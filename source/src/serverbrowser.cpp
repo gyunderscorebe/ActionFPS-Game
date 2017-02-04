@@ -1317,85 +1317,27 @@ int progress_callback_retrieveservers(void *data, float progress)
 
 void retrieveservers(vector<char> &data)
 {
-    if(mastertype == AF_MASTER_HTTP)
+    httpget h;
+    defformatstring(progresstext)("resolving %s", mastername);
+    h.callbackfunc = progress_callback_retrieveservers;
+    h.callbackdata = progresstext;
+    show_out_of_renderloop_progress(0.01f, progresstext);
+    if(h.set_host(mastername))
     {
-        httpget h;
-        defformatstring(progresstext)("resolving %s", mastername);
-        h.callbackfunc = progress_callback_retrieveservers;
-        h.callbackdata = progresstext;
-        show_out_of_renderloop_progress(0.01f, progresstext);
-        if(h.set_host(mastername))
-        {
-            formatstring(progresstext)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
-            defformatstring(url)("/retrieve.do?action=list&name=%s&version=%d&build=%d", urlencode(global_name, true), AF_VERSION, getbuildtype()|(1<<16));
-            h.outvec = (vector<uchar> *) &data; // ouch...
-            show_out_of_renderloop_progress(0, progresstext);
-            int got = h.get(url, RETRIEVELIMIT, RETRIEVELIMIT);
-            if(got < 0 || h.response != 200) data.setsize(0);
-            h.outvec = NULL; // must not be cleaned up by httpget
-            if(data.length()) data.add('\0');
-            clfail = false;
-        }
-        else
-        {
-            conoutf("failed to resolve host %s", mastername);
-            clfail = true;
-        }
+        formatstring(progresstext)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
+        defformatstring(url)("/retrieve.do?action=list&name=%s&version=%d&build=%d", urlencode(global_name, true), AF_VERSION, getbuildtype()|(1<<16));
+        h.outvec = (vector<uchar> *) &data; // ouch...
+        show_out_of_renderloop_progress(0, progresstext);
+        int got = h.get(url, RETRIEVELIMIT, RETRIEVELIMIT);
+        if(got < 0 || h.response != 200) data.setsize(0);
+        h.outvec = NULL; // must not be cleaned up by httpget
+        if(data.length()) data.add('\0');
+        clfail = false;
     }
     else
     {
-        ENetSocket sock = connectmaster();
-        if(sock == ENET_SOCKET_NULL)
-        {
-            conoutf("Master server is not replying.");
-            clfail = true;
-            return;
-        }
-        clfail = false;
-        defformatstring(text)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
-        show_out_of_renderloop_progress(0, text);
-        int starttime = SDL_GetTicks(), timeout = 0;
-        defformatstring(request)("list %s %d %d\n", global_name, AF_VERSION, getbuildtype());
-        const char *req = request;
-        int reqlen = strlen(req);
-        ENetBuffer buf;
-        while(reqlen > 0)
-        {
-            enet_uint32 events = ENET_SOCKET_WAIT_SEND;
-            if(enet_socket_wait(sock, &events, 250) >= 0 && events)
-            {
-                buf.data = (void *)req;
-                buf.dataLength = reqlen;
-                int sent = enet_socket_send(sock, NULL, &buf, 1);
-                if(sent < 0) break;
-                req += sent;
-                reqlen -= sent;
-                if(reqlen <= 0) break;
-            }
-            timeout = SDL_GetTicks() - starttime;
-            show_out_of_renderloop_progress(min(float(timeout)/RETRIEVELIMIT, 1.0f), text);
-            if(interceptkey(SDLK_ESCAPE)) timeout = RETRIEVELIMIT + 1;
-            if(timeout > RETRIEVELIMIT) break;
-        }
-        if(reqlen <= 0) for(;;)
-        {
-            enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
-            if(enet_socket_wait(sock, &events, 250) >= 0 && events)
-            {
-                if(data.length() >= data.capacity()) data.reserve(4096);
-                buf.data = data.getbuf() + data.length();
-                buf.dataLength = data.capacity() - data.length();
-                int recv = enet_socket_receive(sock, NULL, &buf, 1);
-                if(recv <= 0) break;
-                data.advance(recv);
-            }
-            timeout = SDL_GetTicks() - starttime;
-            show_out_of_renderloop_progress(min(float(timeout)/RETRIEVELIMIT, 1.0f), text);
-            if(interceptkey(SDLK_ESCAPE)) timeout = RETRIEVELIMIT + 1;
-            if(timeout > RETRIEVELIMIT) break;
-        }
-        if(data.length()) data.add('\0');
-        enet_socket_destroy(sock);
+        conoutf("failed to resolve host %s", mastername);
+        clfail = true;
     }
 }
 
@@ -1421,14 +1363,9 @@ void updatefrommaster(int force)
         serverinfo *curserver = getconnectedserverinfo();
         string curname;
         if(curserver) copystring(curname, curserver->name);
-
         clearservers();
-        if(!strncmp(data.getbuf(), "addserver", 9)) cllock = false; // the ms could reply other thing... but currently, this is useless
-        if(!cllock )
-        {
-            execute(data.getbuf());
-            if(curserver) addserver(curname, curserver->port, curserver->msweight);
-        }
+        execute(data.getbuf());
+        if(curserver) addserver(curname, curserver->port, curserver->msweight);
         lastupdate = totalmillis;
     }
 }

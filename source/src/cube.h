@@ -59,11 +59,10 @@ extern int verbose;
 extern float waterlevel;
 
 #define AF_VERSION 1000
-#define AF_WEBSITE "https://actionfps.com"
+#define AF_WEBSITE "http://actionfps.com"
+#define AF_DOWNLOAD "http://actionfps.com/download-direct/game"
 #define AF_MASTER_URI "actionfps.com"
 #define AF_MASTER_PORT 28760
-#define AF_MASTER_HTTP 1 // default
-#define AF_MASTER_RAW 0
 #define MAXCL 24
 #define CONFIGROTATEMAX 5               // keep 5 old versions of saved.cfg and init.cfg around
 

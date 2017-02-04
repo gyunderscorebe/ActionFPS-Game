@@ -1417,6 +1417,8 @@ int main(int argc, char **argv)
 
     if(initscript) execute(initscript);
 
+    updatefrommaster(1);
+
     initlog("mainloop");
 
     inputgrab(grabinput = true);
