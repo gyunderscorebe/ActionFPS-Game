@@ -3815,6 +3815,8 @@ void sendworldstate()
 
 void rereadcfgs(void)
 {
+    lastcfgread = servmillis;
+
     maprot.read();
     ipblacklist.read();
     nickblacklist.read();
@@ -4065,7 +4067,6 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
     if(servmillis - lastcfgread > 5 * 1000)
     {
-        lastcfgread = servmillis;
         rereadcfgs();
     }
 
