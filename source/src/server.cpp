@@ -36,6 +36,7 @@ bool isdedicated = false;
 ENetHost *serverhost = NULL;
 
 int laststatus = 0, servmillis = 0, lastfillup = 0;
+int lastcfgread = 0;
 
 vector<client *> clients;
 vector<worldstate *> worldstates;
@@ -4062,10 +4063,15 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         lastThrottleEpoch = serverhost->bandwidthThrottleEpoch;
     }
 
+    if(servmillis - lastcfgread > 5 * 1000)
+    {
+        lastcfgread = servmillis;
+        rereadcfgs();
+    }
+
     if(servmillis - laststatus > 60 * 1000)   // display bandwidth stats, useful for server ops
     {
         laststatus = servmillis;
-        rereadcfgs();
         if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData)
         {
             if(nonlocalclients) loggamestatus(NULL);
