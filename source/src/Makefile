@@ -418,4 +418,3 @@ master-standalone.o: varray.h vote.h console.h protos.h
 .PHONY: test
 test:
 	echo Good!
-	#$(error FUCK)
