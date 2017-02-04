@@ -3800,25 +3800,6 @@ void checkintermission()
     forceintermission = false;
 }
 
-void resetserverifempty()
-{
-    loopv(clients) if(clients[i]->type!=ST_EMPTY) return;
-    resetserver("", 0, 10);
-    matchteamsize = 0;
-    autoteam = true;
-    changemastermode(MM_OPEN);
-    nextmapname[0] = '\0';
-
-#ifdef STANDALONE
-    // read DB
-    if(!scl.disable_authentication)
-    {
-        userdb.read(usermanager);
-        groupdb.read(usermanager);
-    }
-#endif
-}
-
 void sendworldstate()
 {
     static enet_uint32 lastsend = 0;
@@ -3839,6 +3820,27 @@ void rereadcfgs(void)
     forbiddenlist.read();
     passwords.read();
     killmsgs.read();
+
+#ifdef STANDALONE
+    // read DB
+    if(!scl.disable_authentication)
+    {
+        userdb.read(usermanager);
+        groupdb.read(usermanager);
+    }
+#endif
+}
+
+void resetserverifempty()
+{
+    loopv(clients) if(clients[i]->type!=ST_EMPTY) return;
+    resetserver("", 0, 10);
+    matchteamsize = 0;
+    autoteam = true;
+    changemastermode(MM_OPEN);
+    nextmapname[0] = '\0';
+
+    rereadcfgs();
 }
 
 void loggamestatus(const char *reason)
