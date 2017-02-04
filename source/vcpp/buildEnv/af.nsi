@@ -319,7 +319,7 @@ FunctionEnd
 Function .onInstSuccess
 
     IfSilent skipopenlink
-    StrCpy $0 "https://github.com/ActionFPS/ActionFPS-Game/blob/master/RELEASENOTES.md"
+    StrCpy $0 "https://actionfps.com/installed/"
     Call openLinkNewWindow
     skipopenlink:
 
@@ -328,7 +328,7 @@ FunctionEnd
 Function un.onUninstSuccess
 
     IfSilent skipopenlink
-    StrCpy $0 "https://github.com/ActionFPS/ActionFPS-Game/blob/master/UNINSTALL.md"
+    StrCpy $0 "https://actionfps.com/uninstalled/"
     Call un.openLinkNewWindow
     skipopenlink:
 
