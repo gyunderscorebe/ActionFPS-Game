@@ -58,7 +58,7 @@ extern int numspawn[3], maploaded, numflagspawn[2];
 extern int verbose;
 extern float waterlevel;
 
-#define AF_VERSION 900
+#define AF_VERSION 1000
 #define AF_WEBSITE "http://actionfps.com"
 #define AF_DOWNLOAD "http://actionfps.com/download-direct/game"
 #define AF_MASTER_URI "actionfps.com"
