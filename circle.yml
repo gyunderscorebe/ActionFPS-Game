@@ -14,9 +14,9 @@ test:
 general:
   artifacts:
     - source/xcode/build/Release/actionfps.dmg
-deployment:
-  production:
-    tag: /.*/
-    owner: ActionFPS
-    commands:
-      - cd source/xcode/ && ./github-deploy.sh
+# deployment:
+#   production:
+#     tag: /.*/
+#     owner: ActionFPS
+#     commands:
+#       - cd source/xcode/ && ./github-deploy.sh
