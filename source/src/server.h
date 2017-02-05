@@ -357,25 +357,26 @@ struct savedscore
         events = c.state.events;
         lastdisc = c.state.lastdisc;
         reconnections = c.state.reconnections;
-        team = c.t;
+        team = c.team;
         copystring(userid, c.userid);
         copystring(identity, c.identity);
         valid = true;
     }
 
-    void restore(clientstate &cs)
+    void restore(client &c)
     {
-        cs.frags = frags;
-        cs.flagscore = flagscore;
-        cs.deaths = deaths;
-        cs.teamkills = teamkills;
-        cs.shotdamage = shotdamage;
-        cs.damage = damage;
-        cs.points = points;
-        cs.forced = forced;
-        cs.events = events;
-        cs.lastdisc = lastdisc;
-        cs.reconnections = reconnections;
+        c.state.frags = frags;
+        c.state.flagscore = flagscore;
+        c.state.deaths = deaths;
+        c.state.teamkills = teamkills;
+        c.state.shotdamage = shotdamage;
+        c.state.damage = damage;
+        c.state.points = points;
+        c.state.forced = forced;
+        c.state.events = events;
+        c.state.lastdisc = lastdisc;
+        c.state.reconnections = reconnections;
+        c.team = team;
         reset();
     }
 };
