@@ -3,6 +3,7 @@
 //
 // * you can't use cubescript here!
 // * everything after '//' in a line will be ignored
+//            ^^^ WTF
 // * one commandline parameter per line only
 // * you have to use the '-' characters for the switches
 // * you can separate the switch and it's argument by whitespace
@@ -10,7 +11,7 @@
 // see docs/commandline.html for full parameter descriptions
 
 // example MOTD:
- -o \f3This is a test server.\n\f2Latest release always at https://actionfps.com/play/
+ -o \f3This is a test server.\n\f2Latest release always at actionfps.com/play/
 
  -V
  -f 7654
