@@ -15,6 +15,14 @@
 
  -V
  -f 7654
+ -c 20
+ -k -15
+ -kA 20
+ -kB 20
+ -LF2
+ -LS2
+ -Wdemos/
+ -T
  -m localhost
 
 // commonly used commandline switches:
