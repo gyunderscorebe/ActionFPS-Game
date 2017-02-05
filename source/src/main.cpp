@@ -1364,8 +1364,11 @@ int main(int argc, char **argv)
 
     initlog("video: misc");
     // No need to set caption, now set at creation time.
-    SDL_Surface *icon = IMG_Load("packages/misc/icon.bmp");
+    SDL_Surface *icon = SDL_LoadBMP("packages/misc/icon.bmp");
+    if ( icon == NULL ) fatal("Unable to load icon.");
+    SDL_SetColorKey(icon, SDL_TRUE, SDL_MapRGB(icon->format, 255, 255, 255));
     SDL_SetWindowIcon(screen, icon);
+
     keyrepeat(false);
     SDL_ShowCursor(0);
 
