@@ -11,5 +11,5 @@ cd source/vcpp/buildEnv/ac/
 cd source/vcpp
 \Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe cube.sln /p:Configuration=Release
 cd ../launcher
-\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe aclauncher.sln /p:Configuration=Release /MT
+\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe aclauncher.sln /p:Configuration=Release
 cd %cur_dir%
