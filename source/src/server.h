@@ -357,7 +357,7 @@ struct savedscore
         events = c.state.events;
         lastdisc = c.state.lastdisc;
         reconnections = c.state.reconnections;
-        team = c.t;
+        team = c.team;
         copystring(userid, c.userid);
         copystring(identity, c.identity);
         valid = true;
@@ -377,6 +377,12 @@ struct savedscore
         cs.lastdisc = lastdisc;
         cs.reconnections = reconnections;
         reset();
+    }
+
+    void restore(client &c)
+    {
+        restore(c.state);
+        c.team = team;
     }
 };
 

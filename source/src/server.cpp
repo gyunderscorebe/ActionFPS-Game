@@ -2528,7 +2528,7 @@ bool restorescore(client &c)
     savedscore *sc = findscore(c, false);
     if(sc && sc->valid)
     {
-        sc->restore(c.state);
+        sc->restore(c);
         sc->valid = false;
         if ( c.connectmillis - c.state.lastdisc < 5000 ) c.state.reconnections++;
         else if ( c.state.reconnections ) c.state.reconnections--;
