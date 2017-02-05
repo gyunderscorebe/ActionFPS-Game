@@ -1154,14 +1154,14 @@ void initclientlog()  // rotate old logfiles and create new one
 extern ucharbuf authkey;
 
 #if defined(WIN32) && !defined(STANDALONE)
-int sdl_syswmevent_filter(const SDL_Event *e)
+int sdl_syswmevent_filter(void *userdata, SDL_Event *e)
 {
     if(e->type != SDL_SYSWMEVENT) return 1;
 
     SDL_SysWMmsg *message = e->syswm.msg;
-    UINT msg = message->msg; /**< The type of message */
+    UINT msg = message->msg.win.msg; /**< The type of message */
     if(msg != WM_COPYDATA) return 0;
-    LPARAM lParam = message->lParam;/**< LONG message parameter */
+    LPARAM lParam = message->msg.win.lParam;/**< LONG message parameter */
 
     COPYDATASTRUCT pcds = *((COPYDATASTRUCT*)lParam);
     char* str = ((char*)(pcds.lpData));
@@ -1351,7 +1351,7 @@ int main(int argc, char **argv)
 
     #ifdef WIN32
     SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
-    SDL_SetEventFilter(sdl_syswmevent_filter);
+    SDL_SetEventFilter(sdl_syswmevent_filter, NULL);
     #endif
 
     initlog("video: mode");
