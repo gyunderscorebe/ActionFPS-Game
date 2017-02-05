@@ -10,7 +10,7 @@
 // see docs/commandline.html for full parameter descriptions
 
 // example MOTD:
- -o \f3server using example cmdline file (config/servercmdline.txt)\n\f2feel free to change this :)
+ -o \f3This is a test server.\n\f2Latest release always at https://actionfps.com/play/
 
  -V
  -f 7654
