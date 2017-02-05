@@ -96,7 +96,7 @@
 				GenerateMapFile="true"
 				MapFileName=".\Release/cube.map"
 				MapExports="true"
-				SubSystem="2"
+				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="1"
@@ -195,7 +195,7 @@
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/ac_client.pdb"
-				SubSystem="2"
+				SubSystem="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 			/>
@@ -304,7 +304,7 @@
 				GenerateMapFile="true"
 				MapFileName=".\Release/cube.map"
 				MapExports="true"
-				SubSystem="2"
+				SubSystem="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 			/>
