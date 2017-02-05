@@ -2756,14 +2756,18 @@ void process(ENetPacket *packet, int sender, int chan)
 
 #ifdef STANDALONE
             bool successful_authentication = false;
-            if(signature.len)
-            {
-                p.get(signature.buf, signature.len);
-                successful_authentication = usermanager.check_authentication(cl, uid, signature);
-            }
 #else
             bool successful_authentication = true;
 #endif
+
+            if(signature.len)
+            {
+                p.get(signature.buf, signature.len);
+#ifdef STANDALONE
+                successful_authentication = usermanager.check_authentication(cl, uid, signature);
+#endif
+            }
+
             signature.reset();
 
             if(!successful_authentication)
