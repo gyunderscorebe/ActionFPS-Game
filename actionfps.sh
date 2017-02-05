@@ -56,7 +56,11 @@ if [ "$1" = "--outputbinarypath" ]; then
   exit 0
 elif [ -x "${BINARYPATH}" ]; then
   cd "${CUBE_DIR}"
-  exec "${BINARYPATH}" ${CUBE_OPTIONS} "$@"
+  if [ "$1" = "debug" ]; then
+    gdb -ex=r --args "${BINARYPATH}" ${CUBE_OPTIONS} "$@"
+  else
+    exec "${BINARYPATH}" ${CUBE_OPTIONS} "$@"
+  fi
 else
   echo "Your platform does not have a pre-compiled ActionFPS client."
   echo "Please follow the following steps to build a native client:"

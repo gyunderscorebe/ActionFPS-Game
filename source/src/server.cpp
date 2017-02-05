@@ -36,6 +36,7 @@ bool isdedicated = false;
 ENetHost *serverhost = NULL;
 
 int laststatus = 0, servmillis = 0, lastfillup = 0;
+int lastcfgread = 0;
 
 vector<client *> clients;
 vector<worldstate *> worldstates;
@@ -3809,25 +3810,6 @@ void checkintermission()
     forceintermission = false;
 }
 
-void resetserverifempty()
-{
-    loopv(clients) if(clients[i]->type!=ST_EMPTY) return;
-    resetserver("", 0, 10);
-    matchteamsize = 0;
-    autoteam = true;
-    changemastermode(MM_OPEN);
-    nextmapname[0] = '\0';
-
-#ifdef STANDALONE
-    // read DB
-    if(!scl.disable_authentication)
-    {
-        userdb.read(usermanager);
-        groupdb.read(usermanager);
-    }
-#endif
-}
-
 void sendworldstate()
 {
     static enet_uint32 lastsend = 0;
@@ -3842,12 +3824,35 @@ void sendworldstate()
 
 void rereadcfgs(void)
 {
+    lastcfgread = servmillis;
+
     maprot.read();
     ipblacklist.read();
     nickblacklist.read();
     forbiddenlist.read();
     passwords.read();
     killmsgs.read();
+
+#ifdef STANDALONE
+    // read DB
+    if(!scl.disable_authentication)
+    {
+        userdb.read(usermanager);
+        groupdb.read(usermanager);
+    }
+#endif
+}
+
+void resetserverifempty()
+{
+    loopv(clients) if(clients[i]->type!=ST_EMPTY) return;
+    resetserver("", 0, 10);
+    matchteamsize = 0;
+    autoteam = true;
+    changemastermode(MM_OPEN);
+    nextmapname[0] = '\0';
+
+    rereadcfgs();
 }
 
 void loggamestatus(const char *reason)
@@ -4069,10 +4074,14 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         lastThrottleEpoch = serverhost->bandwidthThrottleEpoch;
     }
 
+    if(servmillis - lastcfgread > 5 * 1000)
+    {
+        rereadcfgs();
+    }
+
     if(servmillis - laststatus > 60 * 1000)   // display bandwidth stats, useful for server ops
     {
         laststatus = servmillis;
-        rereadcfgs();
         if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData)
         {
             if(nonlocalclients) loggamestatus(NULL);

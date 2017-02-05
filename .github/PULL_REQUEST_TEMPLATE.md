@@ -1,3 +1,5 @@
+Delete where appropriate 
+
 ## Original issue
 
 Link here
@@ -6,8 +8,10 @@ Link here
 
 Write here
 
+## How do we know this works?
+
 ## Check List
 
-* [ ] Tests written
+* [ ] Tests written (if appropriate)
 * [ ] Locally tested
 * [ ] Documented well enough
