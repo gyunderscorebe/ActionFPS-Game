@@ -6,14 +6,17 @@ addons:
       - clang
       - make
       - automake
-      - libsdl2-dev
       - libogg-dev
-      - libsdl2-image-dev
       - libcurl4-openssl-dev
       - libopenal-dev
       - libvorbis-dev
       - openssl
       - libssl-dev
+before_install:
+  - wget 'https://launchpad.net/ubuntu/+source/libsdl2/2.0.2+dfsg1-3ubuntu1.1/+build/6011070/+files/libsdl2-dev_2.0.2+dfsg1-3ubuntu1.1_amd64.deb'
+  - sudo dpkg -i libsdl2-dev_2.0.2+dfsg1-3ubuntu1.1_amd64.deb
+  - wget 'https://launchpad.net/ubuntu/+source/libsdl2-image/2.0.0+dfsg-3build2/+build/5480854/+files/libsdl2-image-dev_2.0.0+dfsg-3build2_amd64.deb'
+  - sudo dpkg -i libsdl2-image-dev_2.0.0+dfsg-3build2_amd64.deb
 script: cd source/src && make && make install && cd .. && cd ..
 before_deploy: "./package.sh"
 deploy:
