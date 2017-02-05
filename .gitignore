@@ -33,3 +33,6 @@ clientlog*.txt
 dumpmapconfig.txt
 packetlog.txt
 authkey
+
+source/vcpp/Release
+source/vcpp/Debug
