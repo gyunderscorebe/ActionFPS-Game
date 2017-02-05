@@ -2442,6 +2442,7 @@ void senddisconnectedscores(int cn)
             {
                 putint(p, sc.team);
                 sendstring(sc.name, p);
+                sendstring(sc.userid, p);
                 putint(p, sc.flagscore);
                 putint(p, sc.frags);
                 putint(p, sc.deaths);
