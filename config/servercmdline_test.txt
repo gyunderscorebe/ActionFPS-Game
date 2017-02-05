@@ -13,8 +13,8 @@
  -o \f3server using example cmdline file (config/servercmdline.txt)\n\f2feel free to change this :)
 
  -V
- -f7654
- -mlocalhost
+ -f 7654
+ -m localhost
 
 // commonly used commandline switches:
 
