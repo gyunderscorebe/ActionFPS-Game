@@ -36,7 +36,7 @@ struct color
 extern stream *clientlogfile;
 extern vector<char> *bootclientlog;
 
-extern void keypress(int code, bool isdown, int cooked, SDLMod mod = KMOD_NONE);
+extern void keypress(int code, bool isdown, SDL_Keymod mod = KMOD_NONE);
 extern int rendercommand(int x, int y, int w);
 extern void renderconsole();
 extern char *getcurcommand();
@@ -81,7 +81,7 @@ extern void menuimagemanual(void *menu, const char *filename1, const char *filen
 extern void menutitle(void *menu, const char *title = NULL);
 extern bool needscoresreorder;
 extern void menuheader(void *menu, char *header = NULL, char *footer = NULL);
-extern bool menukey(int code, bool isdown, int unicode, SDLMod mod = KMOD_NONE);
+extern bool menukey(int code, bool isdown = true, SDL_Keymod mod = KMOD_NONE);
 extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool (__cdecl *keyfunc)(void *, int, bool, int) = NULL, bool hotkeys = false, bool forwardkeys = false);
 extern void rendermenumdl();
 extern void menuset(void *m, bool save = true);
@@ -104,7 +104,7 @@ struct mitem
     virtual int width() = 0;
     virtual void select() {}
     virtual void focus(bool on) { }
-    virtual void key(int code, bool isdown, int unicode) { }
+    virtual void key(int code) { }
     virtual void init() {}
     virtual const char *getdesc() { return NULL; }
     virtual const char *gettext() { return NULL; }
@@ -561,7 +561,7 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 
 // main
 extern char *lang;
-extern SDL_Surface *screen;
+extern SDL_Window *screen;
 extern int colorbits, depthbits, stencilbits;
 
 extern void keyrepeat(bool on);
@@ -639,8 +639,10 @@ extern void restoreeditundo(ucharbuf &q);
 extern int backupeditundo(vector<uchar> &buf, int undolimit, int redolimit);
 
 // renderhud
+#define HUDPOS_X_BOTTOMLEFT 20
+#define HUDPOS_Y_BOTTOMLEFT 1570
 #define HUDPOS_ICONSPACING 235
-#define HUDPOS_HEALTH 10
+#define HUDPOS_HEALTH (HUDPOS_X_BOTTOMLEFT / 2)
 #define HUDPOS_ARMOUR (HUDPOS_HEALTH + HUDPOS_ICONSPACING)
 #define HUDPOS_WEAPON (HUDPOS_ARMOUR + HUDPOS_ICONSPACING)
 #define HUDPOS_GRENADE (HUDPOS_WEAPON + HUDPOS_ICONSPACING)
