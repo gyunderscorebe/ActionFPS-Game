@@ -28,4 +28,4 @@ But if you do refactoring thing about how to add tests to it - if appropriate an
 
 Anything that's priority will get a `high-priority` label. Anything that's not could be `medium priority`, `low priority`. Anything we're not ready to take on now will be *CLOSED* and tagged as `postponed`. 
 
-Here are <a href="https://github.com/ActionFPS/ActionFPS-Game/issues?utf8=%E2%9C%93&q=is%3Aissue%20label%3Apostponed%20">Postponed issues</a>.
+Here are <a href="https://github.com/ActionFPS/ActionFPS-Game/issues?utf8=%E2%9C%93&q=is%3Aissue%20label%3Apostponed%20">Postponed issues</a>. When we close it's easier to browse Issues and they become a simple working queue.
