@@ -959,7 +959,7 @@ void checkinput()
                 break;
 
             case SDL_MOUSEWHEEL:
-                int key = event.wheel.y > 0 ? SDL_AC_BUTTON_WHEELUP : SDL_AC_BUTTON_WHEELDOWN;
+                int key = event.wheel.y > 0 ? SDL_AF_BUTTON_WHEELUP : SDL_AF_BUTTON_WHEELDOWN;
                 // Emulate SDL1-style mouse wheel events by immediately "releasing" the wheel "button"
                 keypress(key, true);
                 keypress(key, false);
@@ -1348,12 +1348,6 @@ int main(int argc, char **argv)
 
     initlog("video: sdl");
     if(SDL_InitSubSystem(SDL_INIT_VIDEO)<0) fatal("Unable to initialize SDL Video");
-
-    SDL_Surface *icon = SDL_LoadBMP("packages/misc/icon.bmp");
-    if ( icon == NULL ) fatal("Unable to load icon.");
-
-    SDL_SetColorKey(icon, SDL_SRCCOLORKEY, SDL_MapRGB(icon->format, 255, 255, 255));
-    SDL_WM_SetIcon(icon, NULL);
 
     #ifdef WIN32
     SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
