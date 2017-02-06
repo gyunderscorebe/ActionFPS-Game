@@ -17,7 +17,7 @@ char *getfiledesc(const char *dir, const char *name, const char *ext)
     defformatstring(fn)("%s/%s.%s", dir, name, ext);
     path(fn);
     string text, demodescalias;
-    if(!strcmp(ext, "dmo"))
+    if(!strcmp(ext, "dmo.gz"))
     {
         stream *f = opengzfile(fn, "rb");
         if(!f) return NULL;
@@ -1359,7 +1359,7 @@ void gmenu::init()
                     items.add(new mitemmapload(this, newstring(fullname), newstring(title), newstring(dirlist->action), NULL, NULL, NULL));
                 }
             }
-            else if(!strcmp(dirlist->ext, "dmo"))
+            else if(!strcmp(dirlist->ext, "dmo.gz"))
             {
                 if(!dirlist->searchfile || filefound) items.add(new mitemtext(this, f, newstring(dirlist->action), NULL, NULL, d));
             }
