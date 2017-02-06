@@ -581,8 +581,6 @@ void c2sinfo(playerent *d)                  // send update to the server
     lastupdate = totalmillis;
 }
 
-static string versiondescription;
-
 string &getversiondescription()
 {
     char platform[] =
@@ -605,6 +603,8 @@ string &getversiondescription()
     ", debug"
 #endif
     ;
+
+    static string versiondescription;
 
 #ifdef AF_REVISION
     formatstring(versiondescription)("revision %s (%s)", AF_REVISION, platform);
