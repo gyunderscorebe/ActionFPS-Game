@@ -1479,6 +1479,11 @@ void ora  (char *a, char *b) { intret(execute(a)!=0 || execute(b)!=0); }
 COMMANDN(&&, anda, "ss");
 COMMANDN(||, ora, "ss");
 
+void band_(int *a, int *b) { intret((*a) & (*b)); }   COMMANDN(&b, band_, "ii");
+void bor_(int *a, int *b)  { intret((*a) | (*b)); }   COMMANDN(|b, bor_, "ii");
+void bxor_(int *a, int *b) { intret((*a) ^ (*b)); }   COMMANDN(^b, bxor_, "ii");
+void bnot_(int *a)         { intret(~(*a)); }         COMMANDN(!b, bnot_, "i");
+
 COMMANDF(strcmp, "ss", (char *a, char *b) { intret((strcmp(a, b) == 0) ? 1 : 0); });
 
 COMMANDF(rnd, "i", (int *a) { intret(*a>0 ? rnd(*a) : 0); });
