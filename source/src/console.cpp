@@ -886,7 +886,7 @@ void writekeymap() // create keymap.cfg with proper constants from SDL2 header f
             if(keymaptab[i].keyname[0] == ' ') c = "//";
             else f->printf(keymaptab[i].keycode < (1<<30) ? "%skeymap %d %s\n" : "%skeymap (sc %d) %s\n", c, keymaptab[i].keycode & (keymaptab[i].keycode > 0 ? ((1<<30)-1) : -1), keymaptab[i].keyname);
         }
-        f->printf("\nkeymap (sc 0) UNKNOWN\n")
+        f->printf("\nkeymap (sc 0) UNKNOWN\n");
         f->printf("\npop sc\nexec config/resetbinds.cfg\n");
         delete f;
     }
