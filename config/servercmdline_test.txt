@@ -24,6 +24,7 @@
  -Wdemos/
  -T
  -m localhost
+ --defaultautoteam=0
 
 // commonly used commandline switches:
 

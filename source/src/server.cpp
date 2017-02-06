@@ -3841,7 +3841,7 @@ void resetserverifempty()
     loopv(clients) if(clients[i]->type!=ST_EMPTY) return;
     resetserver("", 0, 10);
     matchteamsize = 0;
-    autoteam = true;
+    autoteam = scl.default_autoteam;
     changemastermode(MM_OPEN);
     nextmapname[0] = '\0';
 
