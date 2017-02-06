@@ -595,8 +595,12 @@ string &getversiondescription()
     "Unknown"
 #endif
 
-#ifdef __GNUC__
+#ifdef __clang__
+    ", clang"
+#elif __GNUC__
     ", gcc"
+#elif _MSC_VER
+    ", msvc"
 #endif
 
 #ifdef _DEBUG
