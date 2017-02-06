@@ -3,13 +3,6 @@
         #undef _FORTIFY_SOURCE
     #endif
 
-    #define gamma __gamma
-#endif
-
-#include <math.h>
-
-#ifdef __GNUC__
-    #undef gamma
 #endif
 
 #include <string.h>
@@ -22,6 +15,7 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <math.h>
 
 #ifdef __MINGW32__
     #include <stdint.h>

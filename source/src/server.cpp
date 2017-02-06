@@ -2442,6 +2442,7 @@ void senddisconnectedscores(int cn)
             {
                 putint(p, sc.team);
                 sendstring(sc.name, p);
+                sendstring(sc.userid, p);
                 putint(p, sc.flagscore);
                 putint(p, sc.frags);
                 putint(p, sc.deaths);
@@ -2528,7 +2529,7 @@ bool restorescore(client &c)
     savedscore *sc = findscore(c, false);
     if(sc && sc->valid)
     {
-        sc->restore(c.state);
+        sc->restore(c);
         sc->valid = false;
         if ( c.connectmillis - c.state.lastdisc < 5000 ) c.state.reconnections++;
         else if ( c.state.reconnections ) c.state.reconnections--;
@@ -2756,14 +2757,18 @@ void process(ENetPacket *packet, int sender, int chan)
 
 #ifdef STANDALONE
             bool successful_authentication = false;
-            if(signature.len)
-            {
-                p.get(signature.buf, signature.len);
-                successful_authentication = usermanager.check_authentication(cl, uid, signature);
-            }
 #else
             bool successful_authentication = true;
 #endif
+
+            if(signature.len)
+            {
+                p.get(signature.buf, signature.len);
+#ifdef STANDALONE
+                successful_authentication = usermanager.check_authentication(cl, uid, signature);
+#endif
+            }
+
             signature.reset();
 
             if(!successful_authentication)
