@@ -581,6 +581,19 @@ void c2sinfo(playerent *d)                  // send update to the server
     lastupdate = totalmillis;
 }
 
+static string versiondescription;
+
+string &getversiondescription()
+{
+#ifdef AF_REVISION
+    formatstring(versiondescription)("revision %s", AF_REVISION);
+#else
+    formatstring(versiondescription)("version %d", AF_VERSION);
+#endif
+
+    return versiondescription;
+}
+
 int getbuildtype()
 {
     return (isbigendian() ? 0x80 : 0 )|(adler((unsigned char *)guns, sizeof(guns)) % 31 << 8)|
@@ -656,6 +669,8 @@ void writeauthkey()
     delete f;
 }
 
+
+
 void sendintro()
 {
     extern char *authid;
@@ -663,7 +678,7 @@ void sendintro()
 
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_CONNECT);
-    putint(p, AF_VERSION);
+    sendstring(getversiondescription(), p);
     putint(p, getbuildtype());
     sendstring(player1->name, p);
     sendstring(defaultgroup, p);

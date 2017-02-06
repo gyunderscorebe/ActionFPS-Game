@@ -2725,9 +2725,10 @@ void process(ENetPacket *packet, int sender, int chan)
         else if(chan!=1 || getint(p)!=SV_CONNECT) disconnect_client(sender, DISC_TAGT);
         else
         {
-            cl->acversion = getint(p);
+            getstring(text, p);
+            copystring(cl->acversiondescription, text);
             cl->acbuildtype = getint(p);
-            defformatstring(tags)(", AC: %d|%x", cl->acversion, cl->acbuildtype);
+            defformatstring(tags)(", AC: %s|%x", cl->acversiondescription, cl->acbuildtype);
 
             // requested name
             getstring(text, p);
