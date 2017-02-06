@@ -2727,8 +2727,7 @@ void process(ENetPacket *packet, int sender, int chan)
         {
             getstring(text, p);
             copystring(cl->acversiondescription, text);
-            cl->acbuildtype = getint(p);
-            defformatstring(tags)(", AC: %s|%x", cl->acversiondescription, cl->acbuildtype);
+            defformatstring(tags)(", AC: %s", cl->acversiondescription);
 
             // requested name
             getstring(text, p);

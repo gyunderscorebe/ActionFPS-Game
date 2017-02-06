@@ -585,10 +585,31 @@ static string versiondescription;
 
 string &getversiondescription()
 {
-#ifdef AF_REVISION
-    formatstring(versiondescription)("revision %s", AF_REVISION);
+    char platform[] =
+
+#ifdef _WIN32
+    "Windows"
+#elif __APPLE__
+    "Mac"
+#elif __linux__
+    "Linux"
 #else
-    formatstring(versiondescription)("version %d", AF_VERSION);
+    "Unknown"
+#endif
+
+#ifdef __GNUC__
+    ", gcc"
+#endif
+
+#ifdef _DEBUG
+    ", debug"
+#endif
+    ;
+
+#ifdef AF_REVISION
+    formatstring(versiondescription)("revision %s (%s)", AF_REVISION, platform);
+#else
+    formatstring(versiondescription)("version %d (%s)", AF_VERSION, platform);
 #endif
 
     return versiondescription;
@@ -597,7 +618,7 @@ string &getversiondescription()
 int getbuildtype()
 {
     return (isbigendian() ? 0x80 : 0 )|(adler((unsigned char *)guns, sizeof(guns)) % 31 << 8)|
-        #ifdef WIN32
+        #ifdef _WIN32
             0x40 |
         #endif
         #ifdef __APPLE__
@@ -679,7 +700,6 @@ void sendintro()
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_CONNECT);
     sendstring(getversiondescription(), p);
-    putint(p, getbuildtype());
     sendstring(player1->name, p);
     sendstring(defaultgroup, p);
     sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);

@@ -195,7 +195,6 @@ struct client                   // server side version of "dynent" type
     int connectmillis, lmillis, ldt, spj;
     int mute, spam, lastvc; // server side voice comm spam control
     string acversiondescription;
-    int acbuildtype;
     bool isauthed;
     user *u;
     ucharbuf challenge;
