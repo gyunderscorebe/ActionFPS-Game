@@ -561,11 +561,11 @@ int SDL_SetGamma(float r, float g, float b)
 }
 
 static int curgamma = 100;
-VARFP(gamma, 30, 100, 300,
+VARNFP(gamma, vgamma, 30, 100, 300,
 {
-    if(gamma == curgamma) return;
-    curgamma = gamma;
-    float f = gamma/100.0f;
+    if(vgamma == curgamma) return;
+    curgamma = vgamma;
+    float f = vgamma/100.0f;
     if(SDL_SetGamma(f,f,f)==-1) conoutf("Could not set gamma: %s", SDL_GetError());
 });
 
