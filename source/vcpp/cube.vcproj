@@ -84,7 +84,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="enet.lib vorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL2.lib SDL2_image.lib ws2_32.lib winmm.lib Dbghelp.lib jpeg.lib"
+				AdditionalDependencies="enet.lib vorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL2.lib SDL2_image.lib SDL2main.lib ws2_32.lib winmm.lib Dbghelp.lib jpeg.lib"
 				OutputFile="../../bin_win32/ac_client.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -96,7 +96,7 @@
 				GenerateMapFile="true"
 				MapFileName=".\Release/cube.map"
 				MapExports="true"
-				SubSystem="2"
+				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="1"
@@ -186,7 +186,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="enet.lib vorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL2.lib SDL2_image.lib ws2_32.lib winmm.lib Dbghelp.lib jpeg.lib"
+				AdditionalDependencies="enet.lib vorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL2.lib SDL2_image.lib SDL2main.lib ws2_32.lib winmm.lib Dbghelp.lib jpeg.lib"
 				OutputFile="../../bin_win32/ac_client.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -195,7 +195,7 @@
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/ac_client.pdb"
-				SubSystem="2"
+				SubSystem="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 			/>
@@ -293,7 +293,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/PROFILE"
-				AdditionalDependencies="enet.lib vorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL2.lib SDL2_image.lib ws2_32.lib winmm.lib Dbghelp.lib jpeg.lib"
+				AdditionalDependencies="enet.lib vorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL2.lib SDL2_image.lib SDL2main.lib ws2_32.lib winmm.lib Dbghelp.lib jpeg.lib"
 				OutputFile="..\..\bin_win32\ac_client.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -304,7 +304,7 @@
 				GenerateMapFile="true"
 				MapFileName=".\Release/cube.map"
 				MapExports="true"
-				SubSystem="2"
+				SubSystem="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 			/>
