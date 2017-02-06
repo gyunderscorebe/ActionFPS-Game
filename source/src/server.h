@@ -674,21 +674,18 @@ struct serverusermanager
     bool check_authentication(client *cl, const char *id, ucharbuf &signature)
     {
         user *u = find(id);
+        bool ok = true;
         if(!u)
         {
             logline(ACLOG_VERBOSE, "wrong user id %s", id);
-            return false;
+            ok = false;
         }
 
-        bool ok = verify_signature(u, signature.buf, signature.len, cl->challenge.buf, cl->challenge.len);
-        if(ok)
-        {
-            //cl->u = u;
-            copystring(cl->userid, id);
-            cl->setidentity();
-            return true;
-        }
-        return false;
+        if(ok) ok &= verify_signature(u, signature.buf, signature.len, cl->challenge.buf, cl->challenge.len);
+
+        copystring(cl->userid, ok ? id : "");
+        cl->setidentity();
+        return ok;
     }
 
     bool verify_signature(user *u, const uchar *signature, int siglen, const uchar *challenge, int challength)
