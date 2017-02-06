@@ -2774,13 +2774,10 @@ void process(ENetPacket *packet, int sender, int chan)
             if(!successful_authentication)
             {
                 logline(ACLOG_INFO, "[%s] %s failed to authenticate as '%s'", cl->hostname, cl->name, uid);
-                if(scl.disable_authentication)
-                {
-                    copystring(cl->userid, "");
-                }
-                else
+                if(!scl.disable_authentication)
                 {
                     disconnect_client(sender, DISC_AUTHFAIL);
+                    return;
                 }
             }
             else
