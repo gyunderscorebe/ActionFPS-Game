@@ -91,7 +91,7 @@ VARF(colorbits, 0, 0, 32, initwarning("color depth"));
 VARF(depthbits, 0, 0, 32, initwarning("depth-buffer precision"));
 VARF(stencilbits, 0, 0, 32, initwarning("stencil-buffer precision"));
 VARF(fsaa, -1, -1, 16, initwarning("anti-aliasing"));
-VARF(vsync, -1, -1, 1, initwarning("vertical sync"));
+VARF(vsync, -1, -1, 2, initwarning("vertical sync"));
 
 int windowwidth()
 {
@@ -652,7 +652,19 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
         if(screen)
         {
             glcontext = SDL_GL_CreateContext(screen);
-            if(glcontext) break;
+            if(glcontext)
+            {
+                if(vsync>=0)
+                {
+                    int ret = SDL_GL_SetSwapInterval(vsync);
+                    // Late swap tearing
+                    if(ret == -1 && vsync == 2)
+                    {
+                        SDL_GL_SetSwapInterval(1);
+                    }
+                }
+                break;
+            }
             SDL_DestroyWindow(screen);
         }
     }
