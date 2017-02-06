@@ -33,6 +33,10 @@ else
 	override CXXFLAGS+= -Wall -fsigned-char -ffast-math -rdynamic -Wno-format-zero-length
 endif
 
+ifdef AFREVISION
+	override CXXFLAGS+= -D AF_REVISION=\"$(AFREVISION)\"
+endif
+
 INCLUDES= -I. -Ibot -I../enet/include
 
 STRIP=
