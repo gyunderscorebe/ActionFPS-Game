@@ -587,7 +587,7 @@ string &getversiondescription()
 {
     char platform[] =
 
-#ifdef _WIN32
+#ifdef WIN32
     "Windows"
 #elif __APPLE__
     "Mac"
@@ -618,7 +618,7 @@ string &getversiondescription()
 int getbuildtype()
 {
     return (isbigendian() ? 0x80 : 0 )|(adler((unsigned char *)guns, sizeof(guns)) % 31 << 8)|
-        #ifdef _WIN32
+        #ifdef WIN32
             0x40 |
         #endif
         #ifdef __APPLE__
