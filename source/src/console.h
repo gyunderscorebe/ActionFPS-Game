@@ -46,7 +46,9 @@ struct textinputbuffer
     }
 
     /// Insert a string (utf8/ascii)
-    bool text(const char *c);
+    bool say(const char *c);
+
+    void pasteclipboard();
 
     bool key(int code)
     {
@@ -93,7 +95,6 @@ struct textinputbuffer
                 break;
 
             case SDLK_v:
-                extern void pasteconsole(char *dst);
 #ifdef __APPLE__
 #define MOD_KEYS (KMOD_LGUI|KMOD_RGUI)
 #else
@@ -101,10 +102,10 @@ struct textinputbuffer
 #endif
                 if(SDL_GetModState()&MOD_KEYS)
                 {
-                    pasteconsole(buf);
+                    pasteclipboard();
                     return true;
                 }
-                // fall through
+                break;
 
             default:
                 break;
