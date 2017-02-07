@@ -15,7 +15,7 @@ addons:
       - openssl
       - libssl-dev
       - imagemagick
-script: cd source/src && make && make install && cd .. && cd ..
+script: cd source/src && make && make install && make test && cd .. && cd ..
 before_deploy: "./package.sh"
 deploy:
   - provider: releases
