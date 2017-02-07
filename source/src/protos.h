@@ -1017,6 +1017,7 @@ struct servercommandline
     const char *id;
     bool logtimestamp, demo_interm, loggamestatus;
     bool disable_authentication;
+    bool default_autoteam;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
     vector<const char *> adminonlymaps;
@@ -1029,6 +1030,7 @@ struct servercommandline
                             id("unnamed"),
                             logtimestamp(false), demo_interm(false), loggamestatus(true),
                             disable_authentication(false),
+                            default_autoteam(false),
                             clfilenesting(0)
     {
         motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = mapperm[0] = '\0';
@@ -1067,6 +1069,10 @@ struct servercommandline
                     else if(ARGUMENT_CHECK(arg, "--disableauthentication"))
                     {
                         disable_authentication = true;
+                    }
+                    else if(ARGUMENT_CHECK(arg, "--defaultautoteam="))
+                    {
+                        default_autoteam = (bool)atoi(arg+strlen("--defaultautoteam="));
                     }
                     else return false;
                     break;
