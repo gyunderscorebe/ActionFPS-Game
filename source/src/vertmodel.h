@@ -175,7 +175,9 @@ struct vertmodel : model
         }
 
 #if defined(__GNUC__) && defined(__OPTIMIZE__) && !defined(__clang__) && !defined(__ICL) && __GNUC__ >= 4 && __GNUC_MINOR__ > 4
-__attribute__((optimize(2)))
+    __attribute__((optimize(2)))
+#elif defined(__clang__) && __clang_major__ >= 4
+    __attribute__((optnone))
 #endif
         dyncacheentry *gendynverts(animstate &as, anpos &cur, anpos *prev, float ai_t)
         {
@@ -289,7 +291,9 @@ __attribute__((optimize(2)))
         }
 
 #if defined(__GNUC__) && defined(__OPTIMIZE__) && !defined(__clang__) && !defined(__ICL) && __GNUC__ >= 4 && __GNUC_MINOR__ > 4
-__attribute__((optimize(2)))
+    __attribute__((optimize(2)))
+#elif defined(__clang__) && __clang_major__ >= 4
+    __attribute__((optnone))
 #endif
         shadowcacheentry *genshadowvolume(animstate &as, anpos &cur, anpos *prev, float ai_t, vec *buf)
         {
@@ -350,7 +354,9 @@ __attribute__((optimize(2)))
         }
 
 #if defined(__GNUC__) && defined(__OPTIMIZE__) && !defined(__clang__) && !defined(__ICL) && __GNUC__ >= 4 && __GNUC_MINOR__ > 4
-__attribute__((optimize(2)))
+    __attribute__((optimize(2)))
+#elif defined(__clang__) && __clang_major__ >= 4
+    __attribute__((optnone))
 #endif
         lightcacheentry *lightvertexes(animstate &as, anpos &cur, anpos *prev, float ai_t, vec *buf)
         {
