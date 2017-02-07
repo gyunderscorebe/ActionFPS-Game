@@ -1619,18 +1619,14 @@ COMMAND(findcn, "s");
 
 int sessionid = 0;
 
-void setadmin(int *claim, char *password)
-{
-    if(!*claim && (player1->clientrole))
+COMMANDF(claimadmin, "s", (char *password) { addmsg(SV_SETADMIN, "ris", 1, genpwdhash(player1->name, password, sessionid)); } );
+COMMANDF(dropadmin, "", (void) {
+    if(player1->clientrole)
     {
         conoutf("you released admin status");
         addmsg(SV_SETADMIN, "ri", 0);
     }
-    else if(*claim != 0)
-        addmsg(SV_SETADMIN, "ris", *claim, genpwdhash(player1->name, password, sessionid));
-}
-
-COMMAND(setadmin, "is");
+});
 
 static vector<mline> mlines;
 
