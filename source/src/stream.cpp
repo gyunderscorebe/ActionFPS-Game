@@ -219,11 +219,18 @@ void addpackagedir(const char *dir)
 
 int findfilelocation;
 
-const char *findfile(const char *filename, const char *mode)
+const char *findfile(const char *filename, const char *mode, bool allow_outside_game)
 {
+    static string s;
+    if(allow_outside_game && mode[0] != 'w' && mode[0] != 'a' && fileexists(filename, mode))
+    {
+        copystring(s, filename);
+        return s;
+    }
+
     while(filename[0] == PATHDIV) filename++; // skip leading pathdiv
     while(!strncmp(".." PATHDIVS, filename, 3)) filename += 3; // skip leading "../" (don't allow access to files below "AC root dir")
-    static string s;
+
     formatstring(s)("%s%s", homedir, filename);         // homedir may be ""
     findfilelocation = FFL_HOME;
     if(homedir[0] && fileexists(s, mode)) return s;
@@ -886,9 +893,9 @@ stream *openrawfile(const char *filename, const char *mode)
     return file;
 }
 
-stream *openfile(const char *filename, const char *mode)
+stream *openfile(const char *filename, const char *mode, bool allow_outside_game)
 {
-    const char *found = findfile(filename, mode);
+    const char *found = findfile(filename, mode, allow_outside_game);
 #ifndef STANDALONE
     if(!strncmp(found, "zip://", 6)) return openzipfile(found + 6, mode);
 #endif
@@ -912,9 +919,9 @@ stream *opentempfile(const char *name, const char *mode)
     return file;
 }
 
-stream *opengzfile(const char *filename, const char *mode, stream *file, int level)
+stream *opengzfile(const char *filename, const char *mode, stream *file, int level, bool allow_outside_game)
 {
-    stream *source = file ? file : openfile(filename, mode);
+    stream *source = file ? file : openfile(filename, mode, allow_outside_game);
     if(!source) return NULL;
     gzstream *gz = new gzstream;
     if(!gz->open(source, mode, !file, level)) { if(!file) delete source; return NULL; }
