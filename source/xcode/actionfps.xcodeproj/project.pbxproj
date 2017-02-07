@@ -767,7 +767,7 @@
 				);
 				PRODUCT_NAME = actionfps;
 				SDKROOT = macosx;
-				STRIP_STYLE = all;
+				STRIP_STYLE = "non-global";
 			};
 			name = Debug;
 		};
@@ -818,7 +818,7 @@
 				);
 				PRODUCT_NAME = actionfps;
 				SDKROOT = macosx;
-				STRIP_STYLE = all;
+				STRIP_STYLE = "non-global";
 			};
 			name = Release;
 		};
@@ -875,7 +875,7 @@
 				);
 				PRODUCT_NAME = actionfps;
 				SDKROOT = macosx;
-				STRIP_STYLE = all;
+				STRIP_STYLE = "non-global";
 			};
 			name = "Release-Deployment";
 		};
