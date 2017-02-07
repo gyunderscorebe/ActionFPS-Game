@@ -13,7 +13,7 @@ test:
     - set -o pipefail && cd source/xcode && make
 general:
   artifacts:
-    - source/xcode/build/Release/actionfps.dmg
+    - source/xcode/build/Debug/actionfps.dmg
 deployment:
   production:
     tag: /.*/
