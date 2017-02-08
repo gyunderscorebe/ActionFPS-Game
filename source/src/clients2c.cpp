@@ -1481,7 +1481,7 @@ void receivefile(uchar *data, int len)
             getstring(text, p);
             extern string demosubpath;
             defformatstring(demofn)("%s", parseDemoFilename(text));
-            defformatstring(fname)("demos/%s%s.dmo", demosubpath, demofn);
+            defformatstring(fname)("demos/%s%s.dmo.gz", demosubpath, demofn);
             copystring(demosubpath, "");
             data += strlen(text);
             int demosize = getint(p);

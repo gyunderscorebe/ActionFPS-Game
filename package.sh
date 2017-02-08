@@ -11,4 +11,7 @@ mkdir -p ActionFPS/{screenshots,demos}/
 find . -iname shadows.dat | xargs rm -f
 find . -iname .gitignore | xargs rm -f
 rm -rf ActionFPS/config/{authkey,history,saved.cfg,servers.cfg,mapmodelattributes.cfg,opt,autosave.cfg,autostart}
+for s in 16 22 32 48 64 128; do
+  convert ActionFPS/packages/misc/icon.png -resize "${s}x${s}" "ActionFPS/packages/misc/icon-${s}.png";
+done
 tar cjvf ActionFPS.tar.bz2 ActionFPS

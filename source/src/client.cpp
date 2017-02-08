@@ -745,7 +745,7 @@ void sendintro()
 
     DELETEP(bio);
     DELETEP(priv_dsa);
-    DELETEP(signature);
+    DELETEA(signature);
 }
 
 void gets2c()           // get updates from the server

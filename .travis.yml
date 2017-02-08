@@ -14,7 +14,8 @@ addons:
       - libvorbis-dev
       - openssl
       - libssl-dev
-script: cd source/src && make AFREVISION=`git describe --tags` && make install && cd .. && cd ..
+      - imagemagick
+script: cd source/src && make AFREVISION=`git describe --tags` && make install && make test && cd .. && cd ..
 before_deploy: "./package.sh"
 deploy:
   - provider: releases
