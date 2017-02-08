@@ -81,7 +81,7 @@ void processevent(client *c, shotevent &e)
                     damage = (int)ceil(fdamage);
                     if(gib) damage *= 3;
 #ifdef ACAC
-                    if (!sg_engine(target, c, numhits_c, numhits_m, numhits_o, bonusdist)) continue;
+                    if (!sg_engine(target, c, numhits_c, numhits_m, numhits_o, gib)) continue;
 #endif
                 }
                 else
