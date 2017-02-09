@@ -58,8 +58,7 @@ enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIP
 #define SGRAYS 21
 #define SGDMGTOTAL 90
 
-#define SGDMGBONUS 65
-#define SGDMGDISTB 50
+#define SGGIBDIST 40
 
 #define SGCCdmg 500
 #define SGCCbase 0

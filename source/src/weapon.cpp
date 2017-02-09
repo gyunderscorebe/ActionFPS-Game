@@ -593,6 +593,7 @@ void shorten(const vec &from, vec &target, float dist)
 void raydamage(vec &from, vec &to, playerent *d)
 {
     int dam = d->weaponsel->info.damage;
+    bool gib = false;
     int hitzone = -1;
     playerent *o = NULL;
     float dist, hitdist = 0.0f;
@@ -641,22 +642,24 @@ void raydamage(vec &from, vec &to, playerent *d)
                 int dmgreal = 0;
                 float dmg4r = 0.0f;
                 bool withBONUS = false;
-                if(SGDMGBONUS)
-                {
-                    float d2o = SGDMGDISTB;
-                    if(o) d2o = vec(from).sub(o->o).magnitude();
-                    if(d2o <= (SGDMGDISTB/10.0f) && numhits)
-                    {
-                        dmg4r += SGDMGBONUS;
-                        withBONUS = true;
-                    }
-                }
+
                 dmg4r += (SGCOdmg / 10.0f * SGDMGTOTAL / 100.0f) * numhits_o / 21.0f;
                 dmg4r += (SGCMdmg / 10.0f * SGDMGTOTAL / 100.0f) * numhits_m / 21.0f;
                 dmg4r += (SGCCdmg / 10.0f * SGDMGTOTAL / 100.0f) * numhits_c / 21.0f;
                 dmgreal = (int) ceil(dmg4r);
-                int info = (withBONUS ? SGDMGBONUS : 0) | (numhits_c << 8) | (numhits_m << 16) | (numhits_o << 24);
-                if(numhits) hitpush(dmgreal, o, d, from, to, d->weaponsel->type, numhits == SGRAYS * 3, info);
+
+                float d2o = SGGIBDIST;
+                if(o) d2o = vec(from).sub(o->o).magnitude();
+
+                if(numhits == SGRAYS * 3 || (d2o <= (SGGIBDIST/10.0f) && numhits > SGRAYS * 3 / 2))
+                {
+                    dmgreal *= 3;
+                    gib = true;
+                }
+
+                int info = (gib ? 1 : 0) | (numhits_c << 8) | (numhits_m << 16) | (numhits_o << 24);
+
+                if(numhits) hitpush(dmgreal, o, d, from, to, d->weaponsel->type, gib, info);
 
                 if(d==player1) hitted = true;
                 hitscount+=numhits;
@@ -666,7 +669,6 @@ void raydamage(vec &from, vec &to, playerent *d)
     }
     else if((o = intersectclosest(from, to, d, dist, hitzone)))
     {
-        bool gib = false;
         switch(d->weaponsel->type)
         {
             case GUN_KNIFE: gib = true; break;
