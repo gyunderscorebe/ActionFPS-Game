@@ -1,0 +1,5 @@
+push:
+	git fetch
+	if [[ $$(git diff --name-only origin/master) != "" ]]; then \
+    git pull && make server && sudo systemctl restart af-server-sdev; \
+  fi
