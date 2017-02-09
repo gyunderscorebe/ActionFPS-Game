@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 push:
 	git fetch
 	if [[ $$(git diff --name-only origin/master) != "" ]]; then \
