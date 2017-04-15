@@ -70,19 +70,18 @@ void processevent(client *c, shotevent &e)
                 bool gib = false;
                 if(e.gun == GUN_SHOTGUN)
                 {
-                    int bonusdist = h.info&0xFF;
+                    gib = h.info&0xFF;
                     int numhits_c = (h.info & 0x0000FF00) >> 8, numhits_m = (h.info & 0x00FF0000) >> 16, numhits_o = (h.info & 0xFF000000) >> 24;
                     tothits_c += numhits_c; tothits_m += numhits_m; tothits_o += numhits_o;
                     rays = numhits_c + numhits_m + numhits_o;
 
-                    if(rays < 1 || tothits_c > SGRAYS || tothits_m > SGRAYS || tothits_o > SGRAYS || bonusdist > SGDMGBONUS) continue;
+                    if(rays < 1 || tothits_c > SGRAYS || tothits_m > SGRAYS || tothits_o > SGRAYS) continue;
 
-                    gib = rays == maxrays;
                     float fdamage = (SGDMGTOTAL/(21*100.0f)) * (numhits_o * SGCOdmg/10.0f + numhits_m * SGCMdmg/10.0f + numhits_c * SGCCdmg/10.0f);
-                    fdamage += (float)bonusdist;
                     damage = (int)ceil(fdamage);
+                    if(gib) damage *= 3;
 #ifdef ACAC
-                    if (!sg_engine(target, c, numhits_c, numhits_m, numhits_o, bonusdist)) continue;
+                    if (!sg_engine(target, c, numhits_c, numhits_m, numhits_o, gib)) continue;
 #endif
                 }
                 else

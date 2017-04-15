@@ -1096,7 +1096,7 @@ void gameprotocol(char *protocolstring, string &servername, int &serverport, str
     servername[0] = password[0] = '\0';
     serverport = 0;
     while(*c && *c!='/' && *c!='?' && *c!=':') { len++; c++; }
-    if(!len) { conoutf("\f3bad commandline syntax", protocolstring); return; }
+    if(!len) { conoutf("\f3bad commandline syntax: %s", protocolstring); return; }
     copystring(servername, p, min(len+1, MAXSTRLEN));
     direct_connect = strcmp(servername, "authenticate") != 0;
     if(*c && *c==':')
@@ -1330,7 +1330,8 @@ int main(int argc, char **argv)
                     {
                         initdemo = &argv[i][11];
                     }
-                    else conoutf("\f3unknown commandline switch: %s", argv[i]);
+                    else
+                        conoutf("\f3unknown commandline switch: %s", argv[i]);
                     break;
                 case 'd': dedicated = true; break;
                 case 't': fullscreen = atoi(a); break;
@@ -1347,6 +1348,10 @@ int main(int argc, char **argv)
             else if(!strncmp(argv[i], "actionfps://", 12)) // browser direct connection
             {
                 gameprotocol(argv[i], servername, serverport, password, auth_id, auth_key, direct_connect);
+            }
+            else if((std::string(argv[i])).substr(strlen(argv[i])-strlen(".dmo.gz")) == ".dmo.gz")
+            {
+                initdemo = argv[i];
             }
             else conoutf("\f3unknown commandline argument: %c", argv[i][0]);
         }

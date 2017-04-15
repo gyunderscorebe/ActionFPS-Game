@@ -35,14 +35,31 @@ Categories=Game;ActionGame;Shooter;
 Terminal=false
 StartupNotify=false
 Exec=$CUBE_DIR/$CUBE_EXEC %u
-Icon=$CUBE_DIR/docs/images/icon.png
+Icon=$CUBE_DIR/packages/misc/icon.png
 Comment=A multiplayer, first-person shooter game, based on the CUBE engine. Fast, arcade gameplay.
 MimeType=x-scheme-handler/actionfps
+MimeType=application/vnd.actionfps-dmo+gz
 EOF
+
+cat > "/usr/share/mime/packages/application-vnd.actionfps-dmo+gz.xml" << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/vnd.actionfps-dmo+gz">
+    <comment>ActionFPS demo</comment>
+    <glob pattern="*.dmo.gz"/>
+  </mime-type>
+</mime-info>
+EOF
+
+update-mime-database /usr/share/mime
 
 if type "xdg-mime" &> /dev/null; then
   echo "Registering xdg-mime"
   xdg-mime default actionfps.desktop x-scheme-handler/actionfps
+  xdg-mime default actionfps.desktop application/vnd.actionfps-dmo+gz
+  for s in 16 22 32 48 64 128; do
+    xdg-icon-resource install --context mimetypes --size $s "packages/misc/icon-${s}.png" application-vnd.actionfps-dmo+gz
+  done
 fi
 
 chmod +x "${LAUNCHERPATH}"${LAUNCHERFILE}

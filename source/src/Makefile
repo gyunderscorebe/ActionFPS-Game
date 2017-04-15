@@ -418,3 +418,6 @@ command-standalone.o: varray.h vote.h console.h protos.h
 master-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 master-standalone.o: sound.h weapon.h entity.h world.h command.h
 master-standalone.o: varray.h vote.h console.h protos.h
+.PHONY: test
+test:
+	echo Good!

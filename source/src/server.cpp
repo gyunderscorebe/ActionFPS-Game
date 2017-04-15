@@ -598,8 +598,8 @@ void enddemorecord()
     logline(ACLOG_INFO, "Demo \"%s\" recorded.", d.info);
 
     // 2011feb05:ft: previously these two static formatstrings were used ..
-    //formatstring(d.file)("%s_%s_%s", timestring(), behindpath(smapname), modestr(gamemode, true)); // 20100522_10.08.48_ac_mines_DM.dmo
-    //formatstring(d.file)("%s_%s_%s", modestr(gamemode, true), behindpath(smapname), timestring( true, "%Y.%m.%d_%H%M")); // DM_ac_mines.2010.05.22_1008.dmo
+    //formatstring(d.file)("%s_%s_%s", timestring(), behindpath(smapname), modestr(gamemode, true)); // 20100522_10.08.48_ac_mines_DM.dmo.gz
+    //formatstring(d.file)("%s_%s_%s", modestr(gamemode, true), behindpath(smapname), timestring( true, "%Y.%m.%d_%H%M")); // DM_ac_mines.2010.05.22_1008.dmo.gz
     // .. now we use client-side parseable fileattribs
     int mPLAY = gamemillis >= gamelimit ? gamelimit/1000 : gamemillis/1000;
     int mDROP = gamemillis >= gamelimit ? 0 : (gamelimit - gamemillis)/1000;
@@ -617,7 +617,7 @@ void enddemorecord()
     demotmp = NULL;
     if(scl.demopath[0])
     {
-        formatstring(msg)("%s%s.dmo", scl.demopath, getDemoFilename(gamemode, mPLAY, mDROP, iTIME, iMAPN)); //d.file);
+        formatstring(msg)("%s%s.dmo.gz", scl.demopath, getDemoFilename(gamemode, mPLAY, mDROP, iTIME, iMAPN)); //d.file);
         path(msg);
         stream *demo = openfile(msg, "wb");
         if(demo)
@@ -772,18 +772,17 @@ void setupdemoplayback()
     demoheader hdr;
     string msg;
     msg[0] = '\0';
-    defformatstring(file)("demos/%s.dmo", smapname);
-    path(file);
-    demoplayback = opengzfile(file, "rb");
-    if(!demoplayback) formatstring(msg)("could not read demo \"%s\"", file);
+    path(smapname);
+    demoplayback = opengzfile(smapname, "rb", NULL, Z_BEST_COMPRESSION, true);
+    if(!demoplayback) formatstring(msg)("could not read demo \"%s\"", smapname);
     else if(demoplayback->read(&hdr, sizeof(demoheader))!=sizeof(demoheader) || memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic)))
-        formatstring(msg)("\"%s\" is not a demo file", file);
+        formatstring(msg)("\"%s\" is not a demo file", smapname);
     else
     {
         lilswap(&hdr.version, 1);
         lilswap(&hdr.protocol, 1);
-        if(hdr.version!=DEMO_VERSION) formatstring(msg)("demo \"%s\" requires an %s version of ActionFPS", file, hdr.version<DEMO_VERSION ? "older" : "newer");
-        else if(hdr.protocol != PROTOCOL_VERSION && !(hdr.protocol < 0 && hdr.protocol == -PROTOCOL_VERSION) && hdr.protocol != 1132) formatstring(msg)("demo \"%s\" requires an %s version of ActionFPS", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
+        if(hdr.version!=DEMO_VERSION) formatstring(msg)("demo \"%s\" requires an %s version of ActionFPS", smapname, hdr.version<DEMO_VERSION ? "older" : "newer");
+        else if(hdr.protocol != PROTOCOL_VERSION && !(hdr.protocol < 0 && hdr.protocol == -PROTOCOL_VERSION) && hdr.protocol != 1132) formatstring(msg)("demo \"%s\" requires an %s version of ActionFPS", smapname, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
         else if(hdr.protocol == 1132) sendservmsg("WARNING: using experimental compatibility mode for older demo protocol, expect breakage");
         demoprotocol = hdr.protocol;
     }
@@ -794,7 +793,7 @@ void setupdemoplayback()
         return;
     }
 
-    formatstring(msg)("playing demo \"%s\"", file);
+    formatstring(msg)("playing demo \"%s\"", smapname);
     sendservmsg(msg);
     sendf(-1, 1, "risi", SV_DEMOPLAYBACK, smapname, -1);
     watchingdemo = true;
