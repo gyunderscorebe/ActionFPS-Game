@@ -40,7 +40,17 @@ struct textinputbuffer
         buf[0] = '\0';
     }
 
-    bool key(int code, bool isdown, int unicode)
+    int maxlen() const
+    {
+        return max ? max : sizeof(buf);
+    }
+
+    /// Insert a string (utf8/ascii)
+    bool say(const char *c);
+
+    void pasteclipboard();
+
+    bool key(int code)
     {
         switch(code)
         {
@@ -85,41 +95,29 @@ struct textinputbuffer
                 break;
 
             case SDLK_v:
-                extern void pasteconsole(char *dst);
 #ifdef __APPLE__
-#define MOD_KEYS (KMOD_LMETA|KMOD_RMETA)
+#define MOD_KEYS (KMOD_LGUI|KMOD_RGUI)
 #else
 #define MOD_KEYS (KMOD_LCTRL|KMOD_RCTRL)
 #endif
                 if(SDL_GetModState()&MOD_KEYS)
                 {
-                    pasteconsole(buf);
+                    pasteclipboard();
                     return true;
                 }
-                // fall through
+                break;
 
             default:
-            {
-                if(unicode)
-                {
-                    size_t len = strlen(buf);
-                    if(max && (int)len>=max) break;
-                    if(len+1 < sizeof(buf))
-                    {
-                        if(pos < 0) buf[len] = unicode;
-                        else
-                        {
-                            memmove(&buf[pos+1], &buf[pos], len - pos);
-                            buf[pos++] = unicode;
-                        }
-                        buf[len+1] = '\0';
-                        return true;
-                    }
-                }
                 break;
-            }
+            /*
+                if(code <= 127 && code >= -128 && isprint(code)) {
+                    char c[2];
+                    c[0] = static_cast<char>(code);
+                    c[1] = 0;
+                    return text(c);
+                }
+                */
         }
         return false;
     }
 };
-

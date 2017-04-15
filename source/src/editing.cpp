@@ -53,7 +53,7 @@ void toggleedit(bool force)
         //put call to clear/restart gamemode
         player1->attacking = false;
     }
-    keyrepeat(editmode);
+    keyrepeat = editmode;
     editing = editmode ? 1 : 0;
     player1->state = editing ? CS_EDITING : (watchingdemo ? CS_SPECTATE : CS_ALIVE);
     if(editing && player1->onladder) player1->onladder = false;

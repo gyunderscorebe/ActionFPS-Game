@@ -46,11 +46,11 @@ MV=mv
 ifneq (,$(findstring MINGW,$(PLATFORM)))
 WINDRES= windres
 CLIENT_INCLUDES= $(INCLUDES) -I../include
-CLIENT_LIBS= -mwindows -L../lib -lSDL -lSDL_image -lzdll -lopengl32 -lenet -lOpenAL32 -llibvorbisfile -lws2_32 -lwinmm -lssl -lcrypto
+CLIENT_LIBS= -mwindows -L../lib -lSDL2 -lSDL2_image -lSDL2main -lzdll -lopengl32 -lenet -lOpenAL32 -llibvorbisfile -lws2_32 -lwinmm -lssl -lcrypto
 else
 USRLIB=$(shell if [ -e /usr/lib64 ]; then echo "/usr/lib64"; else echo "/usr/lib"; fi)
-CLIENT_INCLUDES= $(INCLUDES) -I/usr/include `sdl-config --cflags` -idirafter ../include
-CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) -lX11 `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile -lssl -lcrypto
+CLIENT_INCLUDES= $(INCLUDES) -I/usr/include `sdl2-config --cflags` -idirafter ../include
+CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) -lX11 `sdl2-config --libs` -lSDL2_image -lz -lGL -lopenal -lvorbisfile -lssl -lcrypto
 endif
 
 CLIENT_OBJS= \
@@ -159,6 +159,9 @@ mrproper: clean ../enet/Makefile
 %.h.gch: %.h
 	$(CXX) $(CXXFLAGS) -x c++-header -o $@.tmp $(subst .h.gch,.h,$@)
 	$(MV) $@.tmp $@
+
+rendermodel.o: rendermodel.cpp
+	$(CXX) $(CXXFLAGS) -fno-strict-aliasing -c -o $@ $(subst .o,.cpp,$@)
 
 %-standalone.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $(subst -standalone.o,.cpp,$@)

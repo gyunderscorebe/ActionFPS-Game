@@ -7,10 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4F93906E1A1598140049877C /* SDL_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171611ED9AEF00799589 /* SDL_image.framework */; };
-		4F9390711A15985A0049877C /* SDL_image.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171611ED9AEF00799589 /* SDL_image.framework */; };
-		4FEAF3381A147F9F00B42D47 /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171511ED9AEF00799589 /* SDL.framework */; };
-		4FEAF3391A147FAE00B42D47 /* SDL.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9EB8171511ED9AEF00799589 /* SDL.framework */; };
 		665CDCA60AFE7ECD0030D605 /* callbacks.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC6B0AFE7ECC0030D605 /* callbacks.c */; };
 		665CDCB80AFE7ECD0030D605 /* host.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC7E0AFE7ECD0030D605 /* host.c */; };
 		665CDCCB0AFE7ECD0030D605 /* list.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC930AFE7ECD0030D605 /* list.c */; };
@@ -28,6 +24,10 @@
 		665CDD180AFE7ED80030D605 /* botmanager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665CDCE60AFE7ED80030D605 /* botmanager.cpp */; };
 		66899E700C1485E200927C34 /* ConsoleView.m in Sources */ = {isa = PBXBuildFile; fileRef = 66899E6E0C1485E200927C34 /* ConsoleView.m */; };
 		66899E770C14862300927C34 /* macutils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66899E760C14862300927C34 /* macutils.mm */; };
+		8CFBFB0D1E472C9A003D44C1 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CFBFB0C1E472C9A003D44C1 /* SDL2.framework */; };
+		8CFBFB0E1E472C9A003D44C1 /* SDL2.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8CFBFB0C1E472C9A003D44C1 /* SDL2.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		8CFBFB121E472CAF003D44C1 /* SDL2_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CFBFB111E472CAF003D44C1 /* SDL2_image.framework */; };
+		8CFBFB131E472CAF003D44C1 /* SDL2_image.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8CFBFB111E472CAF003D44C1 /* SDL2_image.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9E595539121EA8E9005ED5F7 /* crypto.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E595536121EA8E9005ED5F7 /* crypto.cpp */; };
 		9EAE4C10120F2F370041E6E4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9EAE4BD8120F2D0A0041E6E4 /* Localizable.strings */; };
 		9EB8171C11ED9AEF00799589 /* Ogg.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EB8171411ED9AEF00799589 /* Ogg.framework */; };
@@ -87,7 +87,6 @@
 		B914CEDA11CAC42F009BA307 /* worldocull.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE8B11CAC42F009BA307 /* worldocull.cpp */; };
 		B914CEDB11CAC42F009BA307 /* worldrender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE8C11CAC42F009BA307 /* worldrender.cpp */; };
 		B914CEDC11CAC42F009BA307 /* zip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B914CE8D11CAC42F009BA307 /* zip.cpp */; };
-		B94198A809207E810029DAD1 /* SDLMain.m in Sources */ = {isa = PBXBuildFile; fileRef = F5A47A9E01A0483001D3D55B /* SDLMain.m */; };
 		B94198C309207E810029DAD1 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		B94198C409207E810029DAD1 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2F67ED704C74A3F00A80002 /* OpenGL.framework */; };
 		B96D0D590920970C00B6C936 /* Launcher.m in Sources */ = {isa = PBXBuildFile; fileRef = B96D0D580920970C00B6C936 /* Launcher.m */; };
@@ -113,10 +112,10 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				4F9390711A15985A0049877C /* SDL_image.framework in CopyFiles */,
-				4FEAF3391A147FAE00B42D47 /* SDL.framework in CopyFiles */,
+				8CFBFB0E1E472C9A003D44C1 /* SDL2.framework in CopyFiles */,
 				9EB8179511ED9EDF00799589 /* Ogg.framework in CopyFiles */,
 				9EB8179A11ED9EDF00799589 /* Vorbis.framework in CopyFiles */,
+				8CFBFB131E472CAF003D44C1 /* SDL2_image.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -153,6 +152,8 @@
 		66899EA90C14887F00927C34 /* Keys.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = Keys.gif; sourceTree = "<group>"; };
 		66899EAA0C14887F00927C34 /* Main.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = Main.gif; sourceTree = "<group>"; };
 		66899EAB0C14887F00927C34 /* Server.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = Server.gif; sourceTree = "<group>"; };
+		8CFBFB0C1E472C9A003D44C1 /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = Frameworks/SDL2.framework; sourceTree = "<group>"; };
+		8CFBFB111E472CAF003D44C1 /* SDL2_image.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2_image.framework; path = Frameworks/SDL2_image.framework; sourceTree = "<group>"; };
 		9E595536121EA8E9005ED5F7 /* crypto.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = crypto.cpp; sourceTree = "<group>"; };
 		9E595538121EA8E9005ED5F7 /* crypto_tools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypto_tools.h; sourceTree = "<group>"; };
 		9EAE4BD9120F2D0A0041E6E4 /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -255,11 +256,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4F93906E1A1598140049877C /* SDL_image.framework in Frameworks */,
 				B94198C309207E810029DAD1 /* Cocoa.framework in Frameworks */,
-				4FEAF3381A147F9F00B42D47 /* SDL.framework in Frameworks */,
 				B9FA3B7D0DD9E6E400581F8D /* OpenAL.framework in Frameworks */,
+				8CFBFB121E472CAF003D44C1 /* SDL2_image.framework in Frameworks */,
 				B94198C409207E810029DAD1 /* OpenGL.framework in Frameworks */,
+				8CFBFB0D1E472C9A003D44C1 /* SDL2.framework in Frameworks */,
 				9EB8171C11ED9AEF00799589 /* Ogg.framework in Frameworks */,
 				9EB8172111ED9AEF00799589 /* Vorbis.framework in Frameworks */,
 			);
@@ -325,6 +326,8 @@
 		29B97314FDCFA39411CA2CEA /* sauerbraten */ = {
 			isa = PBXGroup;
 			children = (
+				8CFBFB111E472CAF003D44C1 /* SDL2_image.framework */,
+				8CFBFB0C1E472C9A003D44C1 /* SDL2.framework */,
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
@@ -606,7 +609,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B94198A809207E810029DAD1 /* SDLMain.m in Sources */,
 				665CDCA60AFE7ECD0030D605 /* callbacks.c in Sources */,
 				665CDCB80AFE7ECD0030D605 /* host.c in Sources */,
 				665CDCCB0AFE7ECD0030D605 /* list.c in Sources */,

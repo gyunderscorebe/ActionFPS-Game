@@ -234,6 +234,8 @@ struct client                   // server side version of "dynent" type
     float pr;
     int yls, pls, tls;
     int bs, bt, blg, bp;
+    int lastpickupmillis;
+    int totalpickups;
 
     gameevent &addevent()
     {
@@ -289,6 +291,7 @@ struct client                   // server side version of "dynent" type
         tcn = -1;
         pr = 0.0f;
         yls = pls = tls = 0;
+        lastpickupmillis = totalpickups = 0;
     }
 
     void reset()
