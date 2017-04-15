@@ -36,6 +36,15 @@ $ cd ../..
 $ ./actionfps.sh
 ```
 
+### Mac
+
+1. Install XCode
+2. Dependencies with [brew](https://brew.sh/): `brew install openssl jq`
+3. Compile: `cd source/xcode && make && cd ..`
+4. Artifact is built in: `source/xcode/build/Release/actionfps.dmg`.
+
+Also see auto-build: [circle.yml](https://github.com/ActionFPS/ActionFPS-Game/blob/master/circle.yml).
+
 ## Contribute
 
 Help us with the FIRST RELEASE: https://github.com/ActionFPS/ActionFPS-Game/milestone/2
