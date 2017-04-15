@@ -27,4 +27,3 @@ deploy:
     file: target/ActionFPS.tar.bz2
     on:
       tags: true
-      branch: master
