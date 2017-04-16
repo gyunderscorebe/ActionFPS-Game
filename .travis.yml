@@ -17,7 +17,7 @@ addons:
       - libsdl2-dev
       - libsdl2-image-dev
       - imagemagick
-script: cd source/src && make && make install && make test && cd .. && cd ..
+script: cd source/src && make && make install && make test && cd .. && cd .. && rm -fr source/enet/autom4te.cache/
 before_deploy: "./package.sh"
 deploy:
   - provider: releases
