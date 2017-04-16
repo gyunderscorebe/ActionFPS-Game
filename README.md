@@ -6,6 +6,10 @@ Game client and server for https://actionfps.com/ | http://github.com/ScalaWilli
 
 Go here: https://github.com/ActionFPS/ActionFPS-Game/releases
 
+Releases are built automatically for Windows (using AppVeyor) and Linux (using Travis). For Mac automated builds, we need a [CircleCI subscription](https://circleci.com/pricing/#build-os-x).
+
+An admin of the project can [create a release here](https://github.com/ActionFPS/ActionFPS-Game/releases).
+
 # Test server
 
 We're running an always up-to-date server (synchronized with the branch that is being test):
@@ -14,20 +18,16 @@ We're running an always up-to-date server (synchronized with the branch that is 
 /connect woop.ac 7654
 ```
 
-# Create a release
+# Run from source
 
-Go to https://github.com/ActionFPS/ActionFPS-Game/releases and draft a new release. 
+This is for development and testing. First, [clone the repository](https://help.github.com/articles/cloning-a-repository/).
 
-## Test
-
-First, [Clone the repository](https://help.github.com/articles/cloning-a-repository/).
-
-### Windows
+## Windows
 1. Install Windows Visual C++ Studio Express 2010 
 2. Open `source/vcpp/cube.vcxproj` and build "Release"
 3. Launch `actionfps_release.bat`.
 
-### Linux
+## Linux
 
 ```
 $ cd source/src
@@ -36,7 +36,7 @@ $ cd ../..
 $ ./actionfps.sh
 ```
 
-### Mac
+## Mac
 
 1. Install XCode
 2. Dependencies with [brew](https://brew.sh/): `brew install openssl jq`
@@ -47,4 +47,4 @@ Also see auto-build: [circle.yml](https://github.com/ActionFPS/ActionFPS-Game/bl
 
 ## Contribute
 
-Help us with the FIRST RELEASE: https://github.com/ActionFPS/ActionFPS-Game/milestone/2
+**Help us with the first release: https://github.com/ActionFPS/ActionFPS-Game/milestone/2**
