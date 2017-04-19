@@ -1013,7 +1013,7 @@ struct serverconfigfile
 struct servercommandline
 {
     int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time, demotimelocal;
-    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *motdpath, *forbidden, *killmessages, *demofilenameformat, *demotimestampformat;
+    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *infopath, *motdpath, *killmessages, *demofilenameformat, *demotimestampformat;
     const char *id;
     bool logtimestamp, demo_interm, loggamestatus;
     bool disable_authentication;
@@ -1025,8 +1025,8 @@ struct servercommandline
     servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5),
                             maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), demotimelocal(0),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
-                            maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
-                            infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"), killmessages("config/serverkillmessages.cfg"),
+                            maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"),
+                            infopath("config/serverinfo"), motdpath("config/motd"), killmessages("config/serverkillmessages.cfg"),
                             id("unnamed"),
                             logtimestamp(false), demo_interm(false), loggamestatus(true),
                             disable_authentication(false),
@@ -1125,12 +1125,10 @@ struct servercommandline
             case 'r': maprot = a; break;
             case 'X': pwdfile = a; break;
             case 'B': blfile = a; break;
-            case 'K': nbfile = a; break;
             case 'E': killmessages = a; break;
             case 'I': infopath = a; break;
             case 'o': filterrichtext(motd, a); break;
             case 'O': motdpath = a; break;
-            case 'g': forbidden = a; break;
             case 'n':
             {
                 char *t = servdesc_full;
