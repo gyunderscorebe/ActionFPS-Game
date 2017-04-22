@@ -14,4 +14,4 @@ rm -rf ActionFPS/config/{authkey,history,saved.cfg,servers.cfg,mapmodelattribute
 for s in 16 22 32 48 64 128; do
   convert ActionFPS/packages/misc/icon.png -resize "${s}x${s}" "ActionFPS/packages/misc/icon-${s}.png";
 done
-tar cjvf ActionFPS.tar.bz2 ActionFPS
+tar cjf ActionFPS.tar.bz2 ActionFPS

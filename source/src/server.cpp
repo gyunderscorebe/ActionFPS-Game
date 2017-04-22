@@ -20,8 +20,6 @@ servercontroller *svcctrl = NULL;
 servercommandline scl;
 servermaprot maprot;
 serveripblacklist ipblacklist;
-servernickblacklist nickblacklist;
-serverforbiddenlist forbiddenlist;
 serverpasswords passwords;
 serverinfofile infofiles;
 killmessagesfile killmsgs;
@@ -2455,7 +2453,7 @@ void senddisconnectedscores(int cn)
 
 const char *disc_reason(int reason)
 {
-    static const char *disc_reasons[] = { "normal", "error - end of packet", "error - client num", "vote-kicked from the server", "vote-banned from the server", "error - tag type", "connection refused - you have been banned from this server", "incorrect password", "unsuccessful administrator login", "authentication failed", "the server is FULL - try again later", "servers mastermode is \"private\" - wait until the servers mastermode is \"open\"", "auto-kick - your score dropped below the servers threshold", "auto-ban - your score dropped below the servers threshold", "duplicate connection", "inappropriate nickname", "error - packet flood", "auto-kick - excess spam detected", "auto-kick - inactivity detected", "auto-kick - team killing detected", "auto-kick - abnormal client behavior detected" };
+    static const char *disc_reasons[] = { "normal", "error - end of packet", "error - client num", "vote-kicked from the server", "vote-banned from the server", "error - tag type", "connection refused - you have been banned from this server", "incorrect password", "unsuccessful administrator login", "authentication failed", "the server is FULL - try again later", "servers mastermode is \"private\" - wait until the servers mastermode is \"open\"", "auto-kick - your score dropped below the servers threshold", "auto-ban - your score dropped below the servers threshold", "duplicate connection", "error - packet flood", "auto-kick - excess spam detected", "auto-kick - inactivity detected", "auto-kick - team killing detected", "auto-kick - abnormal client behavior detected" };
     return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
 }
 
@@ -2795,23 +2793,10 @@ void process(ENetPacket *packet, int sender, int chan)
             bool srvfull = numnonlocalclients() > scl.maxclients;
             bool srvprivate = mastermode == MM_PRIVATE;
             bool matchreconnect = mastermode == m_match(mastermode) && findscore(*cl, false);
-            int bl = 0, wl = nickblacklist.checkwhitelist(*cl);
-            if(wl == NWL_PASS) concatstring(tags, ", nickname whitelist match");
-            if(wl == NWL_UNLISTED) bl = nickblacklist.checkblacklist(cl->name);
             if(matchreconnect && !banned)
             { // former player reconnecting to a server in match mode
                 cl->isauthed = successful_authentication || scl.disable_authentication;
                 logline(ACLOG_INFO, "[%s] %s logged in (reconnect to match)%s", cl->identity, cl->name, tags);
-            }
-            else if(wl == NWL_IPFAIL || wl == NWL_PWDFAIL)
-            { // nickname matches whitelist, but IP is not in the required range or PWD doesn't match
-                logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s%s", cl->identity, cl->name, wl == NWL_IPFAIL ? "IP" : "PWD", tags);
-                disconnect_client(sender, DISC_BADNICK);
-            }
-            else if(bl > 0)
-            { // nickname matches blacklist
-                logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d%s", cl->identity, cl->name, bl, tags);
-                disconnect_client(sender, DISC_BADNICK);
             }
             else if(passwords.check(cl->name, cl->pwd, cl->salt, &pd, (cl->type==ST_TCPIP ? cl->peer->address.host : 0)) && (!pd.denyadmin || (banned && !srvfull && !srvprivate)) && bantype != BAN_MASTER) // pass admins always through
             { // admin (or deban) password match
@@ -2942,26 +2927,17 @@ void process(ENetPacket *packet, int sender, int chan)
                 trimtrailingwhitespace(text);
                 if(*text)
                 {
-                    bool canspeech = forbiddenlist.canspeech(text);
-                    if(!spamdetect(cl, text) && canspeech) // team chat
+                    if(!spamdetect(cl, text)) // team chat
                     {
                         logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s'", cl->identity, type == SV_TEAMTEXTME ? "(me) " : "", cl->name, team_string(cl->team), text);
                         sendteamtext(text, sender, type);
                     }
                     else
                     {
-                        logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s', %s", cl->identity, type == SV_TEAMTEXTME ? "(me) " : "",
-                                cl->name, team_string(cl->team), text, canspeech ? "SPAM detected" : "Forbidden speech");
-                        if (canspeech)
-                        {
-                            sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
-                            if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_ABUSE);
-                        }
-                        else
-                        {
-                            sendservmsg("\f3Watch your language! Your message was not delivered.", sender);
-                            kick_abuser(cl->clientnum, cl->badmillis, cl->badspeech, 3);
-                        }
+                        logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s', SPAM detected", cl->identity, type == SV_TEAMTEXTME ? "(me) " : "",
+                                cl->name, team_string(cl->team), text);
+                        sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
+                        if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_ABUSE);
                     }
                 }
                 break;
@@ -2975,8 +2951,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 trimtrailingwhitespace(text);
                 if(*text)
                 {
-                    bool canspeech = forbiddenlist.canspeech(text);
-                    if(!spamdetect(cl, text) && canspeech)
+                    if(!spamdetect(cl, text))
                     {
                         if(!m_match(mastermode) || !matchteamsize || team_isactive(cl->team) || (cl->team == TEAM_SPECT && cl->role == CR_ADMIN)) // common chat
                         {
@@ -2992,18 +2967,10 @@ void process(ENetPacket *packet, int sender, int chan)
                     }
                     else
                     {
-                        logline(ACLOG_INFO, "[%s] %s%s says: '%s', %s", cl->identity, type == SV_TEXTME ? "(me) " : "",
-                                cl->name, text, canspeech ? "SPAM detected" : "Forbidden speech");
-                        if (canspeech)
-                        {
-                            sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
-                            if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_ABUSE);
-                        }
-                        else
-                        {
-                            sendservmsg("\f3Watch your language! Your message was not delivered.", sender);
-                            kick_abuser(cl->clientnum, cl->badmillis, cl->badspeech, 3);
-                        }
+                        logline(ACLOG_INFO, "[%s] %s%s says: '%s', SPAM detected", cl->identity, type == SV_TEXTME ? "(me) " : "",
+                                cl->name, text);
+                        sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
+                        if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_ABUSE);
                     }
                 }
                 break;
@@ -3021,8 +2988,7 @@ void process(ENetPacket *packet, int sender, int chan)
 
                 if(*text)
                 {
-                    bool canspeech = forbiddenlist.canspeech(text);
-                    if(!spamdetect(cl, text) && canspeech)
+                    if(!spamdetect(cl, text))
                     {
                         bool allowed = !(m_match(mastermode) && cl->team != target->team) && cl->role >= roleconf('t');
                         logline(ACLOG_INFO, "[%s] %s says to %s: '%s' (%s)", cl->identity, cl->name, target->name, text, allowed ? "allowed":"disallowed");
@@ -3030,17 +2996,9 @@ void process(ENetPacket *packet, int sender, int chan)
                     }
                     else
                     {
-                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', %s", cl->identity, cl->name, target->name, text, canspeech ? "SPAM detected" : "Forbidden speech");
-                        if (canspeech)
-                        {
-                            sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
-                            if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_ABUSE);
-                        }
-                        else
-                        {
-                            sendservmsg("\f3Watch your language! Your message was not delivered.", sender);
-                            kick_abuser(cl->clientnum, cl->badmillis, cl->badspeech, 3);
-                        }
+                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', SPAM detected", cl->identity, cl->name, target->name, text);
+                        sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
+                        if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_ABUSE);
                     }
                 }
             }
@@ -3107,8 +3065,17 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_ITEMPICKUP:
             {
                 int n = getint(p);
+
+                // Limit how often items can be picked up
+                int const MIN_PICKUP_INTERVAL = 400; // in milliseconds
+                int const MAX_PICKUPS_PER_MINUTE = 20; // on average
+                if((gamemillis - cl->lastpickupmillis < MIN_PICKUP_INTERVAL)
+                        || ((cl->totalpickups - 5) * 60000 / MAX_PICKUPS_PER_MINUTE > gamemillis)) break;
+
                 if(!arenaround || arenaround - gamemillis > 2000)
                 {
+                    ++cl->totalpickups;
+                    cl->lastpickupmillis = gamemillis;
                     gameevent &pickup = cl->addevent();
                     pickup.type = GE_PICKUP;
                     pickup.pickup.ent = n;
@@ -3161,26 +3128,6 @@ void process(ENetPacket *packet, int sender, int chan)
                     }
                     else if(servmillis - cl->lastprofileupdate > 10000) cl->fastprofileupdates = 0;
                     cl->lastprofileupdate = servmillis;
-
-                    switch(nickblacklist.checkwhitelist(*cl))
-                    {
-                        case NWL_PWDFAIL:
-                        case NWL_IPFAIL:
-                            logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong IP/PWD", cl->identity, cl->name);
-                            disconnect_client(sender, DISC_BADNICK);
-                            break;
-
-                        case NWL_UNLISTED:
-                        {
-                            int l = nickblacklist.checkblacklist(cl->name);
-                            if(l >= 0)
-                            {
-                                logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", cl->identity, cl->name, l);
-                                disconnect_client(sender, DISC_BADNICK);
-                            }
-                            break;
-                        }
-                    }
                 }
                 break;
             }
@@ -3820,8 +3767,6 @@ void rereadcfgs(void)
 
     maprot.read();
     ipblacklist.read();
-    nickblacklist.read();
-    forbiddenlist.read();
     passwords.read();
     killmsgs.read();
 
@@ -4374,8 +4319,6 @@ void initserver(bool dedicated, int argc, char **argv)
         maprot.next(false, true); // ensure minimum maprot length of '1'
         passwords.init(scl.pwdfile, scl.adminpasswd);
         ipblacklist.init(scl.blfile);
-        nickblacklist.init(scl.nbfile);
-        forbiddenlist.init(scl.forbidden);
         killmsgs.init(scl.killmessages);
 #ifdef STANDALONE
         if(!scl.disable_authentication)
