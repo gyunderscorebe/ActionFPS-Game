@@ -215,7 +215,6 @@
 		B914CE7111CAC42F009BA307 /* serverchecks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = serverchecks.h; sourceTree = "<group>"; };
 		B914CE7211CAC42F009BA307 /* servercontroller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = servercontroller.h; sourceTree = "<group>"; };
 		B914CE7311CAC42F009BA307 /* serverevents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = serverevents.h; sourceTree = "<group>"; };
-		B914CE7411CAC42F009BA307 /* serverfiles.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = serverfiles.h; sourceTree = "<group>"; };
 		B914CE7511CAC42F009BA307 /* serverms.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = serverms.cpp; sourceTree = "<group>"; };
 		B914CE7611CAC42F009BA307 /* shadow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = shadow.cpp; sourceTree = "<group>"; };
 		B914CE7811CAC42F009BA307 /* sound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sound.h; sourceTree = "<group>"; };
@@ -444,7 +443,6 @@
 				B914CE7111CAC42F009BA307 /* serverchecks.h */,
 				B914CE7211CAC42F009BA307 /* servercontroller.h */,
 				B914CE7311CAC42F009BA307 /* serverevents.h */,
-				B914CE7411CAC42F009BA307 /* serverfiles.h */,
 				B914CE7511CAC42F009BA307 /* serverms.cpp */,
 				B914CE7611CAC42F009BA307 /* shadow.cpp */,
 				B914CE7811CAC42F009BA307 /* sound.h */,
