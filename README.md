@@ -2,9 +2,7 @@
 
 > Game client and server for [ActionFPS](https://actionfps.com/)
 
-_[ActionFPS Portal](https://actionfps.com/)
-· [ActionFPS Documentation](https://docs.actionfps.com)
-· [Development Guide](https://docs.actionfps.com/game-development-guide.html)
+_See: [Development Guide](https://docs.actionfps.com/game-development-guide.html)
 · [Contributor Guide](https://docs.actionfps.com/contributor-guide.html)_
 
 # Quickstart
@@ -48,4 +46,4 @@ $ ./actionfps.sh
 ## Connect to a test server
 This server is synchronised with the [`master` branch](https://help.github.com/articles/github-glossary/#branch).
 
-In the game, type: `/connect woop.ac 7654` or <a href="actionfps://woop.ac:7654">Click here</a>.
+In the game, type: `/connect woop.ac 7654` or open link `actionfps://woop.ac:7654` in your browser.
