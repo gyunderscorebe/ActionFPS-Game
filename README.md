@@ -9,25 +9,43 @@ _[ActionFPS Portal](https://actionfps.com/)
 
 # Quickstart
 
-You can either Download an [automatically built development release](https://github.com/ActionFPS/ActionFPS-Game/releases),
-or run from source.
+You have two choices:
+1. Download a pre-built binary.
+2. Run from sources.
+
+## Download
+
+You have two download choices:
+* Directly from [automatically built development release](https://github.com/ActionFPS/ActionFPS-Game/releases)
+* Through [ActionFPS Play page](https://actionfps.com/play).
 
 ## Run from source
 
 ### Windows
 
-1. Install Windows Visual C++ Studio Express 2010 
-2. Open `source/vcpp/cube.vcxproj` and build "Release"
+1. Install Windows Visual C++ Studio Express 2010.
+2. Open `source/vcpp/cube.vcxproj` and build "Release".
 3. Launch `actionfps_release.bat`.
 
 ### Linux
+
+On Ubuntu or the like:
+
 ```
 $ cd source/src
 $ make install
 $ cd ../..
 $ ./actionfps.sh
 ```
+
+### Mac
+
+1. Install XCode
+2. Dependencies with [brew](http://brew.sh): `brew install openssl jq`
+3. Compile: `cd source/xcode && make && cd .. && cd ..`
+4. Run: `open source/xcode/build/Release/actionfps.dmg`.
+
 ## Connect to a test server
 This server is synchronised with the [`master` branch](https://help.github.com/articles/github-glossary/#branch).
 
-In the game, type: `/connect woop.ac 7654`
+In the game, type: `/connect woop.ac 7654` or <a href="actionfps://woop.ac:7654">Click here</a>.
