@@ -4,8 +4,8 @@
 
 _[ActionFPS Portal](https://actionfps.com/)
 · [ActionFPS Documentation](https://docs.actionfps.com)
-· [Development Guide](https://docs.actionfps.com/Portal-Development-Guide.html)
-· [Contributor Guide](https://docs.actionfps.com/Contributor-Guide.html)_
+· [Development Guide](https://docs.actionfps.com/portal-development-guide.html)
+· [Contributor Guide](https://docs.actionfps.com/contributor-guide.html)_
 
 # Quickstart
 
