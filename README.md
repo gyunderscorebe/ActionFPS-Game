@@ -13,10 +13,13 @@ You can either Download an [automatically built development release](https://git
 or run from source.
 
 ## Run from source
-### Windows
+
+### Windows
+
 1. Install Windows Visual C++ Studio Express 2010 
 2. Open `source/vcpp/cube.vcxproj` and build "Release"
 3. Launch `actionfps_release.bat`.
+
 ### Linux
 ```
 $ cd source/src
