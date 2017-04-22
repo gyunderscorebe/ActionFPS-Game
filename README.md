@@ -4,7 +4,7 @@
 
 _[ActionFPS Portal](https://actionfps.com/)
 · [ActionFPS Documentation](https://docs.actionfps.com)
-· [Development Guide](https://docs.actionfps.com/portal-development-guide.html)
+· [Development Guide](https://docs.actionfps.com/game-development-guide.html)
 · [Contributor Guide](https://docs.actionfps.com/contributor-guide.html)_
 
 # Quickstart
